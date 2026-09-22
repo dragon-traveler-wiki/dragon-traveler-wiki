@@ -4,15 +4,10 @@ import type { ChipFilterGroup } from '@/components/common/EntityFilter';
 import { createQualityFilterGroup } from '@/components/common/EntityFilterGroups';
 import ListPageHeader from '@/components/layout/ListPageHeader';
 import ExportButton from '@/components/tools/ExportButton';
-import SuggestModal, { type FieldDef } from '@/components/tools/SuggestModal';
-import {
-  GEAR_SET_FIELDS,
-  GEAR_STATS_ARRAY_FIELDS,
-} from '@/features/wiki/gear/form-fields';
+import DataCorrectionButton from '@/components/tools/DataCorrectionButton';
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import type { Character } from '@/features/characters/types';
 import { GEAR_TYPE_ORDER } from '@/constants/gear-colors';
-import { QUALITY_ORDER } from '@/constants/quality';
 import { STORAGE_KEY, PAGE_SIZE } from '@/constants/ui';
 import GearTab from '@/features/wiki/gear/components/GearTab';
 import GearSetsTab from '@/features/wiki/gear/components/GearSetsTab';
@@ -106,55 +101,6 @@ export default function GearPage() {
   const gearSetBySlug = useMemo(
     () => new Map(gearSets.map((entry) => [entry.slug, entry])),
     [gearSets],
-  );
-
-  const gearSetOptions = useMemo(
-    () =>
-      [...new Set(gearSets.map((entry) => entry.name))].sort((a, b) =>
-        a.localeCompare(b),
-      ),
-    [gearSets],
-  );
-  const gearFields = useMemo<FieldDef[]>(
-    () => [
-      {
-        name: 'name',
-        label: 'Name',
-        type: 'text',
-        required: true,
-        placeholder: 'Gear name',
-      },
-      {
-        name: 'set',
-        label: 'Set',
-        type: 'select',
-        required: true,
-        options: gearSetOptions,
-        placeholder: 'Select a gear set',
-      },
-      {
-        name: 'type',
-        label: 'Type',
-        type: 'select',
-        required: true,
-        options: GEAR_TYPE_ORDER,
-      },
-      {
-        name: 'quality',
-        label: 'Quality',
-        type: 'select',
-        required: true,
-        options: QUALITY_ORDER,
-      },
-      {
-        name: 'lore',
-        label: 'Lore',
-        type: 'textarea',
-        required: true,
-        placeholder: 'Gear lore text',
-      },
-    ],
-    [gearSetOptions],
   );
 
   const {
@@ -342,23 +288,12 @@ export default function GearPage() {
           {activeTab === 'gear-sets' ? (
             <Group gap="xs">
               <ExportButton data={gearSets} filename="gear-sets.json" />
-              <SuggestModal
-                buttonLabel="Suggest"
-                modalTitle="Suggest New Gear Set"
-                issueTitle="[Gear Set] New gear set suggestion"
-                fields={GEAR_SET_FIELDS}
-              />
+              <DataCorrectionButton entityType="gear set" />
             </Group>
           ) : activeTab === 'usage' ? null : (
             <Group gap="xs">
               <ExportButton data={gear} filename="gear.json" />
-              <SuggestModal
-                buttonLabel="Suggest"
-                modalTitle="Suggest New Gear"
-                issueTitle="[Gear] New gear suggestion"
-                fields={gearFields}
-                arrayFields={GEAR_STATS_ARRAY_FIELDS}
-              />
+              <DataCorrectionButton entityType="gear" />
             </Group>
           )}
         </ListPageHeader>

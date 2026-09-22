@@ -16,14 +16,11 @@ import ListPageHeader from '@/components/layout/ListPageHeader';
 import ListPageShell from '@/components/layout/ListPageShell';
 import { ViewModeLoading } from '@/components/layout/PageLoadingSkeleton';
 import ExportButton from '@/components/tools/ExportButton';
-import SuggestModal, {
-  type ArrayFieldDef,
-  type FieldDef,
-} from '@/components/tools/SuggestModal';
+import DataCorrectionButton from '@/components/tools/DataCorrectionButton';
 import SortableTh from '@/components/ui/SortableTh';
 import FactionTag from '@/components/ui/FactionTag';
 import QualityIcon from '@/components/ui/QualityIcon';
-import { FACTION_NAMES, FACTION_SLUGS } from '@/constants/faction-colors';
+import { FACTION_SLUGS } from '@/constants/faction-colors';
 import { QUALITY_ORDER } from '@/constants/quality';
 import { getMinWidthStyle } from '@/constants/styles';
 import { IMAGE_SIZE, STORAGE_KEY } from '@/constants/ui';
@@ -57,94 +54,6 @@ const WYRM_PHASE_COLOR: Record<WyrmPhase, string> = {
   'Growth Phase': 'yellow',
   'Final Phase': 'orange',
 };
-
-const WYRM_FIELDS: FieldDef[] = [
-  {
-    name: 'name',
-    label: 'Name',
-    type: 'text',
-    required: true,
-    placeholder: 'Wyrm name',
-  },
-  {
-    name: 'faction',
-    label: 'Faction',
-    type: 'select',
-    required: true,
-    options: FACTION_SLUGS.map((slug, i) => ({
-      value: slug,
-      label: FACTION_NAMES[i],
-    })),
-  },
-  {
-    name: 'phase',
-    label: 'Phase',
-    type: 'select',
-    required: true,
-    options: WYRM_PHASE_ORDER,
-  },
-  {
-    name: 'quality',
-    label: 'Quality',
-    type: 'select',
-    required: true,
-    options: QUALITY_ORDER,
-  },
-  {
-    name: 'description',
-    label: 'Description',
-    type: 'textarea',
-    required: true,
-    placeholder: 'Describe the wyrm',
-  },
-  {
-    name: 'battle_description',
-    label: 'Battle Description',
-    type: 'textarea',
-    placeholder: 'Describe battle effects or utility',
-  },
-  {
-    name: 'evolves_from',
-    label: 'Evolves From',
-    type: 'text',
-    placeholder: 'Previous wyrm name',
-  },
-  {
-    name: 'evolves_to',
-    label: 'Evolves To',
-    type: 'text',
-    placeholder: 'Next wyrm name',
-  },
-];
-
-const WYRM_ARRAY_FIELDS: ArrayFieldDef[] = [
-  {
-    name: 'skills',
-    label: 'Skills',
-    fields: [
-      { name: 'name', label: 'Skill Name', type: 'text', required: true },
-      {
-        name: 'description',
-        label: 'Skill Description',
-        type: 'textarea',
-        required: true,
-      },
-    ],
-  },
-  {
-    name: 'star_upgrades',
-    label: 'Star Upgrades',
-    fields: [
-      { name: 'star', label: 'Star', type: 'number', required: true },
-      {
-        name: 'description',
-        label: 'Description',
-        type: 'textarea',
-        required: true,
-      },
-    ],
-  },
-];
 
 export default function WyrmsListPage() {
   const { data: statusEffects } = useStatusEffects();
@@ -224,13 +133,7 @@ export default function WyrmsListPage() {
         <ListPageHeader title="Wyrms" timestamp={mostRecentUpdate}>
           <Group gap="xs">
             <ExportButton data={wyrms} filename="wyrms.json" />
-            <SuggestModal
-              buttonLabel="Suggest"
-              modalTitle="Suggest a New Wyrm"
-              issueTitle="[Wyrm] New wyrm suggestion"
-              fields={WYRM_FIELDS}
-              arrayFields={WYRM_ARRAY_FIELDS}
-            />
+            <DataCorrectionButton entityType="wyrm" />
           </Group>
         </ListPageHeader>
 

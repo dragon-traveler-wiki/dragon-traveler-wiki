@@ -19,13 +19,11 @@ import {
   ListPageShell,
   QualityIcon,
   SortableTh,
-  SuggestModal,
   type ChipFilterGroup,
-  type FieldDef,
 } from '@/components';
+import DataCorrectionButton from '@/components/tools/DataCorrectionButton';
 import ExportButton from '@/components/tools/ExportButton';
 import { ViewModeLoading } from '@/components/layout/PageLoadingSkeleton';
-import { QUALITY_ORDER } from '@/constants/quality';
 import {
   RESOURCE_CATEGORY_COLOR,
   RESOURCE_CATEGORY_ORDER,
@@ -44,37 +42,6 @@ import type { ResourceCategory } from '@/features/wiki/resources/types';
 import type { Quality } from '@/types/quality';
 import { createQualityFilterGroup } from '@/components/common/EntityFilterGroups';
 import { getLatestTimestamp } from '@/utils';
-
-const RESOURCE_FIELDS: FieldDef[] = [
-  {
-    name: 'name',
-    label: 'Name',
-    type: 'text',
-    required: true,
-    placeholder: 'Resource name',
-  },
-  {
-    name: 'category',
-    label: 'Category',
-    type: 'select',
-    required: true,
-    options: [...RESOURCE_CATEGORY_ORDER],
-  },
-  {
-    name: 'quality',
-    label: 'Quality',
-    type: 'select',
-    required: true,
-    options: QUALITY_ORDER,
-  },
-  {
-    name: 'description',
-    label: 'Description',
-    type: 'textarea',
-    required: true,
-    placeholder: 'Describe the resource',
-  },
-];
 
 const FILTER_GROUPS: ChipFilterGroup[] = [
   {
@@ -131,12 +98,7 @@ export default function Resources() {
         <ListPageHeader title="Resources" timestamp={mostRecentUpdate}>
           <Group gap="xs">
             <ExportButton data={resources} filename="resources.json" />
-            <SuggestModal
-              buttonLabel="Suggest"
-              modalTitle="Suggest a New Resource"
-              issueTitle="[Resource] New resource suggestion"
-              fields={RESOURCE_FIELDS}
-            />
+            <DataCorrectionButton entityType="resource" />
           </Group>
         </ListPageHeader>
 

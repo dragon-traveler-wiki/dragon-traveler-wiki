@@ -1,7 +1,6 @@
 import SafeImage from '@/components/ui/SafeImage';
 import {
   Badge,
-  Button,
   Divider,
   Group,
   Paper,
@@ -12,12 +11,12 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core';
-import { IoCreate } from 'react-icons/io5';
 import { useNavigate } from 'react-router';
 import { FACTION_WYRM_MAP } from '@/assets';
 import EntityActionButtons from '@/components/common/EntityActionButtons';
 import FactionTag from '@/components/ui/FactionTag';
 import NoResultsSuggestions from '@/components/ui/NoResultsSuggestions';
+import NoSavedItemsState from '@/components/ui/NoSavedItemsState';
 import {
   getContentTypeColor,
   normalizeContentType,
@@ -67,23 +66,12 @@ export default function TeamsSavedTab({
 
   if (savedTeams.length === 0) {
     return (
-      <Paper p="xl" radius="md" withBorder>
-        <Stack align="center" gap="sm">
-          <Text c="dimmed">No saved teams yet.</Text>
-          <Text size="xs" c="dimmed">
-            Use the &ldquo;Create Your Own&rdquo; tab to build and save a team.
-          </Text>
-          <Button
-            variant="light"
-            color={accent.primary}
-            size="sm"
-            leftSection={<IoCreate size={16} />}
-            onClick={onGoToBuilder}
-          >
-            Go to Builder
-          </Button>
-        </Stack>
-      </Paper>
+      <NoSavedItemsState
+        title="No saved teams yet"
+        description={`Use the "Create Your Own" tab to build and save a team.`}
+        actionLabel="Go to Builder"
+        onAction={onGoToBuilder}
+      />
     );
   }
 

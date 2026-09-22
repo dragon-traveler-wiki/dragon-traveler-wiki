@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { CommunityAuthProvider } from './features/community/auth-context';
 import LegacySlugStorageMigration from './components/common/LegacySlugStorageMigration';
 import {
   BannerProvider,
@@ -15,25 +16,27 @@ import {
 
 export default function AppProviders({ children }: { children: ReactNode }) {
   return (
-    <LocaleProvider>
-      <LegacySlugStorageMigration />
-      <ResourcesProvider>
-        <TierListReferenceProvider>
-          <GradientThemeProvider>
-            <UiOpacityProvider>
-              <FavoriteIllustrationsProvider>
-                <BannerProvider>
-                  <CharacterSkinProvider>
-                    <CharacterOwnershipProvider>
-                      <NavLayoutProvider>{children}</NavLayoutProvider>
-                    </CharacterOwnershipProvider>
-                  </CharacterSkinProvider>
-                </BannerProvider>
-              </FavoriteIllustrationsProvider>
-            </UiOpacityProvider>
-          </GradientThemeProvider>
-        </TierListReferenceProvider>
-      </ResourcesProvider>
-    </LocaleProvider>
+    <CommunityAuthProvider>
+      <LocaleProvider>
+        <LegacySlugStorageMigration />
+        <ResourcesProvider>
+          <TierListReferenceProvider>
+            <GradientThemeProvider>
+              <UiOpacityProvider>
+                <FavoriteIllustrationsProvider>
+                  <BannerProvider>
+                    <CharacterSkinProvider>
+                      <CharacterOwnershipProvider>
+                        <NavLayoutProvider>{children}</NavLayoutProvider>
+                      </CharacterOwnershipProvider>
+                    </CharacterSkinProvider>
+                  </BannerProvider>
+                </FavoriteIllustrationsProvider>
+              </UiOpacityProvider>
+            </GradientThemeProvider>
+          </TierListReferenceProvider>
+        </ResourcesProvider>
+      </LocaleProvider>
+    </CommunityAuthProvider>
   );
 }

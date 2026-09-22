@@ -4,8 +4,7 @@ import { createQualityFilterGroup } from '@/components/common/EntityFilterGroups
 import SafeImage from '@/components/ui/SafeImage';
 import ListPageHeader from '@/components/layout/ListPageHeader';
 import ExportButton from '@/components/tools/ExportButton';
-import SuggestModal from '@/components/tools/SuggestModal';
-import { RELIC_FIELDS } from '@/features/wiki/relics/form-fields';
+import DataCorrectionButton from '@/components/tools/DataCorrectionButton';
 import { RELIC_TYPE_ORDER } from '@/constants/relic-colors';
 import { IMAGE_SIZE, PAGE_SIZE, STORAGE_KEY } from '@/constants/ui';
 import RelicsTab from '@/features/wiki/relics/components/RelicsTab';
@@ -165,12 +164,7 @@ export default function RelicPage() {
         <ListPageHeader title="Relics" timestamp={mostRecentUpdate}>
           <Group gap="xs">
             <ExportButton data={relics} filename="relic.json" />
-            <SuggestModal
-              buttonLabel="Suggest"
-              modalTitle="Suggest New Relic"
-              issueTitle="[Relic] New relic suggestion"
-              fields={RELIC_FIELDS}
-            />
+            <DataCorrectionButton entityType="relic" />
           </Group>
         </ListPageHeader>
 

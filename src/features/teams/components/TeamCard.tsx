@@ -14,6 +14,7 @@ import { FACTION_WYRM_MAP } from '@/assets';
 import FactionTag from '@/components/ui/FactionTag';
 import { InteractiveSurface, StaticSurface } from '@/components/ui/Surface';
 import { FACTION_COLOR } from '@/constants/faction-colors';
+import { getDisplayAuthor } from '@/features/community/display-author';
 import {
   getContentTypeColor,
   normalizeContentType,
@@ -48,6 +49,8 @@ export default function TeamCard({
   const isLargeTeamCardLayout = useMediaQuery('(min-width: 75em)');
 
   const borderTopStyle = `3px solid var(--mantine-color-${FACTION_COLOR[team.faction] ?? accent.primary}-5)`;
+
+  const displayAuthor = getDisplayAuthor(team);
 
   const Surface = onNavigate ? InteractiveSurface : StaticSurface;
   const surfaceProps = onNavigate
@@ -115,19 +118,19 @@ export default function TeamCard({
         </Group>
 
         {/* Author + description */}
-        {(team.author || team.description) && (
+        {(displayAuthor || team.description) && (
           <Text size="xs" c="dimmed" lineClamp={1}>
-            {team.author && (
+            {displayAuthor && (
               <>
                 by{' '}
                 <Text span className="dt-link-text" fw={500} inherit>
-                  {team.author}
+                  {displayAuthor}
                 </Text>
               </>
             )}
             {team.description && (
               <Text span inherit>
-                {team.author ? ' · ' : ''}
+                {displayAuthor ? ' · ' : ''}
                 {team.description}
               </Text>
             )}

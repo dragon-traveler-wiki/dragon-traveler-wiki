@@ -43,6 +43,8 @@ const TierList = lazy(() => import('@/pages/tier-list/Page'));
 const Teams = lazy(() => import('@/pages/teams/ListPage'));
 const TeamPage = lazy(() => import('@/pages/teams/TeamPage'));
 const SavedTeamPage = lazy(() => import('@/pages/teams/SavedTeamPage'));
+const AccountPage = lazy(() => import('@/pages/account/Page'));
+const ModerationPage = lazy(() => import('@/pages/moderation/Page'));
 const Codes = lazy(() => import('@/pages/codes/Page'));
 const Events = lazy(() => import('@/pages/events/Page'));
 const UsefulLinks = lazy(() => import('@/pages/useful-links/Page'));
@@ -404,6 +406,8 @@ export default function AppRoutes() {
         <Route path={ROUTE_PATH.teams} element={<Teams />} />
         <Route path={ROUTE_PATH.savedTeam} element={<SavedTeamPage />} />
         <Route path={ROUTE_PATH.teamDetail} element={<TeamPage />} />
+        <Route path={ROUTE_PATH.account} element={<AccountPage />} />
+        <Route path={ROUTE_PATH.moderation} element={<ModerationPage />} />
         <Route path={ROUTE_PATH.codes} element={<Codes />} />
         <Route path={ROUTE_PATH.events} element={<Events />} />
         <Route path={ROUTE_PATH.usefulLinks} element={<UsefulLinks />} />

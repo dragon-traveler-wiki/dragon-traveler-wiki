@@ -1,6 +1,7 @@
 import LastUpdated from '@/components/common/LastUpdated';
 import CharacterTag from '@/features/characters/components/CharacterTag';
 import ClassTag from '@/components/ui/ClassTag';
+import { getDisplayAuthor } from '@/features/community/display-author';
 import CollapsibleSectionCard from '@/components/ui/CollapsibleSectionCard';
 import FactionTag from '@/components/ui/FactionTag';
 import QualityIcon from '@/components/ui/QualityIcon';
@@ -48,6 +49,7 @@ export default function TierListContent({
   entityFilter,
   disableNameClamp = false,
 }: TierListContentProps) {
+  const displayAuthor = getDisplayAuthor(tierList);
   const tierOrder = tierList.tiers?.map((tier) => tier.name) ?? TIER_ORDER;
   const definedTierSet = new Set(tierOrder);
   const extraTiers = [
@@ -79,11 +81,11 @@ export default function TierListContent({
           >
             {normalizeContentType(tierList.content_type, 'All')}
           </Badge>
-          {tierList.author && (
+          {displayAuthor && (
             <Text size="sm" c="dimmed">
               by{' '}
               <Text span className="dt-link-text" inherit fw={600}>
-                {tierList.author}
+                {displayAuthor}
               </Text>
             </Text>
           )}

@@ -2,6 +2,7 @@ import type { ContentType } from '@/constants/content-types';
 import type { Character } from '@/features/characters/types';
 import type { NoblePhantasm } from '@/features/wiki/noble-phantasms/types';
 import type { Quality } from '@/types/quality';
+import type { CommunityMeta } from '@/features/community/types';
 
 export type Tier = string;
 export type TierListEntityType = 'character' | 'noble_phantasm';
@@ -38,6 +39,7 @@ export interface TierList {
   tiers?: TierDefinition[];
   entries: TierEntry[];
   last_updated: number;
+  community?: CommunityMeta;
 }
 
 export interface TierListRankableEntity {

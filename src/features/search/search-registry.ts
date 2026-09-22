@@ -19,6 +19,7 @@ import {
 import { FACTION_SLUG_TO_NAME } from '@/types/faction';
 import { isCodeActive } from '@/utils';
 import { toEntitySlug } from '@/utils/entity-slug';
+import { getTeamRoutePath } from '@/features/teams/utils/team-route';
 import { isGameEventActive } from '@/utils/event-utils';
 import Fuse, { type IFuseOptions } from 'fuse.js';
 import type { IconType } from 'react-icons';
@@ -256,7 +257,7 @@ export function buildSearchRegistry(
         type: 'team',
         title: team.name,
         subtitle: `${team.members.length} characters`,
-        path: `/teams/${toEntitySlug(team.name)}`,
+        path: getTeamRoutePath(team),
         icon: IoPeopleOutline,
         color: 'green',
       }),

@@ -1,8 +1,4 @@
-import {
-  buildEmptyIssueBody,
-  GITHUB_REPO_URL,
-  MAX_GITHUB_ISSUE_URL_LENGTH,
-} from '@/constants/github';
+import { GITHUB_REPO_URL } from '@/constants/github';
 
 export function buildExpiredCodeUrl(code: string): string {
   const params = new URLSearchParams({
@@ -30,34 +26,4 @@ export function buildIssueUrl({
     ...(labels ? { labels } : {}),
   });
   return `${GITHUB_REPO_URL}/issues/new?${params.toString()}`;
-}
-
-interface BuildSuggestionIssueUrlsOptions {
-  title: string;
-  json: string;
-  entityType: string;
-  labels?: string;
-}
-
-export function buildSuggestionIssueUrls({
-  title,
-  json,
-  entityType,
-  labels,
-}: BuildSuggestionIssueUrlsOptions): {
-  issueUrl: string | null;
-  emptyIssueUrl: string;
-} {
-  const body = `**Paste your JSON below:**\n\n\`\`\`json\n${json}\n\`\`\`\n`;
-  const issueUrl = buildIssueUrl({ title, body, labels });
-  const emptyIssueUrl = buildIssueUrl({
-    title,
-    body: buildEmptyIssueBody(entityType),
-    labels,
-  });
-
-  return {
-    issueUrl: issueUrl.length > MAX_GITHUB_ISSUE_URL_LENGTH ? null : issueUrl,
-    emptyIssueUrl,
-  };
 }

@@ -11,7 +11,7 @@ type CompactSize =
   | 'compact-xl';
 
 interface EntityActionButtonsProps {
-  onEdit: () => void;
+  onEdit?: () => void;
   onDelete?: () => void;
   onExport?: () => void;
   isExporting?: boolean;
@@ -59,15 +59,17 @@ export default function EntityActionButtons({
 
   return (
     <>
-      <Button
-        variant={variant}
-        size={size}
-        color={accent.primary}
-        leftSection={<IoCreate size={iconSize} />}
-        onClick={withStopPropagation(onEdit)}
-      >
-        {editLabel}
-      </Button>
+      {onEdit && (
+        <Button
+          variant={variant}
+          size={size}
+          color={accent.primary}
+          leftSection={<IoCreate size={iconSize} />}
+          onClick={withStopPropagation(onEdit)}
+        >
+          {editLabel}
+        </Button>
+      )}
 
       {onExport && (
         <Button

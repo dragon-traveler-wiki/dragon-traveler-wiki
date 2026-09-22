@@ -7,7 +7,7 @@ test('dataPath separates localized and global datasets', () => {
     dataPath('characters.json', 'jaJP'),
     'data/jaJP/characters.json',
   );
-  assert.equal(dataPath('teams.json', 'jaJP'), 'data/global/teams.json');
+  assert.equal(dataPath('events.json', 'jaJP'), 'data/global/events.json');
 });
 
 test('changesPath mirrors localized and global dataset layout', () => {

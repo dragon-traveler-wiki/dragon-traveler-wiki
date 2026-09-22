@@ -2,13 +2,12 @@ import { Container, Group, Stack, Tabs } from '@mantine/core';
 import { useMemo } from 'react';
 import ListPageHeader from '@/components/layout/ListPageHeader';
 import ExportButton from '@/components/tools/ExportButton';
-import SuggestModal from '@/components/tools/SuggestModal';
+import DataCorrectionButton from '@/components/tools/DataCorrectionButton';
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import NoblePhantasmCatalogTab from '@/features/wiki/noble-phantasms/components/NoblePhantasmCatalogTab';
 import NoblePhantasmUsageTab from '@/features/wiki/noble-phantasms/components/NoblePhantasmUsageTab';
 import { useNoblePhantasmCatalog } from '@/features/wiki/noble-phantasms/hooks/use-noble-phantasm-catalog';
 import { useNoblePhantasmCharacterIndex } from '@/features/wiki/noble-phantasms/hooks/use-noble-phantasm-character-index';
-import { useNoblePhantasmFormFields } from '@/features/wiki/noble-phantasms/hooks/use-noble-phantasm-form-fields';
 import { useNoblePhantasmUsage } from '@/features/wiki/noble-phantasms/hooks/use-noble-phantasm-usage';
 import {
   useNoblePhantasms,
@@ -45,7 +44,6 @@ export default function NoblePhantasms() {
     characterIndex.byIdentity,
     characterIndex.names,
   );
-  const formFields = useNoblePhantasmFormFields(characters);
   const mostRecentUpdate = useMemo(
     () => getLatestTimestamp(noblePhantasms),
     [noblePhantasms],
@@ -61,12 +59,7 @@ export default function NoblePhantasms() {
                 data={noblePhantasms}
                 filename="noble-phantasm.json"
               />
-              <SuggestModal
-                buttonLabel="Suggest"
-                modalTitle="Suggest a New Noble Phantasm"
-                issueTitle="[Noble Phantasm] New noble phantasm suggestion"
-                fields={formFields}
-              />
+              <DataCorrectionButton entityType="noble phantasm" />
             </Group>
           )}
         </ListPageHeader>

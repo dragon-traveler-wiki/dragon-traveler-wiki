@@ -9,7 +9,7 @@ import { StaticSurface } from '@/components/ui/Surface';
 import type { Character } from '@/features/characters/types';
 import type { FactionSlug } from '@/types/faction';
 import type { Team, TeamMemberPosition } from '@/features/teams/types';
-import { toEntitySlug } from '@/utils/entity-slug';
+import { getTeamRoutePath } from '@/features/teams/utils/team-route';
 import {
   getTeamBenchEntryName,
   getTeamBenchEntryNote,
@@ -27,6 +27,7 @@ interface CharacterReferenceSectionProps {
 
 interface TeamInclusion {
   teamName: string;
+  teamPath: string;
   role: 'Main' | 'Bench';
   faction: FactionSlug;
   contentType: string;
@@ -84,6 +85,7 @@ export default function CharacterReferenceSection({
       if (member) {
         results.push({
           teamName: team.name,
+          teamPath: getTeamRoutePath(team),
           role: 'Main',
           faction: team.faction,
           contentType: normalizeContentType(team.content_type, 'All'),
@@ -108,6 +110,7 @@ export default function CharacterReferenceSection({
         const benchNote = getTeamBenchEntryNote(benchEntry) ?? null;
         results.push({
           teamName: team.name,
+          teamPath: getTeamRoutePath(team),
           role: 'Bench',
           faction: team.faction,
           contentType: normalizeContentType(team.content_type, 'All'),
@@ -197,7 +200,7 @@ export default function CharacterReferenceSection({
                         gap="xs"
                       >
                         <Link
-                          to={`/teams/${toEntitySlug(entry.teamName)}`}
+                          to={entry.teamPath}
                           style={{ textDecoration: 'none' }}
                         >
                           <Text fw={600} size="sm" className="dt-link-text">

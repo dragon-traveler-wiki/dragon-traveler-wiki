@@ -1,5 +1,6 @@
 import ChangeHistory from '@/components/common/ChangeHistory';
 import EntityActionButtons from '@/components/common/EntityActionButtons';
+import CommunityActions from '@/features/community/CommunityActions';
 import CollapsibleSectionCard from '@/components/ui/CollapsibleSectionCard';
 import NoResultsSuggestions from '@/components/ui/NoResultsSuggestions';
 import { CHARACTER_GRID_SPACING } from '@/constants/ui';
@@ -13,10 +14,12 @@ import {
   type TierList as TierListType,
 } from '@/features/tier-list/types';
 import type { NoblePhantasm } from '@/features/wiki/noble-phantasms/types';
-import { useEntityTabParam, useIsMobile } from '@/hooks';
+import { useEntityTabParam } from '@/hooks';
 import type { ChangesFile } from '@/types/changes';
+import { useMemo } from 'react';
 import {
   Badge,
+  Group,
   ScrollArea,
   SimpleGrid,
   Stack,
@@ -59,10 +62,16 @@ export default function TierListViewTab({
   entityFilter,
   hasEntityFilters,
 }: TierListViewTabProps) {
-  const isMobile = useIsMobile();
-  const [activeTierListName, handleSelectTierList] = useEntityTabParam(
+  const tabItems = useMemo(
+    () =>
+      visibleTierLists.map((tierList) => ({
+        name: tierList.community?.id ?? tierList.name,
+      })),
+    [visibleTierLists],
+  );
+  const [activeTierListKey, handleSelectTierList] = useEntityTabParam(
     'list',
-    visibleTierLists,
+    tabItems,
   );
 
   if (visibleTierLists.length === 0) {
@@ -77,13 +86,13 @@ export default function TierListViewTab({
   }
 
   return (
-    <Tabs value={activeTierListName} onChange={handleSelectTierList}>
+    <Tabs value={activeTierListKey} onChange={handleSelectTierList}>
       <ScrollArea type="auto" scrollbarSize={5} offsetScrollbars>
         <Tabs.List style={{ flexWrap: 'nowrap', minWidth: 'max-content' }}>
           {visibleTierLists.map((tierList) => (
             <Tabs.Tab
-              key={tierList.name}
-              value={tierList.name}
+              key={tierList.community?.id ?? tierList.name}
+              value={tierList.community?.id ?? tierList.name}
               style={{ minHeight: 40 }}
             >
               {tierList.name}
@@ -117,18 +126,38 @@ export default function TierListViewTab({
             !rankedKeys.has(entity.key) &&
             (!hasEntityFilters || entityFilter(entity)),
         );
+        const isOwned = Boolean(tierList.community?.viewerOwns);
         const headerActions = (
-          <EntityActionButtons
-            onEdit={() => onRequestEdit(tierList)}
-            onExport={() => onRequestExport(tierList.name)}
-            isExporting={isExporting === tierList.name}
-            size={isMobile ? 'xs' : 'compact-xs'}
-            variant="light"
-          />
+          <Group gap="xs">
+            <EntityActionButtons
+              onEdit={
+                isOwned
+                  ? undefined
+                  : () =>
+                      onRequestEdit({ ...tierList, community: undefined })
+              }
+              editLabel="Remix"
+              onExport={() => onRequestExport(tierList.name)}
+              isExporting={isExporting === tierList.name}
+              size="compact-xs"
+              variant="subtle"
+            />
+            {tierList.community && (
+              <CommunityActions
+                community={tierList.community}
+                onEdit={() => onRequestEdit(tierList)}
+                onDeleted={() => window.location.reload()}
+              />
+            )}
+          </Group>
         );
 
         return (
-          <Tabs.Panel key={tierList.name} value={tierList.name} pt="md">
+          <Tabs.Panel
+            key={tierList.community?.id ?? tierList.name}
+            value={tierList.community?.id ?? tierList.name}
+            pt="md"
+          >
             <Stack gap="md">
               <TierListContent
                 tierList={tierList}

@@ -1,6 +1,7 @@
 import type { ContentType } from '@/constants/content-types';
 import type { FactionSlug } from '@/types/faction';
 import type { Quality } from '@/types/quality';
+import type { CommunityMeta } from '@/features/community/types';
 
 export interface TeamMemberPosition {
   row: number; // 0 = Front, 1 = Middle, 2 = Back
@@ -38,4 +39,5 @@ export interface Team {
   bench?: TeamBenchMember[];
   wyrmspells?: TeamWyrmspells;
   last_updated: number;
+  community?: CommunityMeta;
 }

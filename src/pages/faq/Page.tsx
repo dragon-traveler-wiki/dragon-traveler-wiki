@@ -246,11 +246,10 @@ const FAQ_SECTIONS: FAQSection[] = [
         question: 'Can I suggest edits or report incorrect data?',
         answer: (
           <>
-            Yes. Visit{' '}
-            <Anchor component={Link} to="/toolbox/useful-links">
-              Useful Links
-            </Anchor>{' '}
-            for project/community channels to submit corrections and additions.
+            Use the Report issue button on mined catalog pages for corrections.
+            Codes and useful links still accept suggestions. Signed-in users can
+            publish teams and tier lists directly from their builders and report
+            community posts in place.
           </>
         ),
         icon: IoLinkOutline,

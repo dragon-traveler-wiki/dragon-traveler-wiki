@@ -13,7 +13,8 @@ import {
 } from '@mantine/core';
 import { Link, useNavigate } from 'react-router';
 import { FACTION_WYRM_MAP } from '@/assets';
-import EntityActionButtons from '@/components/common/EntityActionButtons';
+import CommunityActions from '@/features/community/CommunityActions';
+import { getDisplayAuthor } from '@/features/community/display-author';
 import FactionTag from '@/components/ui/FactionTag';
 import NoResultsSuggestions from '@/components/ui/NoResultsSuggestions';
 import PaginationControl from '@/components/ui/PaginationControl';
@@ -25,7 +26,7 @@ import { CURSOR_POINTER_STYLE, getMinWidthStyle } from '@/constants/styles';
 import type { Character } from '@/features/characters/types';
 import { FACTION_SLUG_TO_NAME } from '@/types/faction';
 import type { Team } from '@/features/teams/types';
-import { toEntitySlug } from '@/utils/entity-slug';
+import { getTeamRoutePath } from '@/features/teams/utils/team-route';
 import {
   getTeamBenchEntryName,
   getTeamBenchEntryQuality,
@@ -91,18 +92,19 @@ export default function TeamsViewTab({
         <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
           {paginatedTeams.map((team) => (
             <TeamCard
-              key={team.name}
+              key={team.community?.id ?? team.name}
               team={team}
               charMap={charMap}
               characterByIdentity={characterByIdentity}
-              onNavigate={() => navigate(`/teams/${toEntitySlug(team.name)}`)}
+              onNavigate={() => navigate(getTeamRoutePath(team))}
               actions={
-                <EntityActionButtons
-                  onEdit={() => onRequestEdit(team)}
-                  size="compact-xs"
-                  variant="subtle"
-                  stopPropagation
-                />
+                team.community ? (
+                  <CommunityActions
+                    community={team.community}
+                    onEdit={() => onRequestEdit(team)}
+                    onDeleted={() => window.location.reload()}
+                  />
+                ) : null
               }
             />
           ))}
@@ -124,11 +126,9 @@ export default function TeamsViewTab({
               {paginatedTeams.map((team) => {
                 return (
                   <Table.Tr
-                    key={team.name}
+                    key={team.community?.id ?? team.name}
                     style={CURSOR_POINTER_STYLE}
-                    onClick={() =>
-                      navigate(`/teams/${toEntitySlug(team.name)}`)
-                    }
+                    onClick={() => navigate(getTeamRoutePath(team))}
                   >
                     <Table.Td>
                       <Group gap="sm" wrap="nowrap">
@@ -141,7 +141,7 @@ export default function TeamsViewTab({
                         />
                         <Text
                           component={Link}
-                          to={`/teams/${toEntitySlug(team.name)}`}
+                          to={getTeamRoutePath(team)}
                           size="sm"
                           fw={500}
                           className="dt-link-text"
@@ -236,17 +236,18 @@ export default function TeamsViewTab({
                     </Table.Td>
                     <Table.Td>
                       <Text size="sm" className="dt-link-text">
-                        {team.author}
+                        {getDisplayAuthor(team)}
                       </Text>
                     </Table.Td>
                     <Table.Td>
                       <Group gap={4} wrap="nowrap">
-                        <EntityActionButtons
-                          onEdit={() => onRequestEdit(team)}
-                          size="compact-xs"
-                          variant="subtle"
-                          stopPropagation
-                        />
+                        {team.community && (
+                          <CommunityActions
+                            community={team.community}
+                            onEdit={() => onRequestEdit(team)}
+                            onDeleted={() => window.location.reload()}
+                          />
+                        )}
                       </Group>
                     </Table.Td>
                   </Table.Tr>

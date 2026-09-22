@@ -31,6 +31,7 @@ interface BuilderToolbarProps {
   onSave: () => void;
   onExport: () => void;
   onSubmit: () => void;
+  submitLabel?: string;
   onClear: () => void;
   additionalPrimaryActions?: BuilderToolbarAction[];
   trailingContent?: ReactNode;
@@ -87,6 +88,7 @@ export default function BuilderToolbar({
   onSave,
   onExport,
   onSubmit,
+  submitLabel = 'Publish',
   onClear,
   additionalPrimaryActions = [],
   trailingContent,
@@ -119,7 +121,7 @@ export default function BuilderToolbar({
       loading: isCapturing,
     },
     {
-      label: 'Submit Suggestion',
+      label: submitLabel,
       icon: IoOpenOutline,
       onClick: onSubmit,
       disabled: !hasContent,

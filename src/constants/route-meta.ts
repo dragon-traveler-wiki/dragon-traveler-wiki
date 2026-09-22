@@ -287,8 +287,18 @@ export const ROUTE_CATALOG = [
     },
   },
   {
+    id: 'savedTeam',
+    pattern: '/teams/saved/:teamSlug',
+    kind: 'detail',
+    meta: {
+      title: 'Saved Team',
+      description:
+        'View a saved custom team with member roles, substitutes, and faction context.',
+    },
+  },
+  {
     id: 'teamDetail',
-    pattern: '/teams/:teamName',
+    pattern: '/teams/:teamId/:teamSlug',
     kind: 'detail',
     meta: {
       title: 'Team Details',
@@ -297,13 +307,19 @@ export const ROUTE_CATALOG = [
     },
   },
   {
-    id: 'savedTeam',
-    pattern: '/teams/saved/:teamSlug',
-    kind: 'detail',
+    id: 'account',
+    pattern: '/account',
     meta: {
-      title: 'Saved Team',
-      description:
-        'View a saved custom team with member roles, substitutes, and faction context.',
+      title: 'Account',
+      description: 'Manage linked identities and community publications.',
+    },
+  },
+  {
+    id: 'moderation',
+    pattern: '/moderation',
+    meta: {
+      title: 'Moderation',
+      description: 'Review reported community teams and tier lists.',
     },
   },
   {

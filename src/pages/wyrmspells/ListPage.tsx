@@ -15,9 +15,9 @@ import ListPageHeader from '@/components/layout/ListPageHeader';
 import ListPageShell from '@/components/layout/ListPageShell';
 import { ViewModeLoading } from '@/components/layout/PageLoadingSkeleton';
 import ExportButton from '@/components/tools/ExportButton';
-import SuggestModal, { type FieldDef } from '@/components/tools/SuggestModal';
+import DataCorrectionButton from '@/components/tools/DataCorrectionButton';
 import SortableTh from '@/components/ui/SortableTh';
-import { FACTION_NAMES, FACTION_SLUGS } from '@/constants/faction-colors';
+import { FACTION_SLUGS } from '@/constants/faction-colors';
 import { QUALITY_ORDER } from '@/constants/quality';
 import { LINK_BLOCK_RESET_STYLE, getMinWidthStyle } from '@/constants/styles';
 import { InteractiveSurface } from '@/components/ui/Surface';
@@ -49,46 +49,6 @@ import {
 } from '@mantine/core';
 import { useMemo } from 'react';
 import { Link } from 'react-router';
-
-const WYRMSPELL_FIELDS: FieldDef[] = [
-  {
-    name: 'name',
-    label: 'Name',
-    type: 'text',
-    required: true,
-    placeholder: 'Wyrmspell name',
-  },
-  {
-    name: 'type',
-    label: 'Type',
-    type: 'select',
-    required: true,
-    options: WYRMSPELL_TYPE_FILTER_ORDER,
-  },
-  {
-    name: 'quality',
-    label: 'Max Quality',
-    type: 'select',
-    required: true,
-    options: ['UR', 'SSR'],
-  },
-  {
-    name: 'effect',
-    label: 'Effect (Max Quality)',
-    type: 'textarea',
-    required: true,
-    placeholder: 'Describe the effect at max quality',
-  },
-  {
-    name: 'exclusive_faction',
-    label: 'Exclusive Faction (optional)',
-    type: 'select',
-    options: FACTION_SLUGS.map((slug, i) => ({
-      value: slug,
-      label: FACTION_NAMES[i],
-    })),
-  },
-];
 
 export default function Wyrmspells() {
   const { data: statusEffects } = useStatusEffects();
@@ -219,12 +179,7 @@ export default function Wyrmspells() {
         <ListPageHeader title="Wyrmspells" timestamp={mostRecentUpdate}>
           <Group gap="xs">
             <ExportButton data={wyrmspells} filename="wyrmspells.json" />
-            <SuggestModal
-              buttonLabel="Suggest"
-              modalTitle="Suggest a New Wyrmspell"
-              issueTitle="[Wyrmspell] New wyrmspell suggestion"
-              fields={WYRMSPELL_FIELDS}
-            />
+            <DataCorrectionButton entityType="wyrmspell" />
           </Group>
         </ListPageHeader>
 

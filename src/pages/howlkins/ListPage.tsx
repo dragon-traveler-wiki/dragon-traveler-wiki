@@ -5,13 +5,7 @@ import {
 } from '@/components/common/EntityFilterGroups';
 import ListPageHeader from '@/components/layout/ListPageHeader';
 import ExportButton from '@/components/tools/ExportButton';
-import SuggestModal from '@/components/tools/SuggestModal';
-import {
-  GOLDEN_ALLIANCE_EFFECTS_FIELDS,
-  GOLDEN_ALLIANCE_FIELDS,
-  HOWLKIN_FIELDS,
-  HOWLKIN_STATS_FIELDS,
-} from '@/features/wiki/howlkins/form-fields';
+import DataCorrectionButton from '@/components/tools/DataCorrectionButton';
 import { QUALITY_ORDER } from '@/constants/quality';
 import { PAGE_SIZE, STORAGE_KEY } from '@/constants/ui';
 
@@ -175,24 +169,12 @@ export default function Howlkins() {
                 data={goldenAlliances}
                 filename="golden-alliances.json"
               />
-              <SuggestModal
-                buttonLabel="Suggest"
-                modalTitle="Suggest a New Golden Alliance"
-                issueTitle="[Golden Alliance] New golden alliance suggestion"
-                fields={GOLDEN_ALLIANCE_FIELDS}
-                arrayFields={GOLDEN_ALLIANCE_EFFECTS_FIELDS}
-              />
+              <DataCorrectionButton entityType="golden alliance" />
             </Group>
           ) : (
             <Group gap="xs">
               <ExportButton data={howlkins} filename="howlkins.json" />
-              <SuggestModal
-                buttonLabel="Suggest"
-                modalTitle="Suggest a New Howlkin"
-                issueTitle="[Howlkin] New howlkin suggestion"
-                fields={HOWLKIN_FIELDS}
-                arrayFields={HOWLKIN_STATS_FIELDS}
-              />
+              <DataCorrectionButton entityType="howlkin" />
             </Group>
           )}
         </ListPageHeader>

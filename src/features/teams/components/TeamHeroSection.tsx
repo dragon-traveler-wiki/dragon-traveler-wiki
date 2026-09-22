@@ -5,6 +5,7 @@ import LastUpdated from '@/components/common/LastUpdated';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
 import RichText from '@/components/common/RichText';
 import { FACTION_COLOR } from '@/constants/faction-colors';
+import { getDisplayAuthor } from '@/features/community/display-author';
 import {
   getContentTypeColor,
   normalizeContentType,
@@ -66,6 +67,7 @@ export function TeamHeroSection({
 }) {
   const { accent } = useGradientAccent();
   const factionColor = FACTION_COLOR[team.faction];
+  const displayAuthor = getDisplayAuthor(team);
 
   return (
     <Box style={DETAIL_HERO_WRAPPER_STYLES}>
@@ -124,12 +126,14 @@ export function TeamHeroSection({
                 {team.name}
               </Title>
               <Group gap="sm" align="center">
-                <Text size="sm" c="dimmed">
-                  by{' '}
-                  <Text span className="dt-link-text" inherit>
-                    {team.author}
+                {displayAuthor && (
+                  <Text size="sm" c="dimmed">
+                    by{' '}
+                    <Text span className="dt-link-text" inherit>
+                      {displayAuthor}
+                    </Text>
                   </Text>
-                </Text>
+                )}
                 <LastUpdated timestamp={team.last_updated} />
               </Group>
               <Group gap="sm" mt={4}>

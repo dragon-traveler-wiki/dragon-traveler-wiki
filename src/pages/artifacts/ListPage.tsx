@@ -11,13 +11,9 @@ import ListPageHeader from '@/components/layout/ListPageHeader';
 import ListPageShell from '@/components/layout/ListPageShell';
 import { ViewModeLoading } from '@/components/layout/PageLoadingSkeleton';
 import ExportButton from '@/components/tools/ExportButton';
-import SuggestModal from '@/components/tools/SuggestModal';
+import DataCorrectionButton from '@/components/tools/DataCorrectionButton';
 import RichText from '@/components/common/RichText';
 import SortableTh from '@/components/ui/SortableTh';
-import {
-  ARTIFACT_EFFECT_ARRAY_FIELDS,
-  ARTIFACT_FIELDS,
-} from '@/features/wiki/artifacts/form-fields';
 import {
   compareArtifacts,
   EMPTY_ARTIFACT_FILTERS,
@@ -111,13 +107,7 @@ export default function Artifacts() {
         <ListPageHeader title="Artifacts" timestamp={mostRecentUpdate}>
           <Group gap="xs">
             <ExportButton data={artifacts} filename="artifacts.json" />
-            <SuggestModal
-              buttonLabel="Suggest"
-              modalTitle="Suggest a New Artifact"
-              issueTitle="[Artifact] New artifact suggestion"
-              fields={ARTIFACT_FIELDS}
-              arrayFields={ARTIFACT_EFFECT_ARRAY_FIELDS}
-            />
+            <DataCorrectionButton entityType="artifact" />
           </Group>
         </ListPageHeader>
 

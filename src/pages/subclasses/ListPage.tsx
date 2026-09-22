@@ -2,11 +2,10 @@ import { Container, Group, Stack, Tabs } from '@mantine/core';
 import { useMemo } from 'react';
 import ListPageHeader from '@/components/layout/ListPageHeader';
 import ExportButton from '@/components/tools/ExportButton';
-import SuggestModal from '@/components/tools/SuggestModal';
+import DataCorrectionButton from '@/components/tools/DataCorrectionButton';
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import SubclassCatalogTab from '@/features/wiki/subclasses/components/SubclassCatalogTab';
 import SubclassUsageTab from '@/features/wiki/subclasses/components/SubclassUsageTab';
-import { SUBCLASS_FIELDS } from '@/features/wiki/subclasses/form-fields';
 import { useSubclassCatalog } from '@/features/wiki/subclasses/hooks/use-subclass-catalog';
 import { useSubclassUsage } from '@/features/wiki/subclasses/hooks/use-subclass-usage';
 import {
@@ -46,12 +45,7 @@ export default function Subclasses() {
           {activeTab !== 'usage' && (
             <Group gap="xs">
               <ExportButton data={subclasses} filename="subclasses.json" />
-              <SuggestModal
-                buttonLabel="Suggest"
-                modalTitle="Suggest a New Subclass"
-                issueTitle="[Subclass] New subclass suggestion"
-                fields={SUBCLASS_FIELDS}
-              />
+              <DataCorrectionButton entityType="subclass" />
             </Group>
           )}
         </ListPageHeader>

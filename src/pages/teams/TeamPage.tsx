@@ -28,18 +28,17 @@ import {
   useGradientAccent,
   useMobileTooltip,
 } from '@/hooks';
-import {
-  findEntityByParam,
-  shouldRedirectToEntitySlug,
-  toEntitySlug,
-} from '@/utils/entity-slug';
+import { getTeamRoutePath } from '@/features/teams/utils/team-route';
 import { Box, Container } from '@mantine/core';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
 export default function TeamPage() {
   const tooltipProps = useMobileTooltip();
-  const { teamName } = useParams<{ teamName: string }>();
+  const { teamId, teamSlug } = useParams<{
+    teamId: string;
+    teamSlug: string;
+  }>();
   const isDark = useDarkMode();
   const { accent } = useGradientAccent();
   const navigate = useNavigate();
@@ -65,14 +64,15 @@ export default function TeamPage() {
     loadingStatusEffects;
 
   const team = useMemo(() => {
-    return findEntityByParam(teams, teamName, (t) => t.name);
-  }, [teams, teamName]);
+    return teams.find((entry) => entry.community?.id === teamId) ?? null;
+  }, [teams, teamId]);
 
   useEffect(() => {
-    if (!team || !teamName) return;
-    if (!shouldRedirectToEntitySlug(teamName, team.name)) return;
-    navigate(`/teams/${toEntitySlug(team.name)}`, { replace: true });
-  }, [navigate, team, teamName]);
+    if (!team || !teamSlug) return;
+    const canonicalPath = getTeamRoutePath(team);
+    if (canonicalPath.endsWith(`/${teamSlug}`)) return;
+    navigate(canonicalPath, { replace: true });
+  }, [navigate, team, teamSlug]);
 
   const orderedTeams = useMemo(() => [...teams], [teams]);
 
@@ -110,7 +110,7 @@ export default function TeamPage() {
     return (
       <EntityNotFound
         entityType="Team"
-        name={teamName}
+        name={teamSlug}
         backLabel="Back to Teams"
         backPath="/teams"
       />
@@ -118,7 +118,13 @@ export default function TeamPage() {
   }
 
   const openEditInBuilder = () => {
-    navigate('/teams', { state: { editTeam: team } });
+    navigate('/teams', {
+      state: {
+        editTeam: team.community?.viewerOwns
+          ? team
+          : { ...team, community: undefined },
+      },
+    });
   };
 
   const requestEdit = () => {
@@ -185,7 +191,7 @@ export default function TeamPage() {
             previousTeam
               ? {
                   label: previousTeam.name,
-                  path: `/teams/${toEntitySlug(previousTeam.name)}`,
+                  path: getTeamRoutePath(previousTeam),
                 }
               : null
           }
@@ -193,7 +199,7 @@ export default function TeamPage() {
             nextTeam
               ? {
                   label: nextTeam.name,
-                  path: `/teams/${toEntitySlug(nextTeam.name)}`,
+                  path: getTeamRoutePath(nextTeam),
                 }
               : null
           }

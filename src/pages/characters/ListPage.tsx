@@ -3,11 +3,10 @@ import {
   EmptyState,
   ListPageHeader,
   ListPageShell,
-  SuggestModal,
 } from '@/components';
+import DataCorrectionButton from '@/components/tools/DataCorrectionButton';
 import ExportButton from '@/components/tools/ExportButton';
 import CharacterList from '@/features/characters/components/CharacterList';
-import { CHARACTER_FIELDS } from '@/features/characters/form-fields';
 import { CharacterOwnershipContext } from '@/contexts';
 import CharacterOwnershipManager from '@/features/characters/components/CharacterOwnershipManager';
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
@@ -75,13 +74,7 @@ export default function Characters() {
                 </Button>
               ))}
             <ExportButton data={characters} filename="characters.json" />
-            <SuggestModal
-              buttonLabel="Suggest"
-              modalTitle="Suggest a New Character"
-              issueTitle="[Character] New character suggestion"
-              fields={CHARACTER_FIELDS}
-              excludeFromJson={['additional_info']}
-            />
+            <DataCorrectionButton entityType="character" />
           </Group>
         </ListPageHeader>
 
