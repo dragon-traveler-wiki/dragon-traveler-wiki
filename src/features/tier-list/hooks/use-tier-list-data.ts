@@ -1,16 +1,20 @@
 import type { TierList } from '@/features/tier-list/types';
-import { useCommunityItems } from '@/features/community/hooks';
-import type { ChangesFile } from '@/types/changes';
+import {
+  useCommunityItem,
+  useCommunityItems,
+  useCommunityItemsFull,
+  type CommunityItemsOptions,
+} from '@/features/community/hooks';
 
-export function useTierLists() {
-  return useCommunityItems<TierList>('tier_list');
+export function useTierLists(options: CommunityItemsOptions = {}) {
+  return useCommunityItems<TierList>('tier_list', options);
 }
 
-export function useTierListChanges() {
-  return {
-    data: {} as ChangesFile,
-    loading: false,
-    error: null,
-    retry: () => {},
-  };
+/** For callers needing the whole catalog in memory (e.g. quick search), not a browse page. */
+export function useTierListsFull() {
+  return useCommunityItemsFull<TierList>('tier_list');
+}
+
+export function useTierList(id: string | null) {
+  return useCommunityItem<TierList>('tier_list', id);
 }

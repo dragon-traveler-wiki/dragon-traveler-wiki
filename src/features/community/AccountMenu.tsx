@@ -1,4 +1,13 @@
-import { Avatar, Button, Loader, Menu, Text, Tooltip } from '@mantine/core';
+import {
+  Avatar,
+  Badge,
+  Button,
+  Indicator,
+  Loader,
+  Menu,
+  Text,
+  Tooltip,
+} from '@mantine/core';
 import { useGradientAccent } from '@/hooks';
 import {
   IoLogoDiscord,
@@ -81,25 +90,33 @@ export default function AccountMenu() {
   return (
     <Menu shadow="md" position="bottom-end" width={220} withArrow>
       <Menu.Target>
-        <Button
-          variant="light"
-          color={accent.primary}
-          size="compact-sm"
-          leftSection={
-            <Avatar
-              src={user.avatarUrl}
-              size={20}
-              radius="xl"
-              color={accent.primary}
-            >
-              <IoPersonOutline />
-            </Avatar>
-          }
+        <Indicator
+          disabled={user.unreadReportCount === 0}
+          label={user.unreadReportCount}
+          size={16}
+          color="red"
+          offset={4}
         >
-          <Text span visibleFrom="sm">
-            {user.displayName}
-          </Text>
-        </Button>
+          <Button
+            variant="light"
+            color={accent.primary}
+            size="compact-sm"
+            leftSection={
+              <Avatar
+                src={user.avatarUrl}
+                size={20}
+                radius="xl"
+                color={accent.primary}
+              >
+                <IoPersonOutline />
+              </Avatar>
+            }
+          >
+            <Text span visibleFrom="sm">
+              {user.displayName}
+            </Text>
+          </Button>
+        </Indicator>
       </Menu.Target>
       <Menu.Dropdown>
         <Menu.Label>{user.displayName}</Menu.Label>
@@ -108,6 +125,13 @@ export default function AccountMenu() {
           to="/account"
           leftSection={<IoPersonOutline />}
           color={accent.primary}
+          rightSection={
+            user.unreadReportCount > 0 ? (
+              <Badge size="sm" circle color="red">
+                {user.unreadReportCount}
+              </Badge>
+            ) : undefined
+          }
         >
           Account & publications
         </Menu.Item>

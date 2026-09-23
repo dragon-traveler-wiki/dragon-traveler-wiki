@@ -166,7 +166,7 @@ async function loadProfile(
   };
 }
 
-function isModerator(
+export function isModerator(
   env: Env,
   provider: Provider,
   providerUserId: string,

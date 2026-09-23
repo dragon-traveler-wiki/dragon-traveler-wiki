@@ -1,6 +1,7 @@
 import LastUpdated from '@/components/common/LastUpdated';
 import CharacterTag from '@/features/characters/components/CharacterTag';
 import ClassTag from '@/components/ui/ClassTag';
+import AuthorLink from '@/features/community/AuthorLink';
 import { getDisplayAuthor } from '@/features/community/display-author';
 import CollapsibleSectionCard from '@/components/ui/CollapsibleSectionCard';
 import FactionTag from '@/components/ui/FactionTag';
@@ -84,9 +85,11 @@ export default function TierListContent({
           {displayAuthor && (
             <Text size="sm" c="dimmed">
               by{' '}
-              <Text span className="dt-link-text" inherit fw={600}>
-                {displayAuthor}
-              </Text>
+              <AuthorLink
+                author={tierList.community?.author}
+                fallback={tierList.author}
+                fw={600}
+              />
             </Text>
           )}
           {tierList.description && (

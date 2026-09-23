@@ -106,34 +106,36 @@ See [`src/README.md`](src/README.md) for a full breakdown of the source architec
 
 ## Routing
 
-| Route                                                            | Page                                                  |
-| ---------------------------------------------------------------- | ----------------------------------------------------- |
-| `/`                                                              | Home                                                  |
-| `/artifacts` / `/artifacts/:name`                                | Artifact list / detail                                |
-| `/characters` / `/characters/:name`                              | Character list / detail                               |
-| `/gear` / `/gear-sets/:setName`                                  | Gear list / gear set detail                           |
-| `/relics` / `/oracle-scrolls/:scrollName`                        | Relic list / oracle scroll detail                     |
-| `/howlkins` / `/howlkins/:allianceSlug`                          | Howlkin list / golden alliance detail                 |
-| `/noble-phantasms` / `/noble-phantasms/:name`                    | Noble phantasm list / detail                          |
-| `/wyrms` / `/wyrms/:name`                                        | Wyrm list / detail                                    |
-| `/wyrmspells` / `/wyrmspells/:name`                              | Wyrmspell list / detail                               |
-| `/subclasses`                                                    | Subclass list                                         |
-| `/status-effects`                                                | Status effects list                                   |
-| `/resources`                                                     | Resources directory                                   |
-| `/toolbox/useful-links`                                          | Community links directory                             |
-| `/tier-list`                                                     | Character and Noble Phantasm tier list viewer/builder |
-| `/teams` / `/teams/:teamId/:teamSlug` / `/teams/saved/:teamSlug` | Team list / public detail / saved team                |
-| `/account` / `/moderation`                                       | Community account / moderator report queue            |
-| `/codes`                                                         | Redemption codes tracker                              |
-| `/events`                                                        | Game events tracker                                   |
-| `/changelog`                                                     | Changelog                                             |
-| `/toolbox/beginner-qa`                                           | Beginner Q&A                                          |
-| `/toolbox/faq`                                                   | FAQ                                                   |
-| `/toolbox/star-upgrade-calculator`                               | Star upgrade calculator                               |
-| `/toolbox/mythic-summon-calculator`                              | Mythic summon calculator                              |
-| `/toolbox/diamond-calculator`                                    | Diamond calculator                                    |
-| `/toolbox/shovel-event`                                          | Shovel event guide                                    |
-| `/toolbox/dtdle`                                                 | Daily character guessing game                         |
+| Route                                                            | Page                                     |
+| ---------------------------------------------------------------- | ---------------------------------------- |
+| `/`                                                              | Home                                     |
+| `/artifacts` / `/artifacts/:name`                                | Artifact list / detail                   |
+| `/characters` / `/characters/:name`                              | Character list / detail                  |
+| `/gear` / `/gear-sets/:setName`                                  | Gear list / gear set detail              |
+| `/relics` / `/oracle-scrolls/:scrollName`                        | Relic list / oracle scroll detail        |
+| `/howlkins` / `/howlkins/:allianceSlug`                          | Howlkin list / golden alliance detail    |
+| `/noble-phantasms` / `/noble-phantasms/:name`                    | Noble phantasm list / detail             |
+| `/wyrms` / `/wyrms/:name`                                        | Wyrm list / detail                       |
+| `/wyrmspells` / `/wyrmspells/:name`                              | Wyrmspell list / detail                  |
+| `/subclasses`                                                    | Subclass list                            |
+| `/status-effects`                                                | Status effects list                      |
+| `/resources`                                                     | Resources directory                      |
+| `/toolbox/useful-links`                                          | Community links directory                |
+| `/tier-list` / `/tier-list/:tierListId/:tierListSlug`            | Tier list viewer/builder / public detail |
+| `/teams` / `/teams/:teamId/:teamSlug` / `/teams/saved/:teamSlug` | Team list / public detail / saved team   |
+| `/account` / `/moderation`                                       | Community account / moderator queue      |
+| `/profile/:userId`                                               | Public community profile                 |
+| `/community-guidelines` / `/privacy`                             | Community guidelines / privacy policy    |
+| `/codes`                                                         | Redemption codes tracker                 |
+| `/events`                                                        | Game events tracker                      |
+| `/changelog`                                                     | Changelog                                |
+| `/toolbox/beginner-qa`                                           | Beginner Q&A                             |
+| `/toolbox/faq`                                                   | FAQ                                      |
+| `/toolbox/star-upgrade-calculator`                               | Star upgrade calculator                  |
+| `/toolbox/mythic-summon-calculator`                              | Mythic summon calculator                 |
+| `/toolbox/diamond-calculator`                                    | Diamond calculator                       |
+| `/toolbox/shovel-event`                                          | Shovel event guide                       |
+| `/toolbox/dtdle`                                                 | Daily character guessing game            |
 
 ## Contributing
 

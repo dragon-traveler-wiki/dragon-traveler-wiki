@@ -1,6 +1,7 @@
 import SafeImage from '@/components/ui/SafeImage';
 import {
   Badge,
+  Button,
   Divider,
   Group,
   Paper,
@@ -13,8 +14,8 @@ import {
 } from '@mantine/core';
 import { Link, useNavigate } from 'react-router';
 import { FACTION_WYRM_MAP } from '@/assets';
+import AuthorLink from '@/features/community/AuthorLink';
 import CommunityActions from '@/features/community/CommunityActions';
-import { getDisplayAuthor } from '@/features/community/display-author';
 import FactionTag from '@/components/ui/FactionTag';
 import NoResultsSuggestions from '@/components/ui/NoResultsSuggestions';
 import PaginationControl from '@/components/ui/PaginationControl';
@@ -51,6 +52,9 @@ interface TeamsViewTabProps {
   pageSizeOptions: readonly number[];
   onPageSizeChange: (pageSize: number) => void;
   onRequestEdit: (team: Team) => void;
+  hasMore: boolean;
+  loadingMore: boolean;
+  onLoadMore: () => void;
 }
 
 export default function TeamsViewTab({
@@ -69,6 +73,9 @@ export default function TeamsViewTab({
   pageSizeOptions,
   onPageSizeChange,
   onRequestEdit,
+  hasMore,
+  loadingMore,
+  onLoadMore,
 }: TeamsViewTabProps) {
   const { accent } = useGradientAccent();
   const navigate = useNavigate();
@@ -235,9 +242,12 @@ export default function TeamsViewTab({
                       </Badge>
                     </Table.Td>
                     <Table.Td>
-                      <Text size="sm" className="dt-link-text">
-                        {getDisplayAuthor(team)}
-                      </Text>
+                      <AuthorLink
+                        author={team.community?.author}
+                        fallback={team.author}
+                        size="sm"
+                        fw={400}
+                      />
                     </Table.Td>
                     <Table.Td>
                       <Group gap={4} wrap="nowrap">
@@ -267,6 +277,19 @@ export default function TeamsViewTab({
         pageSizeOptions={pageSizeOptions}
         onPageSizeChange={onPageSizeChange}
       />
+
+      {hasMore && page >= totalPages && (
+        <Group justify="center">
+          <Button
+            variant="light"
+            color={accent.primary}
+            loading={loadingMore}
+            onClick={onLoadMore}
+          >
+            Load more teams
+          </Button>
+        </Group>
+      )}
     </>
   );
 }

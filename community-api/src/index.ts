@@ -3,6 +3,7 @@ import { cors } from 'hono/cors';
 import { HTTPException } from 'hono/http-exception';
 import { ZodError, z } from 'zod';
 import { deleteAccount, finishOAuth, logout, startOAuth } from './auth';
+import { statusForModerationAction } from './moderation';
 import { getSessionUser, isResponse, requireUser } from './security';
 import type { CommunityKind, Env, Provider, SessionUser } from './types';
 import { parsePayload, slugify, validateCatalogReferences } from './validation';
@@ -45,6 +46,22 @@ app.use('*', async (c, next) =>
 
 app.get('/v1/health', (c) => c.json({ ok: true }));
 
+app.get('/v1/users/:id', async (c) => {
+  const row = await c.env.DB.prepare(
+    'SELECT id, display_name, avatar_url FROM users WHERE id = ? AND deleted_at IS NULL',
+  )
+    .bind(c.req.param('id'))
+    .first<{ id: string; display_name: string; avatar_url: string | null }>();
+  if (!row) return c.json({ error: 'Not found' }, 404);
+  return c.json({
+    user: {
+      id: row.id,
+      displayName: row.display_name,
+      avatarUrl: row.avatar_url,
+    },
+  });
+});
+
 app.get('/v1/auth/me', async (c) => {
   const user = await getSessionUser(c);
   if (!user) return c.json({ user: null });
@@ -53,6 +70,12 @@ app.get('/v1/auth/me', async (c) => {
   )
     .bind(user.id)
     .all<{ provider: Provider; username: string }>();
+  const unread = await c.env.DB.prepare(
+    `SELECT COUNT(*) AS count FROM reports r JOIN users u ON u.id = ?
+      WHERE r.reporter_user_id = ? AND r.status != 'open' AND r.resolved_at > u.reports_seen_at`,
+  )
+    .bind(user.id, user.id)
+    .first<{ count: number }>();
   return c.json({
     user: {
       id: user.id,
@@ -61,6 +84,7 @@ app.get('/v1/auth/me', async (c) => {
       role: user.role,
       primaryProvider: user.primaryProvider,
       identities: identities.results,
+      unreadReportCount: unread?.count ?? 0,
     },
     csrfToken: user.csrfToken,
   });
@@ -157,13 +181,13 @@ app.patch('/v1/auth/primary', async (c) => {
   return c.json({ ok: true });
 });
 
-function routeKind(value: string): CommunityKind {
+export function routeKind(value: string): CommunityKind {
   if (value === 'teams') return 'team';
   if (value === 'tier-lists') return 'tier_list';
   throw new HTTPException(404);
 }
 
-function encodeCursor(row: {
+export function encodeCursor(row: {
   score: number;
   created_at: number;
   id: string;
@@ -174,7 +198,7 @@ function encodeCursor(row: {
     .replace(/=+$/, '');
 }
 
-function decodeCursor(
+export function decodeCursor(
   value: string | undefined,
 ): [number, number, string] | null {
   if (!value) return null;
@@ -247,11 +271,19 @@ async function listItems(c: ApiContext, kind: CommunityKind) {
   const cursor = decodeCursor(c.req.query('cursor'));
   if (c.req.query('cursor') && !cursor)
     return c.json({ error: 'Invalid cursor' }, 400);
-  const conditions = ['i.kind = ?', "i.status = 'published'"];
-  const values: unknown[] = [kind];
+  const isModerator = viewer?.role === 'moderator';
+  const status =
+    isModerator && c.req.query('status') === 'hidden' ? 'hidden' : 'published';
+  const conditions = ['i.kind = ?', 'i.status = ?'];
+  const values: unknown[] = [kind, status];
   const contentType = c.req.query('contentType');
   const facet = c.req.query('facet');
   const search = c.req.query('q')?.trim();
+  const owner = c.req.query('owner');
+  if (owner) {
+    conditions.push('i.owner_user_id = ?');
+    values.push(owner);
+  }
   if (contentType) {
     conditions.push('i.content_type = ?');
     values.push(contentType);
@@ -262,10 +294,10 @@ async function listItems(c: ApiContext, kind: CommunityKind) {
   }
   if (search) {
     conditions.push(
-      "(i.title LIKE ? ESCAPE '\\' OR json_extract(i.payload_json, '$.description') LIKE ? ESCAPE '\\')",
+      "(i.title LIKE ? ESCAPE '\\' OR json_extract(i.payload_json, '$.description') LIKE ? ESCAPE '\\' OR u.display_name LIKE ? ESCAPE '\\')",
     );
     const escaped = `%${search.replace(/[\\%_]/g, '\\$&')}%`;
-    values.push(escaped, escaped);
+    values.push(escaped, escaped, escaped);
   }
   if (cursor) {
     if (sort === 'top') {
@@ -571,6 +603,54 @@ for (const collection of ['teams', 'tier-lists'] as const) {
       .run();
     return c.json({ ok: true }, 201);
   });
+  app.get(`/v1/${collection}/:id/revisions`, async (c) => {
+    const viewer = await getSessionUser(c);
+    const includeHidden = viewer?.role === 'moderator';
+    const item = await c.env.DB.prepare(
+      `SELECT id FROM community_items WHERE id = ? AND kind = ? AND ${includeHidden ? "status != 'deleted'" : "status = 'published'"}`,
+    )
+      .bind(c.req.param('id'), routeKind(collection))
+      .first<{ id: string }>();
+    if (!item) return c.json({ error: 'Not found' }, 404);
+    const result = await c.env.DB.prepare(
+      `SELECT r.revision, r.created_at, u.display_name AS editor_name
+       FROM community_revisions r JOIN users u ON u.id = r.editor_user_id
+      WHERE r.item_id = ? ORDER BY r.revision DESC`,
+    )
+      .bind(c.req.param('id'))
+      .all<{ revision: number; created_at: number; editor_name: string }>();
+    return c.json({
+      revisions: result.results.map((row) => ({
+        revision: row.revision,
+        editorName: row.editor_name,
+        createdAt: row.created_at,
+      })),
+    });
+  });
+  app.post(`/v1/${collection}/:id/moderate`, async (c) => {
+    const user = await requireUser(c);
+    if (isResponse(user)) return user;
+    if (user.role !== 'moderator') return c.json({ error: 'Forbidden' }, 403);
+    const limited = await rateLimit(c, user, 'moderate');
+    if (limited) return limited;
+    const input = z
+      .object({ action: z.enum(['hide', 'restore', 'delete']) })
+      .parse(await c.req.json());
+    const existing = await c.env.DB.prepare(
+      "SELECT id FROM community_items WHERE id = ? AND kind = ? AND status != 'deleted'",
+    )
+      .bind(c.req.param('id'), routeKind(collection))
+      .first<{ id: string }>();
+    if (!existing) return c.json({ error: 'Not found' }, 404);
+    const status = statusForModerationAction(input.action);
+    const now = Math.floor(Date.now() / 1000);
+    await c.env.DB.prepare(
+      "UPDATE community_items SET status = ?, updated_at = ?, deleted_at = CASE WHEN ? = 'deleted' THEN ? ELSE NULL END WHERE id = ?",
+    )
+      .bind(status, now, status, now, c.req.param('id'))
+      .run();
+    return c.json({ ok: true });
+  });
 }
 
 app.get('/v1/me/items', async (c) => {
@@ -588,12 +668,29 @@ app.get('/v1/me/items', async (c) => {
   });
 });
 
+app.get('/v1/me/reports', async (c) => {
+  const user = await getSessionUser(c);
+  if (!user) return c.json({ error: 'Authentication required' }, 401);
+  const result = await c.env.DB.prepare(
+    `SELECT r.id, r.item_id, r.reason, r.note, r.status, r.resolution_note, r.created_at,
+            i.kind, i.title, i.slug, i.status AS item_status
+       FROM reports r JOIN community_items i ON i.id = r.item_id
+      WHERE r.reporter_user_id = ? ORDER BY r.created_at DESC LIMIT 100`,
+  )
+    .bind(user.id)
+    .all();
+  await c.env.DB.prepare('UPDATE users SET reports_seen_at = ? WHERE id = ?')
+    .bind(Math.floor(Date.now() / 1000), user.id)
+    .run();
+  return c.json({ reports: result.results });
+});
+
 app.get('/v1/admin/reports', async (c) => {
   const user = await getSessionUser(c);
   if (!user) return c.json({ error: 'Authentication required' }, 401);
   if (user.role !== 'moderator') return c.json({ error: 'Forbidden' }, 403);
   const result = await c.env.DB.prepare(
-    `SELECT r.*, i.kind, i.title, i.status AS item_status, u.display_name AS reporter_name
+    `SELECT r.*, i.kind, i.title, i.slug, i.status AS item_status, u.display_name AS reporter_name
     FROM reports r JOIN community_items i ON i.id = r.item_id JOIN users u ON u.id = r.reporter_user_id
     ORDER BY CASE WHEN r.status = 'open' THEN 0 ELSE 1 END, r.created_at DESC LIMIT 200`,
   ).all();
@@ -629,13 +726,7 @@ app.patch('/v1/admin/reports/:id', async (c) => {
     ),
   ];
   const status =
-    input.action === 'hide'
-      ? 'hidden'
-      : input.action === 'restore'
-        ? 'published'
-        : input.action === 'delete'
-          ? 'deleted'
-          : null;
+    input.action === 'dismiss' ? null : statusForModerationAction(input.action);
   if (status)
     statements.push(
       c.env.DB.prepare(

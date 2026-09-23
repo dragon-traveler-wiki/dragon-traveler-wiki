@@ -40,4 +40,31 @@ export interface CommunityUser {
   role: 'user' | 'moderator';
   primaryProvider: 'discord' | 'github' | null;
   identities: CommunityIdentity[];
+  unreadReportCount: number;
+}
+
+export interface PublicProfile {
+  id: string;
+  displayName: string;
+  avatarUrl: string | null;
+}
+
+export interface CommunityRevision {
+  revision: number;
+  editorName: string;
+  createdAt: number;
+}
+
+export interface MyReport {
+  id: string;
+  item_id: string;
+  reason: string;
+  note: string;
+  status: 'open' | 'dismissed' | 'resolved';
+  resolution_note: string;
+  created_at: number;
+  kind: CommunityKind;
+  title: string;
+  slug: string;
+  item_status: 'published' | 'hidden' | 'deleted';
 }

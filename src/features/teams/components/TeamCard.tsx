@@ -14,6 +14,7 @@ import { FACTION_WYRM_MAP } from '@/assets';
 import FactionTag from '@/components/ui/FactionTag';
 import { InteractiveSurface, StaticSurface } from '@/components/ui/Surface';
 import { FACTION_COLOR } from '@/constants/faction-colors';
+import AuthorLink from '@/features/community/AuthorLink';
 import { getDisplayAuthor } from '@/features/community/display-author';
 import {
   getContentTypeColor,
@@ -123,9 +124,10 @@ export default function TeamCard({
             {displayAuthor && (
               <>
                 by{' '}
-                <Text span className="dt-link-text" fw={500} inherit>
-                  {displayAuthor}
-                </Text>
+                <AuthorLink
+                  author={team.community?.author}
+                  fallback={team.author}
+                />
               </>
             )}
             {team.description && (

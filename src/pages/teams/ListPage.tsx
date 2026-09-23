@@ -17,6 +17,9 @@ import {
   BUILDER_SIDE_LAYOUT_CONTAINER_SIZE,
   STORAGE_KEY,
 } from '@/constants/ui';
+import CommunitySortControl, {
+  type CommunitySort,
+} from '@/features/community/CommunitySortControl';
 import TeamBuilder from '@/features/teams/components/TeamBuilder';
 import TeamsSavedTab from '@/features/teams/components/TeamsSavedTab';
 import TeamsViewTab from '@/features/teams/components/TeamsViewTab';
@@ -55,7 +58,7 @@ import {
   Stack,
   Title,
 } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 
@@ -70,12 +73,29 @@ export default function Teams() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [search, setSearch] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    return window.localStorage.getItem(STORAGE_KEY.TEAMS_SEARCH) || '';
+  });
+  const [debouncedSearch] = useDebouncedValue(search, 300);
+  const [sort, setSort] = useState<CommunitySort>(() => {
+    if (typeof window === 'undefined') return 'top';
+    return window.localStorage.getItem(STORAGE_KEY.TEAMS_SORT) === 'new'
+      ? 'new'
+      : 'top';
+  });
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE_KEY.TEAMS_SORT, sort);
+  }, [sort]);
   const {
     data: teams,
     loading: loadingTeams,
+    loadingMore: loadingMoreTeams,
+    hasMore: hasMoreTeams,
+    loadMore: loadMoreTeams,
     error: teamsError,
     retry: retryTeams,
-  } = useTeams();
+  } = useTeams({ search: debouncedSearch, sort });
   const {
     data: characters,
     loading: loadingChars,
@@ -94,10 +114,6 @@ export default function Teams() {
       storageKey: STORAGE_KEY.TEAMS_FILTERS,
     });
   const [filterOpen, { toggle: toggleFilter }] = useDisclosure(false);
-  const [search, setSearch] = useState(() => {
-    if (typeof window === 'undefined') return '';
-    return window.localStorage.getItem(STORAGE_KEY.TEAMS_SEARCH) || '';
-  });
   const mode = parseTabMode(searchParams.get('mode'));
   const navigationEditTeam = (location.state as { editTeam?: Team } | null)
     ?.editTeam;
@@ -202,10 +218,10 @@ export default function Teams() {
   }, [savedTeams, search, viewFilters]);
 
   const filteredTeams = useMemo(() => {
-    return teams.filter((team) =>
-      matchesTeamFilters(team, search, viewFilters),
-    );
-  }, [teams, search, viewFilters]);
+    // Text search already happened server-side in useTeams(debouncedSearch);
+    // only the faction/content-type filters need to be applied here.
+    return teams.filter((team) => matchesTeamFilters(team, '', viewFilters));
+  }, [teams, viewFilters]);
 
   const { pageSize, setPageSize, pageSizeOptions } = usePageSize(
     TEAM_PAGE_SIZE_OPTIONS[viewMode],
@@ -256,6 +272,11 @@ export default function Teams() {
                 filterCount={activeFilterCount}
                 filterOpen={filterOpen}
                 onFilterToggle={toggleFilter}
+                extraControls={
+                  mode === 'view' && (
+                    <CommunitySortControl value={sort} onChange={setSort} />
+                  )
+                }
               >
                 <EntityFilter
                   groups={entityFilterGroups}
@@ -283,6 +304,11 @@ export default function Teams() {
             filterCount={activeFilterCount}
             filterOpen={filterOpen}
             onFilterToggle={toggleFilter}
+            extraControls={
+              mode === 'view' && (
+                <CommunitySortControl value={sort} onChange={setSort} />
+              )
+            }
           >
             <EntityFilter
               groups={entityFilterGroups}
@@ -367,6 +393,9 @@ export default function Teams() {
                 pageSizeOptions={pageSizeOptions}
                 onPageSizeChange={setPageSize}
                 onRequestEdit={requestEditTeam}
+                hasMore={hasMoreTeams}
+                loadingMore={loadingMoreTeams}
+                onLoadMore={loadMoreTeams}
               />
             )}
 

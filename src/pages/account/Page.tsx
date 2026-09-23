@@ -22,15 +22,15 @@ import {
 } from 'react-icons/io5';
 import { Link, useSearchParams } from 'react-router';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
-import { getMyItems } from '@/features/community/api';
+import { getMyItems, getMyReports } from '@/features/community/api';
 import { useCommunityAuth } from '@/features/community/auth-context';
-import type { CommunityItem } from '@/features/community/types';
+import type { CommunityItem, MyReport } from '@/features/community/types';
 import { useGradientAccent } from '@/hooks';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
   link_conflict:
-    "That account is already linked to a different profile. Log in with the other provider first — if that profile is one you no longer want, you can delete it from its account page to free up the identity.",
+    'That account is already linked to a different profile. Log in with the other provider first — if that profile is one you no longer want, you can delete it from its account page to free up the identity.',
   unknown: 'Something went wrong while signing in. Please try again.',
 };
 
@@ -44,15 +44,16 @@ export default function AccountPage() {
     unlink,
     setPrimary,
     deleteAccount,
+    refresh,
   } = useCommunityAuth();
   const { accent } = useGradientAccent();
   const [items, setItems] = useState<
     Array<CommunityItem<Record<string, unknown>>>
   >([]);
   const [itemsLoading, setItemsLoading] = useState(false);
-  const [unlinking, setUnlinking] = useState<'discord' | 'github' | null>(
-    null,
-  );
+  const [reports, setReports] = useState<MyReport[]>([]);
+  const [reportsLoading, setReportsLoading] = useState(false);
+  const [unlinking, setUnlinking] = useState<'discord' | 'github' | null>(null);
   const [settingPrimary, setSettingPrimary] = useState<
     'discord' | 'github' | null
   >(null);
@@ -152,6 +153,30 @@ export default function AccountPage() {
       .finally(() => setItemsLoading(false));
   }, [user]);
 
+  useEffect(() => {
+    if (!user) return;
+    queueMicrotask(() => setReportsLoading(true));
+    getMyReports()
+      .then((result) => {
+        setReports(result.reports);
+        // Viewing this page marks reports as seen server-side; refresh the
+        // auth context so the unread badge in the header clears right away.
+        void refresh();
+      })
+      .catch((error: unknown) => {
+        setReports([]);
+        showErrorToast({
+          title: 'Could not load reports',
+          message: error instanceof Error ? error.message : String(error),
+        });
+      })
+      .finally(() => setReportsLoading(false));
+    // Only re-run when the logged-in user changes, not on every auth
+    // context refresh (which would otherwise loop, since this effect
+    // itself triggers a refresh).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
   if (loading)
     return (
       <Container py="xl">
@@ -227,6 +252,9 @@ export default function AccountPage() {
             </Text>
           </div>
         </Group>
+        <Anchor component={Link} to={`/profile/${user.id}`} size="sm">
+          View your public profile
+        </Anchor>
         <Card withBorder>
           <Stack>
             <Title order={2} size="h3">
@@ -320,7 +348,7 @@ export default function AccountPage() {
                 const path =
                   item.kind === 'team'
                     ? `/teams/${item.id}/${item.slug}`
-                    : `/tier-list?list=${encodeURIComponent(item.id)}`;
+                    : `/tier-list/${item.id}/${item.slug}`;
                 return (
                   <Card
                     withBorder
@@ -346,15 +374,61 @@ export default function AccountPage() {
             </SimpleGrid>
           )}
         </Stack>
+        <Stack>
+          <Title order={2}>Your reports</Title>
+          {reportsLoading ? (
+            <Loader size="sm" color={accent.primary} />
+          ) : reports.length === 0 ? (
+            <Text c="dimmed">You have not reported anything.</Text>
+          ) : (
+            <Stack gap="xs">
+              {reports.map((report) => {
+                const path =
+                  report.kind === 'team'
+                    ? `/teams/${report.item_id}/${report.slug}`
+                    : `/tier-list/${report.item_id}/${report.slug}`;
+                return (
+                  <Card withBorder key={report.id}>
+                    <Group justify="space-between" wrap="wrap">
+                      <Stack gap={4}>
+                        <Anchor component={Link} to={path} fw={600}>
+                          {report.title}
+                        </Anchor>
+                        <Group gap="xs">
+                          <Badge variant="light" color={accent.primary}>
+                            {report.reason}
+                          </Badge>
+                          <Badge variant="outline" color={accent.secondary}>
+                            Report {report.status}
+                          </Badge>
+                          {report.item_status === 'hidden' && (
+                            <Badge variant="outline" color="red">
+                              Item hidden
+                            </Badge>
+                          )}
+                        </Group>
+                        {report.resolution_note && (
+                          <Text size="sm" c="dimmed">
+                            Moderator note: {report.resolution_note}
+                          </Text>
+                        )}
+                      </Stack>
+                    </Group>
+                  </Card>
+                );
+              })}
+            </Stack>
+          )}
+        </Stack>
         <Card withBorder>
           <Stack>
             <Title order={2} size="h3" c="red">
               Danger zone
             </Title>
             <Text c="dimmed" size="sm">
-              Permanently delete your account, unlink all identities, and
-              remove every team and tier list you have published. This cannot
-              be undone.
+              Permanently delete your account, unlink all identities, and remove
+              every team and tier list you have published. This cannot be
+              undone.
             </Text>
             <Group>
               <Button

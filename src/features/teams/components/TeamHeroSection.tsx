@@ -5,6 +5,7 @@ import LastUpdated from '@/components/common/LastUpdated';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
 import RichText from '@/components/common/RichText';
 import { FACTION_COLOR } from '@/constants/faction-colors';
+import AuthorLink from '@/features/community/AuthorLink';
 import { getDisplayAuthor } from '@/features/community/display-author';
 import {
   getContentTypeColor,
@@ -129,9 +130,10 @@ export function TeamHeroSection({
                 {displayAuthor && (
                   <Text size="sm" c="dimmed">
                     by{' '}
-                    <Text span className="dt-link-text" inherit>
-                      {displayAuthor}
-                    </Text>
+                    <AuthorLink
+                      author={team.community?.author}
+                      fallback={team.author}
+                    />
                   </Text>
                 )}
                 <LastUpdated timestamp={team.last_updated} />

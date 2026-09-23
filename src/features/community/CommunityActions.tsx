@@ -1,6 +1,16 @@
-import { Button, Group, Modal, Select, Stack, Textarea } from '@mantine/core';
+import {
+  Anchor,
+  Button,
+  Group,
+  Modal,
+  Select,
+  Stack,
+  Text,
+  Textarea,
+} from '@mantine/core';
 import { useCallback, useState } from 'react';
 import { IoFlagOutline, IoThumbsUpOutline } from 'react-icons/io5';
+import { Link } from 'react-router';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import { useGradientAccent } from '@/hooks';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
@@ -194,6 +204,18 @@ export default function CommunityActions({
         centered
       >
         <Stack>
+          <Text size="sm" c="dimmed">
+            See the{' '}
+            <Anchor
+              component={Link}
+              to="/community-guidelines"
+              target="_blank"
+              size="sm"
+            >
+              Community Guidelines
+            </Anchor>{' '}
+            for what's reportable.
+          </Text>
           <Select
             value={reason}
             onChange={setReason}

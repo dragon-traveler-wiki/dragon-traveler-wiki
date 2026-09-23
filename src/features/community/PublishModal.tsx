@@ -1,5 +1,6 @@
 import {
   Alert,
+  Anchor,
   Button,
   Group,
   Modal,
@@ -13,6 +14,7 @@ import {
   IoLogoDiscord,
   IoLogoGithub,
 } from 'react-icons/io5';
+import { Link } from 'react-router';
 import { useGradientAccent } from '@/hooks';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 import { publishCommunityItem, updateCommunityItem } from './api';
@@ -138,7 +140,15 @@ export default function PublishModal<T>({
             <Text size="sm">
               This will be {publicationId ? 'updated' : 'published immediately'}{' '}
               as <strong>{user.displayName}</strong>. You can edit or delete it
-              later.
+              later. Please follow the{' '}
+              <Anchor
+                component={Link}
+                to="/community-guidelines"
+                target="_blank"
+              >
+                Community Guidelines
+              </Anchor>
+              .
             </Text>
             {!publicationId && (
               <TurnstileWidget key={challengeVersion} onToken={handleToken} />

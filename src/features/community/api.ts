@@ -1,7 +1,10 @@
 import type {
   CommunityKind,
   CommunityListResponse,
+  CommunityRevision,
   CommunityUser,
+  MyReport,
+  PublicProfile,
 } from './types';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
@@ -212,4 +215,36 @@ export async function resolveReport(
     headers: { 'X-CSRF-Token': csrfToken },
     body: JSON.stringify({ action, note }),
   });
+}
+
+export async function getPublicProfile(userId: string) {
+  return request<{ user: PublicProfile }>(
+    `/v1/users/${encodeURIComponent(userId)}`,
+  );
+}
+
+export async function getMyReports() {
+  return request<{ reports: MyReport[] }>('/v1/me/reports');
+}
+
+export async function getRevisions(kind: CommunityKind, id: string) {
+  return request<{ revisions: CommunityRevision[] }>(
+    `/v1/${collectionForKind(kind)}/${encodeURIComponent(id)}/revisions`,
+  );
+}
+
+export async function moderateItem(
+  kind: CommunityKind,
+  id: string,
+  action: 'hide' | 'restore' | 'delete',
+  csrfToken: string,
+) {
+  await request(
+    `/v1/${collectionForKind(kind)}/${encodeURIComponent(id)}/moderate`,
+    {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': csrfToken },
+      body: JSON.stringify({ action }),
+    },
+  );
 }

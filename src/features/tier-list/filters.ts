@@ -1,4 +1,5 @@
 import { matchesContentTypeFilters } from '@/constants/content-types';
+import { getDisplayAuthor } from '@/features/community/display-author';
 import { getTierListEntityType, type TierList } from './types';
 
 export interface TierListViewFilters {
@@ -26,7 +27,11 @@ export function matchesTierListFilters(
   const query = search.trim().toLocaleLowerCase();
   if (
     query &&
-    ![tierList.name, tierList.author, tierList.description ?? '']
+    ![
+      tierList.name,
+      getDisplayAuthor(tierList) ?? '',
+      tierList.description ?? '',
+    ]
       .join(' ')
       .toLocaleLowerCase()
       .includes(query)

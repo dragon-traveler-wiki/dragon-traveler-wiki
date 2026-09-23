@@ -1,16 +1,12 @@
-import ChangeHistory from '@/components/common/ChangeHistory';
-import DetailPageNavigation from '@/components/common/DetailPageNavigation';
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import EntityNotFound from '@/components/ui/EntityNotFound';
 import { STORAGE_KEY } from '@/constants/ui';
+import RevisionHistory from '@/features/community/RevisionHistory';
 import TeamDetailContent from '@/features/teams/components/TeamDetailContent';
 import { TeamHeroSection } from '@/features/teams/components/TeamHeroSection';
 import { useTeamDetailData } from '@/features/teams/hooks/use-team-detail-data';
-import {
-  useTeamChanges,
-  useTeams,
-} from '@/features/teams/hooks/use-teams-data';
+import { useTeam } from '@/features/teams/hooks/use-teams-data';
 import { useCharacterResolution } from '@/features/characters/hooks/use-character-resolution';
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import {
@@ -30,7 +26,7 @@ import {
 } from '@/hooks';
 import { getTeamRoutePath } from '@/features/teams/utils/team-route';
 import { Box, Container } from '@mantine/core';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
 export default function TeamPage() {
@@ -46,26 +42,21 @@ export default function TeamPage() {
   const [exporting, setExporting] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
 
-  const { data: teams, loading: loadingTeams } = useTeams();
+  const { data: team, loading: loadingTeam } = useTeam(teamId ?? null);
   const { data: characters, loading: loadingChars } = useCharacters();
   const { data: wyrmspells, loading: loadingSpells } = useWyrmspells();
   const { data: factions, loading: loadingFactions } = useFactions();
   const { data: artifacts, loading: loadingArtifacts } = useArtifacts();
   const { data: statusEffects, loading: loadingStatusEffects } =
     useStatusEffects();
-  const { data: changesData } = useTeamChanges();
 
   const loading =
-    loadingTeams ||
+    loadingTeam ||
     loadingChars ||
     loadingSpells ||
     loadingFactions ||
     loadingArtifacts ||
     loadingStatusEffects;
-
-  const team = useMemo(() => {
-    return teams.find((entry) => entry.community?.id === teamId) ?? null;
-  }, [teams, teamId]);
 
   useEffect(() => {
     if (!team || !teamSlug) return;
@@ -73,21 +64,6 @@ export default function TeamPage() {
     if (canonicalPath.endsWith(`/${teamSlug}`)) return;
     navigate(canonicalPath, { replace: true });
   }, [navigate, team, teamSlug]);
-
-  const orderedTeams = useMemo(() => [...teams], [teams]);
-
-  const teamIndex = useMemo(() => {
-    if (!team) return -1;
-    return orderedTeams.findIndex(
-      (entry) => entry.name.toLowerCase() === team.name.toLowerCase(),
-    );
-  }, [orderedTeams, team]);
-
-  const previousTeam = teamIndex > 0 ? orderedTeams[teamIndex - 1] : null;
-  const nextTeam =
-    teamIndex >= 0 && teamIndex < orderedTeams.length - 1
-      ? orderedTeams[teamIndex + 1]
-      : null;
 
   const { preferredByName: charMap, byIdentity: characterByIdentity } =
     useCharacterResolution(characters);
@@ -183,27 +159,9 @@ export default function TeamPage() {
           exporting={exporting}
           onExportAsImage={exportAsImage}
         />
-
-        <ChangeHistory history={changesData[team.name]} />
-
-        <DetailPageNavigation
-          previousItem={
-            previousTeam
-              ? {
-                  label: previousTeam.name,
-                  path: getTeamRoutePath(previousTeam),
-                }
-              : null
-          }
-          nextItem={
-            nextTeam
-              ? {
-                  label: nextTeam.name,
-                  path: getTeamRoutePath(nextTeam),
-                }
-              : null
-          }
-        />
+        {team.community && (
+          <RevisionHistory kind="team" id={team.community.id} />
+        )}
       </Container>
     </Box>
   );

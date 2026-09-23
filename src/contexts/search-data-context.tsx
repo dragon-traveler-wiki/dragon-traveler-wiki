@@ -1,6 +1,6 @@
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
-import { useTeams } from '@/features/teams/hooks/use-teams-data';
-import { useTierLists } from '@/features/tier-list/hooks/use-tier-list-data';
+import { useTeamsFull } from '@/features/teams/hooks/use-teams-data';
+import { useTierListsFull } from '@/features/tier-list/hooks/use-tier-list-data';
 import {
   useArtifacts,
   useCodes,
@@ -31,11 +31,11 @@ export function SearchDataProvider({ children }: { children: ReactNode }) {
   const wyrmspellResult = useWyrmspells();
   const noblePhantasmResult = useNoblePhantasms();
   const wyrmResult = useWyrms();
-  const teamResult = useTeams();
+  const teamResult = useTeamsFull();
   const codeResult = useCodes();
   const eventResult = useEvents();
   const usefulLinkResult = useUsefulLinks();
-  const tierListResult = useTierLists();
+  const tierListResult = useTierListsFull();
 
   const loading =
     characterResult.loading ||

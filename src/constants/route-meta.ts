@@ -276,6 +276,16 @@ export const ROUTE_CATALOG = [
     },
   },
   {
+    id: 'tierListDetail',
+    pattern: '/tier-list/:tierListId/:tierListSlug',
+    kind: 'detail',
+    meta: {
+      title: 'Tier List Details',
+      description:
+        'Detailed published tier list covering ranked entries, content type, and author context.',
+    },
+  },
+  {
     id: 'teams',
     pattern: '/teams',
     fallback: 'team-list',
@@ -315,11 +325,38 @@ export const ROUTE_CATALOG = [
     },
   },
   {
+    id: 'profile',
+    pattern: '/profile/:userId',
+    kind: 'detail',
+    meta: {
+      title: 'Community Profile',
+      description: "A community member's published teams and tier lists.",
+    },
+  },
+  {
     id: 'moderation',
     pattern: '/moderation',
     meta: {
       title: 'Moderation',
       description: 'Review reported community teams and tier lists.',
+    },
+  },
+  {
+    id: 'communityGuidelines',
+    pattern: '/community-guidelines',
+    meta: {
+      title: 'Community Guidelines',
+      description:
+        'What can be published, what is not allowed, and how reporting and moderation work.',
+    },
+  },
+  {
+    id: 'privacy',
+    pattern: '/privacy',
+    meta: {
+      title: 'Privacy Policy',
+      description:
+        'What community account data is collected, how it is used, and how to control or delete it.',
     },
   },
   {
