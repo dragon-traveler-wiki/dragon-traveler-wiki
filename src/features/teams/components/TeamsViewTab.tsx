@@ -1,7 +1,6 @@
 import SafeImage from '@/components/ui/SafeImage';
 import {
   Badge,
-  Button,
   Divider,
   Group,
   Paper,
@@ -18,6 +17,7 @@ import AuthorLink from '@/features/community/AuthorLink';
 import CommunityActions from '@/features/community/CommunityActions';
 import FactionTag from '@/components/ui/FactionTag';
 import NoResultsSuggestions from '@/components/ui/NoResultsSuggestions';
+import CommunityLoadMore from '@/features/community/CommunityLoadMore';
 import PaginationControl from '@/components/ui/PaginationControl';
 import {
   getContentTypeColor,
@@ -53,6 +53,8 @@ interface TeamsViewTabProps {
   onPageSizeChange: (pageSize: number) => void;
   onRequestEdit: (team: Team) => void;
   hasMore: boolean;
+  loadedCount: number;
+  paginationTotal: number;
   loadingMore: boolean;
   onLoadMore: () => void;
 }
@@ -74,6 +76,8 @@ export default function TeamsViewTab({
   onPageSizeChange,
   onRequestEdit,
   hasMore,
+  loadedCount,
+  paginationTotal,
   loadingMore,
   onLoadMore,
 }: TeamsViewTabProps) {
@@ -272,24 +276,19 @@ export default function TeamsViewTab({
         currentPage={page}
         totalPages={totalPages}
         onChange={onPageChange}
-        totalItems={filteredTeams.length}
+        totalItems={paginationTotal}
         pageSize={pageSize}
         pageSizeOptions={pageSizeOptions}
         onPageSizeChange={onPageSizeChange}
       />
 
-      {hasMore && page >= totalPages && (
-        <Group justify="center">
-          <Button
-            variant="light"
-            color={accent.primary}
-            loading={loadingMore}
-            onClick={onLoadMore}
-          >
-            Load more teams
-          </Button>
-        </Group>
-      )}
+      <CommunityLoadMore
+        hasMore={hasMore}
+        loadingMore={loadingMore}
+        onLoadMore={onLoadMore}
+        atLastPage={page * pageSize >= filteredTeams.length}
+        loadedCount={loadedCount}
+      />
     </>
   );
 }

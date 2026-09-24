@@ -188,72 +188,80 @@ export default function CommunityActions({
           </Button>
         )}
       </Group>
-      <ConfirmActionModal
-        opened={confirmDeleteOpen}
-        onCancel={() => setConfirmDeleteOpen(false)}
-        title="Delete this publication?"
-        message="This can only be restored by a moderator."
-        confirmLabel="Delete"
-        confirmColor="red"
-        onConfirm={() => void remove()}
-      />
-      <Modal
-        opened={reportOpen}
-        onClose={closeReport}
-        title="Report publication"
-        centered
+      {/* Modals portal out of the DOM but React events still bubble through the
+          component tree, so without this a click or Enter/Space keypress inside
+          them would trigger the enclosing card's navigate handler. */}
+      <div
+        onClick={(event) => event.stopPropagation()}
+        onKeyDown={(event) => event.stopPropagation()}
       >
-        <Stack>
-          <Text size="sm" c="dimmed">
-            See the{' '}
-            <Anchor
-              component={Link}
-              to="/community-guidelines"
-              target="_blank"
-              size="sm"
-            >
-              Community Guidelines
-            </Anchor>{' '}
-            for what's reportable.
-          </Text>
-          <Select
-            value={reason}
-            onChange={setReason}
-            data={[
-              { value: 'spam', label: 'Spam' },
-              { value: 'broken', label: 'Broken or invalid data' },
-              { value: 'abusive', label: 'Abusive content' },
-              { value: 'other', label: 'Other' },
-            ]}
-          />
-          <Textarea
-            label="Details"
-            value={note}
-            onChange={(event) => setNote(event.currentTarget.value)}
-            maxLength={1000}
-            autosize
-            minRows={3}
-          />
-          <TurnstileWidget key={challengeVersion} onToken={handleToken} />
-          <Group justify="flex-end">
-            <Button
-              variant="outline"
-              color={accent.primary}
-              onClick={closeReport}
-            >
-              Cancel
-            </Button>
-            <Button
-              color={accent.primary}
-              onClick={() => void report()}
-              disabled={!turnstileToken || !reason}
-              loading={working}
-            >
-              Submit report
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+        <ConfirmActionModal
+          opened={confirmDeleteOpen}
+          onCancel={() => setConfirmDeleteOpen(false)}
+          title="Delete this publication?"
+          message="This can only be restored by a moderator."
+          confirmLabel="Delete"
+          confirmColor="red"
+          onConfirm={() => void remove()}
+        />
+        <Modal
+          opened={reportOpen}
+          onClose={closeReport}
+          title="Report publication"
+          centered
+        >
+          <Stack>
+            <Text size="sm" c="dimmed">
+              See the{' '}
+              <Anchor
+                component={Link}
+                to="/community-guidelines"
+                target="_blank"
+                size="sm"
+              >
+                Community Guidelines
+              </Anchor>{' '}
+              for what's reportable.
+            </Text>
+            <Select
+              value={reason}
+              onChange={setReason}
+              data={[
+                { value: 'spam', label: 'Spam' },
+                { value: 'broken', label: 'Broken or invalid data' },
+                { value: 'abusive', label: 'Abusive content' },
+                { value: 'other', label: 'Other' },
+              ]}
+            />
+            <Textarea
+              label="Details"
+              value={note}
+              onChange={(event) => setNote(event.currentTarget.value)}
+              maxLength={1000}
+              autosize
+              minRows={3}
+            />
+            <TurnstileWidget key={challengeVersion} onToken={handleToken} />
+            <Group justify="flex-end">
+              <Button
+                variant="outline"
+                color={accent.primary}
+                onClick={closeReport}
+              >
+                Cancel
+              </Button>
+              <Button
+                color={accent.primary}
+                onClick={() => void report()}
+                disabled={!turnstileToken || !reason}
+                loading={working}
+              >
+                Submit report
+              </Button>
+            </Group>
+          </Stack>
+        </Modal>
+      </div>
     </>
   );
 }

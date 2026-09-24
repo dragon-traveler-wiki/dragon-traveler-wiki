@@ -1,4 +1,5 @@
-﻿import type { ChipFilterGroup } from '@/components/common/EntityFilter';
+﻿import { getCommunityPaginationTotal } from '@/features/community/pagination';
+import type { ChipFilterGroup } from '@/components/common/EntityFilter';
 import EntityFilter from '@/components/common/EntityFilter';
 import { createFactionFilterGroup } from '@/components/common/EntityFilterGroups';
 import LastUpdated from '@/components/common/LastUpdated';
@@ -89,6 +90,7 @@ export default function Teams() {
   }, [sort]);
   const {
     data: teams,
+    total: totalTeams,
     loading: loadingTeams,
     loadingMore: loadingMoreTeams,
     hasMore: hasMoreTeams,
@@ -231,8 +233,15 @@ export default function Teams() {
     },
   );
 
+  const paginationTotal = getCommunityPaginationTotal({
+    visibleCount: filteredTeams.length,
+    loadedCount: teams.length,
+    total: totalTeams,
+    hasMore: hasMoreTeams,
+  });
+
   const { page, setPage, totalPages, offset } = usePagination(
-    filteredTeams.length,
+    paginationTotal,
     pageSize,
     JSON.stringify({ search, viewFilters }),
   );
@@ -394,6 +403,8 @@ export default function Teams() {
                 onPageSizeChange={setPageSize}
                 onRequestEdit={requestEditTeam}
                 hasMore={hasMoreTeams}
+                loadedCount={teams.length}
+                paginationTotal={paginationTotal}
                 loadingMore={loadingMoreTeams}
                 onLoadMore={loadMoreTeams}
               />

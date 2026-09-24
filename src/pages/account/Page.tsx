@@ -20,9 +20,20 @@ import {
   IoLogoGithub,
   IoPersonOutline,
 } from 'react-icons/io5';
-import { Link, useSearchParams } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
+import { useCharacterResolution } from '@/features/characters/hooks/use-character-resolution';
+import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import { getMyItems, getMyReports } from '@/features/community/api';
+import CommunityActions from '@/features/community/CommunityActions';
+import CommunityStatsBadges from '@/features/community/CommunityStatsBadges';
+import { toDisplayItems } from '@/features/community/hooks';
+import TeamCard from '@/features/teams/components/TeamCard';
+import type { Team } from '@/features/teams/types';
+import { getTeamRoutePath } from '@/features/teams/utils/team-route';
+import TierListCard from '@/features/tier-list/components/TierListCard';
+import type { TierList } from '@/features/tier-list/types';
+import { getTierListRoutePath } from '@/features/tier-list/utils/tier-list-route';
 import { useCommunityAuth } from '@/features/community/auth-context';
 import type { CommunityItem, MyReport } from '@/features/community/types';
 import { useGradientAccent } from '@/hooks';
@@ -47,6 +58,10 @@ export default function AccountPage() {
     refresh,
   } = useCommunityAuth();
   const { accent } = useGradientAccent();
+  const navigate = useNavigate();
+  const { data: characters } = useCharacters();
+  const { preferredByName: charMap, byIdentity: characterByIdentity } =
+    useCharacterResolution(characters);
   const [items, setItems] = useState<
     Array<CommunityItem<Record<string, unknown>>>
   >([]);
@@ -252,6 +267,20 @@ export default function AccountPage() {
             </Text>
           </div>
         </Group>
+        <CommunityStatsBadges
+          stats={{
+            teams: items.filter(
+              (item) => item.kind === 'team' && item.status === 'published',
+            ).length,
+            tierLists: items.filter(
+              (item) =>
+                item.kind === 'tier_list' && item.status === 'published',
+            ).length,
+            upvotes: items
+              .filter((item) => item.status === 'published')
+              .reduce((total, item) => total + item.score, 0),
+          }}
+        />
         <Anchor component={Link} to={`/profile/${user.id}`} size="sm">
           View your public profile
         </Anchor>
@@ -342,33 +371,65 @@ export default function AccountPage() {
           ) : items.length === 0 ? (
             <Text c="dimmed">You have not published anything yet.</Text>
           ) : (
-            <SimpleGrid cols={{ base: 1, sm: 2 }}>
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
               {items.map((item) => {
-                const name = String(item.payload.name ?? 'Untitled');
-                const path =
-                  item.kind === 'team'
-                    ? `/teams/${item.id}/${item.slug}`
-                    : `/tier-list/${item.id}/${item.slug}`;
+                const removeItem = () =>
+                  setItems((current) =>
+                    current.filter((other) => other.id !== item.id),
+                  );
+                const [display] = toDisplayItems([item]);
+                const hiddenBadge = item.status === 'hidden' && (
+                  <Badge variant="outline" color="red" size="sm">
+                    Hidden
+                  </Badge>
+                );
+                if (item.kind === 'team') {
+                  const team = display as unknown as Team;
+                  return (
+                    <TeamCard
+                      key={item.id}
+                      team={team}
+                      charMap={charMap}
+                      characterByIdentity={characterByIdentity}
+                      onNavigate={() => navigate(getTeamRoutePath(team))}
+                      actions={
+                        <>
+                          {hiddenBadge}
+                          <CommunityActions
+                            community={item}
+                            onEdit={() =>
+                              navigate('/teams', { state: { editTeam: team } })
+                            }
+                            onDeleted={removeItem}
+                          />
+                        </>
+                      }
+                    />
+                  );
+                }
+                const tierList = display as unknown as TierList;
                 return (
-                  <Card
-                    withBorder
-                    className="card-hover-interactive"
+                  <TierListCard
                     key={item.id}
-                  >
-                    <Stack gap="xs">
-                      <Anchor component={Link} to={path} fw={600}>
-                        {name}
-                      </Anchor>
-                      <Group gap="xs">
-                        <Badge variant="light" color={accent.primary}>
-                          {item.kind === 'team' ? 'Team' : 'Tier list'}
-                        </Badge>
-                        <Text size="sm" c="dimmed">
-                          {item.score} upvotes
-                        </Text>
-                      </Group>
-                    </Stack>
-                  </Card>
+                    tierList={tierList}
+                    charMap={charMap}
+                    characterByIdentity={characterByIdentity}
+                    onNavigate={() => navigate(getTierListRoutePath(tierList))}
+                    actions={
+                      <>
+                        {hiddenBadge}
+                        <CommunityActions
+                          community={item}
+                          onEdit={() =>
+                            navigate('/tier-list', {
+                              state: { editTierList: tierList },
+                            })
+                          }
+                          onDeleted={removeItem}
+                        />
+                      </>
+                    }
+                  />
                 );
               })}
             </SimpleGrid>

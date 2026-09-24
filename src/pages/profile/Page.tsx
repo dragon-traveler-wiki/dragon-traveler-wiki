@@ -15,6 +15,7 @@ import { IoPersonOutline } from 'react-icons/io5';
 import { useNavigate, useParams } from 'react-router';
 import EntityNotFound from '@/components/ui/EntityNotFound';
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
+import CommunityStatsBadges from '@/features/community/CommunityStatsBadges';
 import CommunityActions from '@/features/community/CommunityActions';
 import { getPublicProfile } from '@/features/community/api';
 import type { PublicProfile } from '@/features/community/types';
@@ -125,7 +126,10 @@ export default function ProfilePage() {
           >
             <IoPersonOutline />
           </Avatar>
-          <Title order={1}>{profile.displayName}</Title>
+          <Stack gap={4}>
+            <Title order={1}>{profile.displayName}</Title>
+            <CommunityStatsBadges stats={profile.stats} />
+          </Stack>
         </Group>
 
         <Stack gap="sm">
@@ -135,8 +139,7 @@ export default function ProfilePage() {
             </Title>
             {!teamsLoading && (
               <Badge variant="light" color={accent.primary}>
-                {teams.length}
-                {hasMoreTeams ? '+' : ''}
+                {profile.stats.teams}
               </Badge>
             )}
           </Group>
@@ -189,8 +192,7 @@ export default function ProfilePage() {
             </Title>
             {!tierListsLoading && (
               <Badge variant="light" color={accent.primary}>
-                {tierLists.length}
-                {hasMoreTierLists ? '+' : ''}
+                {profile.stats.tierLists}
               </Badge>
             )}
           </Group>
@@ -205,6 +207,8 @@ export default function ProfilePage() {
                   <TierListCard
                     key={tierList.community?.id ?? tierList.name}
                     tierList={tierList}
+                    charMap={charMap}
+                    characterByIdentity={characterByIdentity}
                     onNavigate={() => navigate(getTierListRoutePath(tierList))}
                     actions={
                       tierList.community ? (

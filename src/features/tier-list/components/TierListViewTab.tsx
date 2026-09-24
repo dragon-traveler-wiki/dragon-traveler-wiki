@@ -1,6 +1,5 @@
 import {
   Badge,
-  Button,
   Group,
   ScrollArea,
   SimpleGrid,
@@ -11,12 +10,14 @@ import { Link, useNavigate } from 'react-router';
 import AuthorLink from '@/features/community/AuthorLink';
 import CommunityActions from '@/features/community/CommunityActions';
 import NoResultsSuggestions from '@/components/ui/NoResultsSuggestions';
+import CommunityLoadMore from '@/features/community/CommunityLoadMore';
 import PaginationControl from '@/components/ui/PaginationControl';
 import {
   getContentTypeColor,
   normalizeContentType,
 } from '@/constants/content-types';
 import { CURSOR_POINTER_STYLE, getMinWidthStyle } from '@/constants/styles';
+import type { Character } from '@/features/characters/types';
 import TierListCard from '@/features/tier-list/components/TierListCard';
 import {
   getTierListEntityType,
@@ -28,6 +29,8 @@ import { useGradientAccent } from '@/hooks';
 interface TierListViewTabProps {
   paginatedTierLists: TierListType[];
   visibleTierLists: TierListType[];
+  charMap: Map<string, Character>;
+  characterByIdentity: Map<string, Character>;
   viewMode: string;
   search: string;
   onClearFilters: () => void;
@@ -40,6 +43,8 @@ interface TierListViewTabProps {
   pageSizeOptions: readonly number[];
   onPageSizeChange: (pageSize: number) => void;
   hasMore: boolean;
+  loadedCount: number;
+  paginationTotal: number;
   loadingMore: boolean;
   onLoadMore: () => void;
 }
@@ -47,6 +52,8 @@ interface TierListViewTabProps {
 export default function TierListViewTab({
   paginatedTierLists,
   visibleTierLists,
+  charMap,
+  characterByIdentity,
   viewMode,
   search,
   onClearFilters,
@@ -59,6 +66,8 @@ export default function TierListViewTab({
   pageSizeOptions,
   onPageSizeChange,
   hasMore,
+  loadedCount,
+  paginationTotal,
   loadingMore,
   onLoadMore,
 }: TierListViewTabProps) {
@@ -86,6 +95,8 @@ export default function TierListViewTab({
             <TierListCard
               key={tierList.community?.id ?? tierList.name}
               tierList={tierList}
+              charMap={charMap}
+              characterByIdentity={characterByIdentity}
               onNavigate={() => navigate(getTierListRoutePath(tierList))}
               actions={
                 tierList.community ? (
@@ -177,24 +188,19 @@ export default function TierListViewTab({
         currentPage={page}
         totalPages={totalPages}
         onChange={onPageChange}
-        totalItems={visibleTierLists.length}
+        totalItems={paginationTotal}
         pageSize={pageSize}
         pageSizeOptions={pageSizeOptions}
         onPageSizeChange={onPageSizeChange}
       />
 
-      {hasMore && page >= totalPages && (
-        <Group justify="center">
-          <Button
-            variant="light"
-            color={accent.primary}
-            loading={loadingMore}
-            onClick={onLoadMore}
-          >
-            Load more tier lists
-          </Button>
-        </Group>
-      )}
+      <CommunityLoadMore
+        hasMore={hasMore}
+        loadingMore={loadingMore}
+        onLoadMore={onLoadMore}
+        atLastPage={page * pageSize >= visibleTierLists.length}
+        loadedCount={loadedCount}
+      />
     </>
   );
 }

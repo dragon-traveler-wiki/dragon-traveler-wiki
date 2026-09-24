@@ -12,6 +12,7 @@ export interface CommunityMeta {
   slug: string;
   author: CommunityAuthor;
   score: number;
+  status: 'published' | 'hidden' | 'deleted';
   viewerHasUpvoted: boolean;
   viewerOwns: boolean;
   revision: number;
@@ -26,6 +27,8 @@ export interface CommunityItem<T> extends CommunityMeta {
 export interface CommunityListResponse<T> {
   items: CommunityItem<T>[];
   nextCursor: string | null;
+  /** Matching item count; only sent on the first page (no cursor). */
+  total?: number | null;
 }
 
 export interface CommunityIdentity {
@@ -43,10 +46,18 @@ export interface CommunityUser {
   unreadReportCount: number;
 }
 
+export interface CommunityStats {
+  teams: number;
+  tierLists: number;
+  /** Total upvotes received across published items. */
+  upvotes: number;
+}
+
 export interface PublicProfile {
   id: string;
   displayName: string;
   avatarUrl: string | null;
+  stats: CommunityStats;
 }
 
 export interface CommunityRevision {

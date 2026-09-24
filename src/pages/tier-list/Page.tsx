@@ -1,4 +1,5 @@
-﻿import type { ChipFilterGroup } from '@/components/common/EntityFilter';
+﻿import { getCommunityPaginationTotal } from '@/features/community/pagination';
+import type { ChipFilterGroup } from '@/components/common/EntityFilter';
 import EntityFilter from '@/components/common/EntityFilter';
 import {
   createClassFilterGroup,
@@ -102,6 +103,7 @@ export default function TierList() {
   }, [sort]);
   const {
     data: tierLists,
+    total: totalTierLists,
     loading: loadingTiers,
     loadingMore: loadingMoreTierLists,
     hasMore: hasMoreTierLists,
@@ -378,8 +380,15 @@ export default function TierList() {
       storageKey: getPageSizeStorageKey(STORAGE_KEY.TIER_LIST_VIEW_MODE),
     },
   );
+  const paginationTotal = getCommunityPaginationTotal({
+    visibleCount: visibleTierLists.length,
+    loadedCount: tierLists.length,
+    total: totalTierLists,
+    hasMore: hasMoreTierLists,
+  });
+
   const { page, setPage, totalPages, offset } = usePagination(
-    visibleTierLists.length,
+    paginationTotal,
     pageSize,
     JSON.stringify({ debouncedSearch, viewFilters }),
   );
@@ -538,6 +547,8 @@ export default function TierList() {
               <TierListViewTab
                 visibleTierLists={visibleTierLists}
                 paginatedTierLists={paginatedTierLists}
+                charMap={charMap}
+                characterByIdentity={characterByIdentity}
                 viewMode={viewMode}
                 search={search}
                 onClearFilters={handleClearFilters}
@@ -550,6 +561,8 @@ export default function TierList() {
                 pageSizeOptions={pageSizeOptions}
                 onPageSizeChange={setPageSize}
                 hasMore={hasMoreTierLists}
+                loadedCount={tierLists.length}
+                paginationTotal={paginationTotal}
                 loadingMore={loadingMoreTierLists}
                 onLoadMore={loadMoreTierLists}
               />

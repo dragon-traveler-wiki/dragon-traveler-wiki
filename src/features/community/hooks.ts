@@ -15,7 +15,7 @@ export interface CommunityItemsOptions {
 
 const PAGE_LIMIT = 24;
 
-function toDisplayItems<T>(
+export function toDisplayItems<T>(
   items: Array<CommunityItem<T>>,
 ): Array<CommunityPayload<T>> {
   return items.map(({ payload, ...community }) => ({
@@ -53,6 +53,7 @@ export function useCommunityItems<T>(
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [hasMore, setHasMore] = useState(false);
+  const [total, setTotal] = useState<number | null>(null);
   const [requestVersion, setRequestVersion] = useState(0);
   const cursorRef = useRef<string | null>(null);
 
@@ -72,10 +73,12 @@ export function useCommunityItems<T>(
         setData(toDisplayItems(page.items));
         cursorRef.current = page.nextCursor;
         setHasMore(page.nextCursor !== null);
+        setTotal(page.total ?? null);
       })
       .catch((reason: unknown) => {
         if (cancelled) return;
         setData([]);
+        setTotal(null);
         setHasMore(false);
         setError(reason instanceof Error ? reason : new Error(String(reason)));
       })
@@ -107,7 +110,16 @@ export function useCommunityItems<T>(
   }, [kind, search, sort, owner, status, loadingMore]);
 
   const retry = useCallback(() => setRequestVersion((value) => value + 1), []);
-  return { data, loading, loadingMore, hasMore, loadMore, error, retry };
+  return {
+    data,
+    total,
+    loading,
+    loadingMore,
+    hasMore,
+    loadMore,
+    error,
+    retry,
+  };
 }
 
 const SEARCH_INDEX_CAP = 500;

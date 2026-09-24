@@ -53,11 +53,24 @@ app.get('/v1/users/:id', async (c) => {
     .bind(c.req.param('id'))
     .first<{ id: string; display_name: string; avatar_url: string | null }>();
   if (!row) return c.json({ error: 'Not found' }, 404);
+  const stats = await c.env.DB.prepare(
+    `SELECT COALESCE(SUM(kind = 'team'), 0) AS teams,
+            COALESCE(SUM(kind = 'tier_list'), 0) AS tier_lists,
+            COALESCE(SUM(score), 0) AS upvotes
+       FROM community_items WHERE owner_user_id = ? AND status = 'published'`,
+  )
+    .bind(row.id)
+    .first<{ teams: number; tier_lists: number; upvotes: number }>();
   return c.json({
     user: {
       id: row.id,
       displayName: row.display_name,
       avatarUrl: row.avatar_url,
+      stats: {
+        teams: stats?.teams ?? 0,
+        tierLists: stats?.tier_lists ?? 0,
+        upvotes: stats?.upvotes ?? 0,
+      },
     },
   });
 });
@@ -231,6 +244,7 @@ interface ItemRow {
   facet: string;
   payload_json: string;
   score: number;
+  status: 'published' | 'hidden' | 'deleted';
   revision: number;
   created_at: number;
   updated_at: number;
@@ -251,6 +265,7 @@ function presentItem(row: ItemRow, viewerId: string | null) {
       avatarUrl: row.avatar_url,
     },
     score: row.score,
+    status: row.status,
     viewerHasUpvoted: Boolean(row.viewer_voted),
     viewerOwns: viewerId === row.owner_user_id,
     revision: row.revision,
@@ -299,6 +314,8 @@ async function listItems(c: ApiContext, kind: CommunityKind) {
     const escaped = `%${search.replace(/[\\%_]/g, '\\$&')}%`;
     values.push(escaped, escaped, escaped);
   }
+  const filterConditions = [...conditions];
+  const filterValues = [...values];
   if (cursor) {
     if (sort === 'top') {
       conditions.push(
@@ -328,6 +345,15 @@ async function listItems(c: ApiContext, kind: CommunityKind) {
   const result = await c.env.DB.prepare(query)
     .bind(viewer?.id ?? '', ...values, limit + 1)
     .all<ItemRow>();
+  // The total ignores the cursor, so it's only computed once, on the first page.
+  const totalRow = cursor
+    ? null
+    : await c.env.DB.prepare(
+        `SELECT COUNT(*) AS total FROM community_items i
+         JOIN users u ON u.id = i.owner_user_id WHERE ${filterConditions.join(' AND ')}`,
+      )
+        .bind(...filterValues)
+        .first<{ total: number }>();
   const rows = result.results;
   const hasMore = rows.length > limit;
   const visible = rows.slice(0, limit);
@@ -335,6 +361,7 @@ async function listItems(c: ApiContext, kind: CommunityKind) {
   return c.json({
     items: visible.map((row) => presentItem(row, viewer?.id ?? null)),
     nextCursor: hasMore && last ? encodeCursor(last) : null,
+    total: totalRow?.total ?? null,
   });
 }
 
