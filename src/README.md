@@ -95,6 +95,18 @@ user-published through the Cloudflare Worker in `community-api/` (see the root
   link to `/profile/:userId` (`pages/profile/Page.tsx`); falls back to plain text
   for local drafts with no `community.author`. Used everywhere a "by X" credit
   is shown instead of a raw `getDisplayAuthor()` string.
+- **`features/community/pagination.ts`** / **`CommunityLoadMore.tsx`** — browse pages
+  fetch server pages of 24 (`total` comes back on the first page) while showing client
+  page numbers over the whole catalog: `getCommunityPaginationTotal` picks the server
+  total unless client-side filters have narrowed the loaded set, and `CommunityLoadMore`
+  fetches the next server page once the viewer reaches the last loaded client page.
+- **`features/community/use-card-preview-layout.ts`** — shared portrait sizing for the
+  preview strips on `TeamCard` and `TierListCard`; both render through
+  `components/ui/OverflowRow.tsx`, which fits as many items as the width allows and
+  ends with a "+N" chip.
+- **`features/community/CommunityStatsBadges.tsx`** — team/tier-list/upvote-received
+  totals, shown on both the public profile and the account page (profile stats come
+  from `GET /v1/users/:id`).
 - **`features/community/CommunitySortControl.tsx`** — the top-rated/newest `Select`
   used by both browse pages, passed through `PageFilterHeaderControls`'
   `extraControls` slot.

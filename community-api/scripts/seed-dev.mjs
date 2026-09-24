@@ -558,6 +558,24 @@ TIER_SPECS.forEach(
   },
 );
 
+// Stress case for the card previews: a full team with the maximum 12 subs.
+const stressTeam = items.find((item) => item.id === 'seed-team-01');
+if (stressTeam) {
+  const used = new Set(stressTeam.payload.members.map((m) => m.character_slug));
+  stressTeam.payload.name = 'Max Subs Stress Test';
+  stressTeam.payload.description =
+    'Six mains and twelve subs, for testing overflow.';
+  stressTeam.payload.bench = shuffle(
+    characters.filter((c) => !used.has(c.slug)),
+  )
+    .slice(0, 12)
+    .map((c) => ({
+      character_slug: c.slug,
+      character_quality: c.quality,
+      note: 'Swap in if the main unit is missing.',
+    }));
+}
+
 // --- build SQL ---
 const statements = [...RESET_SQL];
 for (const user of users) {
