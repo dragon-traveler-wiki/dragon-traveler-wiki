@@ -73,6 +73,11 @@ npx wrangler d1 migrations apply dragon-traveler-community --local
 npm run dev
 ```
 
+To fill the local database with dummy teams, tier lists, votes, and reports for
+manual QA (including enough items to test pagination), run `npm run seed` in
+`community-api/`; `npm run seed:reset` removes it again. The script only touches
+rows whose ids start with `seed-` and only ever targets the local database.
+
 Copy `.dev.vars.example` to `.dev.vars`, configure Discord and GitHub OAuth
 applications, and use `http://localhost:8787/v1/auth/<provider>/callback` as
 their local callback URLs. The frontend also needs `VITE_API_BASE_URL` and

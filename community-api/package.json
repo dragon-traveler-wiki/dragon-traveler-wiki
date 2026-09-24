@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "seed": "node scripts/seed-dev.mjs",
+    "seed:reset": "node scripts/seed-dev.mjs --reset",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check": "npm run typecheck && npm run test"
