@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getNoblePhantasmPreviewDescription } from '../src/features/wiki/noble-phantasms/utils.ts';
+import { getNoblePhantasmPreviewDescription } from '../../src/features/wiki/noble-phantasms/utils.ts';
 
 test('noble phantasm previews prefer character-specific effects', () => {
   assert.equal(

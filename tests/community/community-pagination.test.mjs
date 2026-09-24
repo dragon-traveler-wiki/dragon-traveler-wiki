@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getCommunityPaginationTotal } from '../src/features/community/pagination.ts';
+import { getCommunityPaginationTotal } from '../../src/features/community/pagination.ts';
 
 test('pagination spans the server total while more pages remain', () => {
   assert.equal(

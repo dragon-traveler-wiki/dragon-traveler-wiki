@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { STORAGE_KEY } from '../src/constants/ui.ts';
+import { STORAGE_KEY } from '../../src/constants/ui.ts';
 import {
   buildSettingsExport,
   importSettings,
-} from '../src/features/settings/settings-storage.ts';
+} from '../../src/features/settings/settings-storage.ts';
 
 function createStorage(initial = {}) {
   const values = new Map(Object.entries(initial));

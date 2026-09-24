@@ -3,7 +3,7 @@ import test from 'node:test';
 import {
   getSavedBuilderItemKey,
   withSavedTimestamp,
-} from '../src/features/builders/saved-builder-item.ts';
+} from '../../src/features/builders/saved-builder-item.ts';
 
 test('saved builder items share key and timestamp normalization', () => {
   assert.equal(

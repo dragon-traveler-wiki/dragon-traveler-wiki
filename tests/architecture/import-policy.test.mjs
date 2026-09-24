@@ -3,10 +3,10 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 const sharedBarrels = [
-  '../src/components/index.ts',
-  '../src/contexts/index.ts',
-  '../src/hooks/index.ts',
-  '../src/utils/index.ts',
+  '../../src/components/index.ts',
+  '../../src/contexts/index.ts',
+  '../../src/hooks/index.ts',
+  '../../src/utils/index.ts',
 ];
 
 test('shared barrels do not re-export feature-owned modules', async () => {

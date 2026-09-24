@@ -5,7 +5,7 @@ import {
   resolveTabParam,
   setDefaultOmittingSearchParam,
   setEntitySearchParam,
-} from '../src/utils/search-param-tabs.ts';
+} from '../../src/utils/search-param-tabs.ts';
 
 test('route-backed tabs reject invalid values and omit their default', () => {
   assert.equal(

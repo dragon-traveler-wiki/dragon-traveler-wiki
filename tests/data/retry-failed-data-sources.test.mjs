@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { retryFailedDataSources } from '../src/utils/retry-failed-data-sources.ts';
+import { retryFailedDataSources } from '../../src/utils/retry-failed-data-sources.ts';
 
 test('composite retries invoke only failed data sources', () => {
   const retried = [];

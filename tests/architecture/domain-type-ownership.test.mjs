@@ -10,7 +10,7 @@ const crossFeatureTypeModules = [
 ];
 
 test('src/types contains only explicit cross-feature primitives', async () => {
-  const typesDirectory = new URL('../src/types/', import.meta.url);
+  const typesDirectory = new URL('../../src/types/', import.meta.url);
   const entries = await readdir(typesDirectory);
   const typeModules = entries.filter((entry) => entry.endsWith('.ts')).sort();
 

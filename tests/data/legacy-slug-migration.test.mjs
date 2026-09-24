@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { migrateLegacySlugsInValue } from '../src/utils/legacy-slug-migration.ts';
+import { migrateLegacySlugsInValue } from '../../src/utils/legacy-slug-migration.ts';
 
 test('legacy character slugs migrate through saved structures and asset keys', () => {
   const aliases = new Map([['expected_zeus', 'official_zeus']]);

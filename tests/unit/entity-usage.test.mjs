@@ -4,7 +4,7 @@ import {
   buildEntityUsage,
   compareEntityUsage,
   filterUsageCharacters,
-} from '../src/features/wiki/usage/entity-usage.ts';
+} from '../../src/features/wiki/usage/entity-usage.ts';
 
 const characters = [
   { name: 'Alpha', quality: 'UR', references: ['legacy-a', 'legacy-a'] },

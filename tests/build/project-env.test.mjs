@@ -3,7 +3,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { loadProjectEnv } from '../scripts/project-env.mjs';
+import { loadProjectEnv } from '../../scripts/project-env.mjs';
 
 test('project env loads local files relative to the project root', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'dragon-traveler-wiki-'));

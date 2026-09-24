@@ -6,9 +6,9 @@ import {
   buildVersionPlugin,
   injectBuildMetadata,
   resolveBuildId,
-} from '../scripts/build-version.mjs';
+} from '../../scripts/build-version.mjs';
 
-const indexPath = new URL('../index.html', import.meta.url);
+const indexPath = new URL('../../index.html', import.meta.url);
 
 async function runBuildRecovery({ currentBuild, deployedBuild, href }) {
   const html = injectBuildMetadata(

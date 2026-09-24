@@ -5,8 +5,8 @@ import {
   ROUTE_CATALOG,
   ROUTE_META,
   getNavigationPatterns,
-} from '../src/constants/route-meta.ts';
-import { LEGACY_ROUTE_ALIASES } from '../scripts/generate-route-pages.mjs';
+} from '../../src/constants/route-meta.ts';
+import { LEGACY_ROUTE_ALIASES } from '../../scripts/generate-route-pages.mjs';
 
 const normalizePattern = (pattern) => pattern.replace(/:[^/]+/g, ':param');
 

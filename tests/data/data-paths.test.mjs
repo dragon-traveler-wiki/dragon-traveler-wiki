@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { changesPath, dataPath } from '../src/utils/data-paths.ts';
+import { changesPath, dataPath } from '../../src/utils/data-paths.ts';
 
 test('dataPath separates localized and global datasets', () => {
   assert.equal(

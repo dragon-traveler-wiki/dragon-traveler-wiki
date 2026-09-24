@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getNewestActiveCharacterKeys } from '../src/features/characters/utils/new-character-keys.ts';
+import { getNewestActiveCharacterKeys } from '../../src/features/characters/utils/new-character-keys.ts';
 
 test('removed latest additions do not hide the newest active re-added batch', () => {
   const result = getNewestActiveCharacterKeys(

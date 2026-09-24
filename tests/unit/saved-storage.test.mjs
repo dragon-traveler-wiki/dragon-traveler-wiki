@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { readStoredJson, writeStoredJson } from '../src/utils/saved-storage.ts';
+import {
+  readStoredJson,
+  writeStoredJson,
+} from '../../src/utils/saved-storage.ts';
 
 function createStorage(initial = {}) {
   const values = new Map(Object.entries(initial));

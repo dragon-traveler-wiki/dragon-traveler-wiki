@@ -3,11 +3,11 @@ import test from 'node:test';
 import {
   createEmptyTeamBuilderState,
   teamBuilderReducer,
-} from '../src/features/teams/team-builder-state.ts';
+} from '../../src/features/teams/team-builder-state.ts';
 import {
   createEmptyTierListBuilderState,
   tierListBuilderReducer,
-} from '../src/features/tier-list/tier-list-builder-state.ts';
+} from '../../src/features/tier-list/tier-list-builder-state.ts';
 
 test('team builder reducer updates nested state immutably and clears optional values', () => {
   const initial = createEmptyTeamBuilderState();

@@ -7,7 +7,7 @@ import {
   getOracleScrollReference,
   hasAsset,
   normalizeTypeKey,
-} from '../scripts/generate-route-pages.mjs';
+} from '../../scripts/generate-route-pages.mjs';
 
 const BASE_HTML = `<!doctype html>
 <html>

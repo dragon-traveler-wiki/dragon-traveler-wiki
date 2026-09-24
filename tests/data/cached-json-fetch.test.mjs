@@ -4,7 +4,7 @@ import {
   clearCachedJson,
   fetchJsonCached,
   hasCachedJson,
-} from '../src/utils/cached-json-fetch.ts';
+} from '../../src/utils/cached-json-fetch.ts';
 
 test('cached JSON requests share in-flight work and retain successful data', async (t) => {
   const originalFetch = globalThis.fetch;

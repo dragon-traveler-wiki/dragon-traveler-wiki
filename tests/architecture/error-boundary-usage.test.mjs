@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
-const sourceRoot = fileURLToPath(new URL('../src', import.meta.url));
+const sourceRoot = fileURLToPath(new URL('../../src', import.meta.url));
 const sharedBoundaryPath = path.join(
   sourceRoot,
   'components',

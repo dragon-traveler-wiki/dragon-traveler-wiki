@@ -3,22 +3,22 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 const detailPagePath = new URL(
-  '../src/pages/characters/DetailPage.tsx',
+  '../../src/pages/characters/DetailPage.tsx',
   import.meta.url,
 );
 const launcherPath = new URL(
-  '../src/features/characters/components/CharacterModelLauncher.tsx',
+  '../../src/features/characters/components/CharacterModelLauncher.tsx',
   import.meta.url,
 );
 const viewerPath = new URL(
-  '../src/features/characters/components/CharacterModelViewer.tsx',
+  '../../src/features/characters/components/CharacterModelViewer.tsx',
   import.meta.url,
 );
 const scenePath = new URL(
-  '../src/features/characters/components/CharacterModelScene.tsx',
+  '../../src/features/characters/components/CharacterModelScene.tsx',
   import.meta.url,
 );
-const viteConfigPath = new URL('../vite.config.ts', import.meta.url);
+const viteConfigPath = new URL('../../vite.config.ts', import.meta.url);
 
 test('the character model runtime stays behind the model-button interaction', async () => {
   const [detailPage, launcher, viewer, scene] = await Promise.all([

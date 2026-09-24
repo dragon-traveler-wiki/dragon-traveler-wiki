@@ -3,7 +3,7 @@ import test from 'node:test';
 import {
   parseObjectArray,
   parseObjectRecord,
-} from '../src/utils/data-validation.ts';
+} from '../../src/utils/data-validation.ts';
 
 test('parseObjectArray accepts object arrays', () => {
   const value = [{ slug: 'test' }];

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { addLinkedCharacterNames } from '../src/features/search/noble-phantasm-search.ts';
-import { rankAndLimitSearchResults } from '../src/features/search/search-ranking.ts';
+import { addLinkedCharacterNames } from '../../src/features/search/noble-phantasm-search.ts';
+import { rankAndLimitSearchResults } from '../../src/features/search/search-ranking.ts';
 
 test('noble phantasm search items resolve linked character names', () => {
   const characters = new Map([

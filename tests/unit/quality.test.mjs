@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { QUALITY_ORDER } from '../src/constants/quality.ts';
+import { QUALITY_ORDER } from '../../src/constants/quality.ts';
 import {
   compareQuality,
   compareQualityThenName,
   getQualityRank,
   UNKNOWN_QUALITY_RANK,
-} from '../src/utils/quality.ts';
+} from '../../src/utils/quality.ts';
 
 test('quality ranking follows the canonical rarest-first order', () => {
   for (const [index, quality] of QUALITY_ORDER.entries()) {

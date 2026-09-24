@@ -6,7 +6,7 @@ import {
   hasSavedInStorage,
   loadSavedFromStorage,
   upsertSavedInStorage,
-} from '../src/utils/saved-storage.ts';
+} from '../../src/utils/saved-storage.ts';
 
 function createStorage(initial = {}) {
   const values = new Map(Object.entries(initial));

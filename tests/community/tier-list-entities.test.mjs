@@ -5,7 +5,7 @@ import {
   getTierListEntityType,
   isCharacterTierEntry,
   isNoblePhantasmTierEntry,
-} from '../src/features/tier-list/types.ts';
+} from '../../src/features/tier-list/types.ts';
 
 test('legacy tier lists default to character entries', () => {
   assert.equal(getTierListEntityType({}), 'character');
