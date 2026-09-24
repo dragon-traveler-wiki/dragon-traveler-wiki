@@ -8,12 +8,12 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
 import { type KeyboardEvent, type ReactNode } from 'react';
 import { FACTION_WYRM_MAP } from '@/assets';
 import FactionTag from '@/components/ui/FactionTag';
 import { InteractiveSurface, StaticSurface } from '@/components/ui/Surface';
 import { FACTION_COLOR } from '@/constants/faction-colors';
+import { useCardPreviewLayout } from '@/features/community/use-card-preview-layout';
 import AuthorLink from '@/features/community/AuthorLink';
 import { getDisplayAuthor } from '@/features/community/display-author';
 import {
@@ -47,7 +47,7 @@ export default function TeamCard({
   actions,
 }: TeamCardProps) {
   const { accent } = useGradientAccent();
-  const isLargeTeamCardLayout = useMediaQuery('(min-width: 75em)');
+  const preview = useCardPreviewLayout();
 
   const borderTopStyle = `3px solid var(--mantine-color-${FACTION_COLOR[team.faction] ?? accent.primary}-5)`;
 
@@ -78,13 +78,12 @@ export default function TeamCard({
     <Surface component="div" p="md" {...surfaceProps}>
       <Stack gap="sm">
         {/* Header: whelp + name + actions */}
-        <Group
-          justify="space-between"
-          align="flex-start"
-          wrap="nowrap"
-          gap="xs"
-        >
-          <Group gap="xs" wrap="nowrap" style={{ minWidth: 0 }}>
+        <Group justify="space-between" align="flex-start" wrap="wrap" gap="xs">
+          <Group
+            gap="xs"
+            wrap="nowrap"
+            style={{ minWidth: 0, flex: '1 1 160px' }}
+          >
             {FACTION_WYRM_MAP[team.faction] && (
               <SafeImage
                 src={FACTION_WYRM_MAP[team.faction]}
@@ -142,7 +141,7 @@ export default function TeamCard({
         {/* Member portraits */}
         <Paper p="xs" radius="sm" bg="var(--mantine-color-default-hover)">
           <Stack gap="xs">
-            <Group gap="xs" align="flex-start" wrap="nowrap">
+            <Group gap="xs" align="center" wrap="nowrap">
               <Badge
                 size="xs"
                 variant="light"
@@ -161,17 +160,17 @@ export default function TeamCard({
                 }))}
                 preferredByName={charMap}
                 byIdentity={characterByIdentity}
-                size={isLargeTeamCardLayout ? 64 : 56}
+                size={preview.size}
                 layout="wrap"
-                gap={isLargeTeamCardLayout ? 6 : 4}
-                wrap={isLargeTeamCardLayout ? 'nowrap' : 'wrap'}
-                maxVisible={isLargeTeamCardLayout ? 6 : 5}
+                gap={preview.gap}
+                wrap="nowrap"
+                maxVisible={6}
               />
             </Group>
             {(team.bench?.length ?? 0) > 0 && (
               <>
                 <Divider size="xs" />
-                <Group gap="xs" align="flex-start" wrap="nowrap">
+                <Group gap="xs" align="center" wrap="nowrap">
                   <Tooltip
                     label="Substitutes — direct replacements for main team members"
                     withArrow
@@ -198,12 +197,12 @@ export default function TeamCard({
                     }))}
                     preferredByName={charMap}
                     byIdentity={characterByIdentity}
-                    size={isLargeTeamCardLayout ? 52 : 44}
+                    size={preview.subSize}
                     isSubstitute
                     layout="wrap"
-                    gap={isLargeTeamCardLayout ? 6 : 4}
-                    wrap={isLargeTeamCardLayout ? 'nowrap' : 'wrap'}
-                    maxVisible={isLargeTeamCardLayout ? 6 : 5}
+                    gap={preview.gap}
+                    wrap="nowrap"
+                    maxVisible={6}
                   />
                 </Group>
               </>

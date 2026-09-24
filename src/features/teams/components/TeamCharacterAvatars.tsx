@@ -1,4 +1,5 @@
-import { Badge, Box, Group } from '@mantine/core';
+import { Box, Group } from '@mantine/core';
+import OverflowRow, { OverflowChip } from '@/components/ui/OverflowRow';
 import CharacterPortrait from '@/features/characters/components/CharacterPortrait';
 import type { Character } from '@/features/characters/types';
 import {
@@ -30,14 +31,11 @@ export default function TeamCharacterAvatars({
   wrap?: 'wrap' | 'nowrap';
   maxVisible?: number;
 }) {
-  const shouldLimitVisibleCount =
-    typeof maxVisible === 'number' &&
-    maxVisible >= 0 &&
-    (layout === 'grid' || wrap === 'nowrap');
-
-  const visibleNames = shouldLimitVisibleCount
-    ? refs.slice(0, maxVisible)
-    : refs;
+  const isGrid = layout === 'grid';
+  const isSingleRow = !isGrid && wrap === 'nowrap' && maxVisible !== undefined;
+  const gridLimit =
+    isGrid && maxVisible !== undefined ? maxVisible : refs.length;
+  const visibleNames = isGrid ? refs.slice(0, Math.max(0, gridLimit)) : refs;
   const hiddenCount = refs.length - visibleNames.length;
 
   const portraits = visibleNames.map((entry) => {
@@ -63,36 +61,7 @@ export default function TeamCharacterAvatars({
     );
   });
 
-  const overflowIndicator =
-    hiddenCount > 0 ? (
-      <Badge
-        key={`${isSubstitute ? 'sub' : 'main'}-overflow`}
-        size="sm"
-        variant="light"
-        color="gray"
-        style={{
-          width: size,
-          height: size,
-          borderRadius: '50%',
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: 0,
-          fontSize: 11,
-          fontWeight: 600,
-          lineHeight: 1,
-          flexShrink: 0,
-        }}
-      >
-        +{hiddenCount}
-      </Badge>
-    ) : null;
-
-  const portraitItems = overflowIndicator
-    ? [...portraits, overflowIndicator]
-    : portraits;
-
-  if (layout === 'grid') {
+  if (isGrid) {
     return (
       <Box
         style={{
@@ -101,14 +70,26 @@ export default function TeamCharacterAvatars({
           gap: 6,
         }}
       >
-        {portraitItems}
+        {portraits}
+        {hiddenCount > 0 && <OverflowChip count={hiddenCount} size={size} />}
       </Box>
+    );
+  }
+
+  if (isSingleRow) {
+    return (
+      <OverflowRow
+        items={portraits}
+        size={size}
+        gap={gap}
+        maxVisible={maxVisible}
+      />
     );
   }
 
   return (
     <Group gap={gap} wrap={wrap}>
-      {portraitItems}
+      {portraits}
     </Group>
   );
 }
