@@ -63,8 +63,8 @@ export default function ReferenceTierListToggle({
   return (
     <Tooltip label={label} withArrow>
       <ActionIcon
-        variant={isReference ? 'filled' : 'subtle'}
-        color="grape"
+        variant="subtle"
+        color={isReference ? 'grape' : 'gray'}
         size="sm"
         loading={working}
         aria-label={label}
