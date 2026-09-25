@@ -202,13 +202,11 @@ export default function TierListPage() {
             viewMode="grid"
             bylineActions={
               tierList.community && (
-                <>
-                  <CommunityActions
-                    community={tierList.community}
-                    show={{ reactions: true }}
-                  />
-                  <ReferenceTierListToggle tierList={tierList} />
-                </>
+                <CommunityActions
+                  community={tierList.community}
+                  show={{ reactions: true }}
+                  trailing={<ReferenceTierListToggle tierList={tierList} />}
+                />
               )
             }
             disableNameClamp={exporting}

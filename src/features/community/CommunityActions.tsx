@@ -8,7 +8,7 @@ import {
   Text,
   Textarea,
 } from '@mantine/core';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import { IoFlagOutline, IoThumbsUpOutline, IoTrash } from 'react-icons/io5';
 import { Link } from 'react-router';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
@@ -27,6 +27,7 @@ export default function CommunityActions({
   onDeleted,
   show,
   size = 'compact-xs',
+  trailing,
 }: {
   community: CommunityMeta;
   onEdit?: () => void;
@@ -40,6 +41,8 @@ export default function CommunityActions({
   show?: Partial<Record<ActionGroup, boolean>>;
   /** Detail pages pass a regular button size to match their other actions. */
   size?: 'compact-xs' | 'md';
+  /** Extra controls rendered inside the button group, right after the actions. */
+  trailing?: ReactNode;
 }) {
   // Without `show` everything renders; with it, only the groups named.
   const showReactions = show ? Boolean(show.reactions) : true;
@@ -210,11 +213,14 @@ export default function CommunityActions({
             Delete
           </Button>
         )}
+        {trailing}
       </Group>
       {/* Modals portal out of the DOM but React events still bubble through the
           component tree, so without this a click or Enter/Space keypress inside
           them would trigger the enclosing card's navigate handler. */}
       <div
+        // Renders no box of its own, so it can't add a gap in flex parents.
+        style={{ display: 'contents' }}
         onClick={(event) => event.stopPropagation()}
         onKeyDown={(event) => event.stopPropagation()}
       >
