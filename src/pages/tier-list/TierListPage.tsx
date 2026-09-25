@@ -157,7 +157,8 @@ export default function TierListPage() {
       {tierList.community && (
         <CommunityActions
           community={tierList.community}
-          onEdit={requestEdit}
+          show={{ delete: true }}
+          size="md"
           onDeleted={() => navigate('/tier-list')}
         />
       )}
@@ -193,6 +194,14 @@ export default function TierListPage() {
             resolveTierEntryEntity={resolveTierEntryEntity}
             viewMode="grid"
             headerActions={headerActions}
+            bylineActions={
+              tierList.community && (
+                <CommunityActions
+                  community={tierList.community}
+                  show={{ reactions: true }}
+                />
+              )
+            }
             disableNameClamp={exporting}
             exportRefCallback={(node) => {
               exportRef.current = node;

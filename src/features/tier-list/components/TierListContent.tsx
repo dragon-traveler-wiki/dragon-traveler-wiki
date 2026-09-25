@@ -36,6 +36,8 @@ interface TierListContentProps {
   ) => TierListRankableEntity | undefined;
   viewMode: string;
   headerActions: ReactNode;
+  /** Upvote/report controls shown beside the byline on public detail pages. */
+  bylineActions?: ReactNode;
   exportRefCallback?: (node: HTMLDivElement | null) => void;
   entityFilter?: (entity: TierListRankableEntity) => boolean;
   disableNameClamp?: boolean;
@@ -46,6 +48,7 @@ export default function TierListContent({
   resolveTierEntryEntity,
   viewMode,
   headerActions,
+  bylineActions,
   exportRefCallback,
   entityFilter,
   disableNameClamp = false,
@@ -97,6 +100,7 @@ export default function TierListContent({
               • {tierList.description}
             </Text>
           )}
+          {bylineActions}
         </Group>
         <Group gap="xs" wrap="wrap">
           <LastUpdated timestamp={tierList.last_updated} />

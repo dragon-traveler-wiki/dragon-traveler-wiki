@@ -1,4 +1,5 @@
 ﻿import SafeImage from '@/components/ui/SafeImage';
+import type { ReactNode } from 'react';
 import { getArtifactIcon } from '@/assets';
 import { FACTION_WYRM_MAP } from '@/assets';
 import LastUpdated from '@/components/common/LastUpdated';
@@ -56,6 +57,8 @@ export function TeamHeroSection({
   tooltipProps,
   onRequestEdit,
   onRequestDelete,
+  bylineActions,
+  ownerActions,
 }: {
   team: Team;
   factionInfo: Faction | null;
@@ -65,6 +68,10 @@ export function TeamHeroSection({
   tooltipProps: ReturnType<typeof useMobileTooltip>;
   onRequestEdit: () => void;
   onRequestDelete?: () => void;
+  /** Upvote/report controls shown beside the byline on public detail pages. */
+  bylineActions?: ReactNode;
+  /** Extra owner-only actions (e.g. delete) shown next to Edit. */
+  ownerActions?: ReactNode;
 }) {
   const { accent } = useGradientAccent();
   const factionColor = FACTION_COLOR[team.faction];
@@ -91,8 +98,11 @@ export function TeamHeroSection({
                 leftSection={<IoCreate size={14} />}
                 onClick={onRequestEdit}
               >
-                Edit Team
+                {team.community && !team.community.viewerOwns
+                  ? 'Remix Team'
+                  : 'Edit Team'}
               </Button>
+              {ownerActions}
               {onRequestDelete && (
                 <Button
                   variant="light"
@@ -137,6 +147,7 @@ export function TeamHeroSection({
                   </Text>
                 )}
                 <LastUpdated timestamp={team.last_updated} />
+                {bylineActions}
               </Group>
               <Group gap="sm" mt={4}>
                 <FactionTag faction={team.faction} size="lg" />

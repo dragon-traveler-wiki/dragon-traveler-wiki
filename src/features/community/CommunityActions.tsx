@@ -9,7 +9,7 @@ import {
   Textarea,
 } from '@mantine/core';
 import { useCallback, useState } from 'react';
-import { IoFlagOutline, IoThumbsUpOutline } from 'react-icons/io5';
+import { IoFlagOutline, IoThumbsUpOutline, IoTrash } from 'react-icons/io5';
 import { Link } from 'react-router';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import { useGradientAccent } from '@/hooks';
@@ -19,15 +19,31 @@ import { useCommunityAuth } from './auth-context';
 import type { CommunityMeta } from './types';
 import TurnstileWidget from './TurnstileWidget';
 
+type ActionGroup = 'reactions' | 'edit' | 'delete';
+
 export default function CommunityActions({
   community,
   onEdit,
   onDeleted,
+  show,
+  size = 'compact-xs',
 }: {
   community: CommunityMeta;
   onEdit?: () => void;
   onDeleted?: () => void;
+  /**
+   * Which groups to render (all by default): `reactions` is upvote + report,
+   * `edit` and `delete` are owner-only. Detail pages render reactions beside
+   * the byline and only the owner actions they don't already provide elsewhere.
+   */
+  show?: Partial<Record<ActionGroup, boolean>>;
+  /** Detail pages pass a regular button size to match their other actions. */
+  size?: 'compact-xs' | 'md';
 }) {
+  const showReactions = show?.reactions ?? true;
+  const showEdit = show?.edit ?? true;
+  const showDelete = show?.delete ?? true;
+  const compact = size === 'compact-xs';
   const { user, csrfToken, login } = useCommunityAuth();
   const { accent } = useGradientAccent();
   const [score, setScore] = useState(community.score);
@@ -131,39 +147,43 @@ export default function CommunityActions({
   return (
     <>
       <Group gap={4} wrap="nowrap">
-        <Button
-          size="compact-xs"
-          variant={upvoted ? 'filled' : 'subtle'}
-          color={accent.primary}
-          leftSection={<IoThumbsUpOutline size={12} />}
-          loading={working}
-          disabled={community.viewerOwns}
-          onClick={(event) => {
-            event.stopPropagation();
-            void vote();
-          }}
-        >
-          {score}
-        </Button>
-        {!community.viewerOwns && (
-          <Button
-            size="compact-xs"
-            variant="subtle"
-            color="gray"
-            leftSection={<IoFlagOutline size={12} />}
-            onClick={(event) => {
-              event.stopPropagation();
-              if (!user) login('discord');
-              else setReportOpen(true);
-            }}
-          >
-            Report
-          </Button>
+        {showReactions && (
+          <>
+            <Button
+              size={size}
+              variant={upvoted ? 'filled' : 'subtle'}
+              color={accent.primary}
+              leftSection={<IoThumbsUpOutline size={12} />}
+              loading={working}
+              disabled={community.viewerOwns}
+              onClick={(event) => {
+                event.stopPropagation();
+                void vote();
+              }}
+            >
+              {score}
+            </Button>
+            {!community.viewerOwns && (
+              <Button
+                size={size}
+                variant="subtle"
+                color="gray"
+                leftSection={<IoFlagOutline size={12} />}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (!user) login('discord');
+                  else setReportOpen(true);
+                }}
+              >
+                Report
+              </Button>
+            )}
+          </>
         )}
-        {community.viewerOwns && onEdit && (
+        {showEdit && community.viewerOwns && onEdit && (
           <Button
-            size="compact-xs"
-            variant="subtle"
+            size={size}
+            variant={compact ? 'subtle' : 'light'}
             color={accent.primary}
             onClick={(event) => {
               event.stopPropagation();
@@ -173,11 +193,12 @@ export default function CommunityActions({
             Edit
           </Button>
         )}
-        {community.viewerOwns && (
+        {showDelete && community.viewerOwns && (
           <Button
-            size="compact-xs"
-            variant="subtle"
+            size={size}
+            variant={compact ? 'subtle' : 'light'}
             color="red"
+            leftSection={compact ? undefined : <IoTrash size={14} />}
             loading={working}
             onClick={(event) => {
               event.stopPropagation();

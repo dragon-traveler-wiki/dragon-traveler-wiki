@@ -2,6 +2,7 @@ import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import EntityNotFound from '@/components/ui/EntityNotFound';
 import { STORAGE_KEY } from '@/constants/ui';
+import CommunityActions from '@/features/community/CommunityActions';
 import RevisionHistory from '@/features/community/RevisionHistory';
 import TeamDetailContent from '@/features/teams/components/TeamDetailContent';
 import { TeamHeroSection } from '@/features/teams/components/TeamHeroSection';
@@ -130,6 +131,24 @@ export default function TeamPage() {
         isDark={isDark}
         tooltipProps={tooltipProps}
         onRequestEdit={requestEdit}
+        bylineActions={
+          team.community && (
+            <CommunityActions
+              community={team.community}
+              show={{ reactions: true }}
+            />
+          )
+        }
+        ownerActions={
+          team.community && (
+            <CommunityActions
+              community={team.community}
+              show={{ delete: true }}
+              size="md"
+              onDeleted={() => navigate('/teams')}
+            />
+          )
+        }
       />
 
       <ConfirmActionModal
