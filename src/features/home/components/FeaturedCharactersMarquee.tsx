@@ -16,12 +16,12 @@ import { Badge, Box, Group, Skeleton, Stack, Text } from '@mantine/core';
 import { useContext } from 'react';
 
 export default function FeaturedCharactersMarquee() {
-  const { selectedTierList, loading: loadingTiers } = useContext(
-    TierListReferenceContext,
-  );
+  const { selectedTierList, resolving } = useContext(TierListReferenceContext);
   const { data: characters, loading: loadingChars } = useCharacters();
 
-  const loading = loadingTiers || loadingChars;
+  // With no default and no chosen list the section is omitted, so only show the
+  // skeleton while a reference may still turn up.
+  const loading = resolving || (Boolean(selectedTierList) && loadingChars);
 
   if (loading) {
     return (

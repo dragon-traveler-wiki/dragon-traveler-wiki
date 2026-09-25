@@ -36,6 +36,8 @@ export interface TierListReferenceContextValue {
   tierLists: TierListType[];
   savedTierLists: TierListType[];
   loading: boolean;
+  /** True until it's known whether a reference exists (site default or chosen list). */
+  resolving: boolean;
   /** The tier list currently used as the reference, if any. */
   selectedTierList: TierListType | null;
   /** Community id, `saved:<slug>`, or '' when there's no reference. */
@@ -54,6 +56,7 @@ export const TierListReferenceContext =
     tierLists: [],
     savedTierLists: [],
     loading: false,
+    resolving: false,
     selectedTierList: null,
     selectedKey: '',
     siteReferenceId: null,
@@ -95,6 +98,9 @@ export function TierListReferenceProvider({
   });
   const [siteReferenceId, setSiteReferenceId] = useState<string | null>(null);
   const [settingsVersion, setSettingsVersion] = useState(0);
+  const [settingsLoaded, setSettingsLoaded] = useState(
+    !isCommunityApiConfigured,
+  );
 
   const refreshSaved = useCallback(() => {
     setSavedTierLists(readSavedCharacterTierLists());
@@ -117,10 +123,14 @@ export function TierListReferenceProvider({
     let cancelled = false;
     getSiteSettings()
       .then((settings) => {
-        if (!cancelled) setSiteReferenceId(settings.referenceTierListId);
+        if (cancelled) return;
+        setSiteReferenceId(settings.referenceTierListId);
+        setSettingsLoaded(true);
       })
       .catch(() => {
-        if (!cancelled) setSiteReferenceId(null);
+        if (cancelled) return;
+        setSiteReferenceId(null);
+        setSettingsLoaded(true);
       });
     return () => {
       cancelled = true;
@@ -149,6 +159,11 @@ export function TierListReferenceProvider({
     loading: fetching,
     error: fetchError,
   } = useTierList(communityId);
+
+  // Only unknown while waiting on the site default (when the viewer hasn't
+  // chosen) or on fetching the list they did choose.
+  const resolving =
+    (stored === null && !settingsLoaded) || (communityId !== null && fetching);
 
   const selectedTierList = useMemo(() => {
     if (!selectedKey) return null;
@@ -191,6 +206,7 @@ export function TierListReferenceProvider({
       tierLists,
       savedTierLists,
       loading: listLoading || fetching,
+      resolving,
       selectedTierList,
       selectedKey,
       siteReferenceId,
@@ -205,6 +221,7 @@ export function TierListReferenceProvider({
       savedTierLists,
       listLoading,
       fetching,
+      resolving,
       selectedTierList,
       selectedKey,
       siteReferenceId,
