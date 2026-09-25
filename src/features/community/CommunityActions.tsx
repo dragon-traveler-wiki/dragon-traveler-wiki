@@ -32,7 +32,8 @@ export default function CommunityActions({
   onEdit?: () => void;
   onDeleted?: () => void;
   /**
-   * Which groups to render (all by default): `reactions` is upvote + report,
+   * Which groups to render (all when omitted; when given, only those set
+   * to true): `reactions` is upvote + report,
    * `edit` and `delete` are owner-only. Detail pages render reactions beside
    * the byline and only the owner actions they don't already provide elsewhere.
    */
@@ -40,9 +41,10 @@ export default function CommunityActions({
   /** Detail pages pass a regular button size to match their other actions. */
   size?: 'compact-xs' | 'md';
 }) {
-  const showReactions = show?.reactions ?? true;
-  const showEdit = show?.edit ?? true;
-  const showDelete = show?.delete ?? true;
+  // Without `show` everything renders; with it, only the groups named.
+  const showReactions = show ? Boolean(show.reactions) : true;
+  const showEdit = show ? Boolean(show.edit) : true;
+  const showDelete = show ? Boolean(show.delete) : true;
   const compact = size === 'compact-xs';
   const { user, csrfToken, login } = useCommunityAuth();
   const { accent } = useGradientAccent();
