@@ -19,7 +19,8 @@ import { getReports, resolveReport } from '@/features/community/api';
 import { useCommunityAuth } from '@/features/community/auth-context';
 import ModeratedItemsBrowser from '@/features/community/ModeratedItemsBrowser';
 import { useGradientAccent } from '@/hooks';
-import { showErrorToast } from '@/utils/toast';
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
+import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
 interface Report {
   id: string;
@@ -32,8 +33,18 @@ interface Report {
   status: string;
   item_status: string;
   reporter_name: string;
+  author_id: string;
+  author_name: string;
+  resolution_note: string;
   created_at: number;
 }
+
+const REASON_LABELS: Record<string, string> = {
+  spam: 'Spam',
+  broken: 'Broken or invalid data',
+  abusive: 'Abusive content',
+  other: 'Other',
+};
 
 function reportedItemPath(report: Report): string {
   return report.kind === 'team'
@@ -48,6 +59,7 @@ export default function ModerationPage() {
   const [reportsLoading, setReportsLoading] = useState(false);
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [actingId, setActingId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
   const load = useCallback(() => {
     if (user?.role !== 'moderator') return;
@@ -76,6 +88,7 @@ export default function ModerationPage() {
         delete next[id];
         return next;
       });
+      showSuccessToast({ title: 'Done', message: 'Report resolved.' });
       load();
     } catch (error) {
       showErrorToast({
@@ -86,6 +99,8 @@ export default function ModerationPage() {
       setActingId(null);
     }
   };
+
+  const openCount = reports.filter((report) => report.status === 'open').length;
 
   if (loading)
     return (
@@ -107,7 +122,18 @@ export default function ModerationPage() {
         <Title order={1}>Moderation</Title>
         <Tabs defaultValue="reports">
           <Tabs.List>
-            <Tabs.Tab value="reports">Reports</Tabs.Tab>
+            <Tabs.Tab
+              value="reports"
+              rightSection={
+                openCount > 0 ? (
+                  <Badge size="xs" color="red" circle>
+                    {openCount}
+                  </Badge>
+                ) : undefined
+              }
+            >
+              Reports
+            </Tabs.Tab>
             <Tabs.Tab value="browse">Browse content</Tabs.Tab>
           </Tabs.List>
           <Tabs.Panel value="reports" pt="md">
@@ -130,12 +156,21 @@ export default function ModerationPage() {
                           {report.title}
                         </Anchor>
                         <Text size="sm" c="dimmed">
-                          Reported by {report.reporter_name}
+                          By{' '}
+                          <Anchor
+                            component={Link}
+                            to={`/profile/${report.author_id}`}
+                            target="_blank"
+                            size="sm"
+                          >
+                            {report.author_name}
+                          </Anchor>{' '}
+                          · reported by {report.reporter_name}
                         </Text>
                       </Group>
                       <Group gap="xs">
                         <Badge variant="light" color={accent.primary}>
-                          {report.reason}
+                          {REASON_LABELS[report.reason] ?? report.reason}
                         </Badge>
                         <Badge variant="outline" color={accent.secondary}>
                           Report {report.status}
@@ -152,62 +187,72 @@ export default function ModerationPage() {
                       {Boolean(report.note) && (
                         <Text size="sm">{report.note}</Text>
                       )}
-                      <Textarea
-                        placeholder="Add a resolution note (optional)..."
-                        autosize
-                        minRows={1}
-                        maxLength={1000}
-                        value={notes[report.id] ?? ''}
-                        onChange={(event) =>
-                          setNotes((prev) => ({
-                            ...prev,
-                            [report.id]: event.currentTarget.value,
-                          }))
-                        }
-                      />
-                      <Group>
-                        {report.item_status === 'hidden' ? (
-                          <Button
-                            size="xs"
-                            color="teal"
-                            loading={actingId === report.id}
-                            disabled={actingId !== null}
-                            onClick={() => void act(report.id, 'restore')}
-                          >
-                            Restore
-                          </Button>
-                        ) : (
-                          <Button
-                            size="xs"
-                            color="red"
-                            loading={actingId === report.id}
-                            disabled={actingId !== null}
-                            onClick={() => void act(report.id, 'hide')}
-                          >
-                            Hide
-                          </Button>
-                        )}
-                        <Button
-                          size="xs"
-                          variant="light"
-                          color={accent.primary}
-                          loading={actingId === report.id}
-                          disabled={actingId !== null}
-                          onClick={() => void act(report.id, 'dismiss')}
-                        >
-                          Dismiss
-                        </Button>
-                        <Button
-                          size="xs"
-                          variant="light"
-                          color="red"
-                          loading={actingId === report.id}
-                          disabled={actingId !== null}
-                          onClick={() => void act(report.id, 'delete')}
-                        >
-                          Delete
-                        </Button>
-                      </Group>
+                      {report.status === 'open' ? (
+                        <>
+                          <Textarea
+                            placeholder="Add a resolution note (optional)..."
+                            autosize
+                            minRows={1}
+                            maxLength={1000}
+                            value={notes[report.id] ?? ''}
+                            onChange={(event) =>
+                              setNotes((prev) => ({
+                                ...prev,
+                                [report.id]: event.currentTarget.value,
+                              }))
+                            }
+                          />
+                          <Group>
+                            {report.item_status === 'hidden' ? (
+                              <Button
+                                size="xs"
+                                color="teal"
+                                loading={actingId === report.id}
+                                disabled={actingId !== null}
+                                onClick={() => void act(report.id, 'restore')}
+                              >
+                                Restore
+                              </Button>
+                            ) : (
+                              <Button
+                                size="xs"
+                                color="red"
+                                loading={actingId === report.id}
+                                disabled={actingId !== null}
+                                onClick={() => void act(report.id, 'hide')}
+                              >
+                                Hide
+                              </Button>
+                            )}
+                            <Button
+                              size="xs"
+                              variant="light"
+                              color={accent.primary}
+                              loading={actingId === report.id}
+                              disabled={actingId !== null}
+                              onClick={() => void act(report.id, 'dismiss')}
+                            >
+                              Dismiss
+                            </Button>
+                            <Button
+                              size="xs"
+                              variant="light"
+                              color="red"
+                              loading={actingId === report.id}
+                              disabled={actingId !== null}
+                              onClick={() => setPendingDelete(report.id)}
+                            >
+                              Delete
+                            </Button>
+                          </Group>
+                        </>
+                      ) : (
+                        Boolean(report.resolution_note) && (
+                          <Text size="sm" c="dimmed">
+                            Moderator note: {report.resolution_note}
+                          </Text>
+                        )
+                      )}
                     </Stack>
                   </Card>
                 ))
@@ -218,6 +263,19 @@ export default function ModerationPage() {
             <ModeratedItemsBrowser />
           </Tabs.Panel>
         </Tabs>
+        <ConfirmActionModal
+          opened={pendingDelete !== null}
+          onCancel={() => setPendingDelete(null)}
+          title="Delete this publication?"
+          message="It will be removed for everyone and can't be restored."
+          confirmLabel="Delete"
+          confirmColor="red"
+          onConfirm={() => {
+            const id = pendingDelete;
+            setPendingDelete(null);
+            if (id) void act(id, 'delete');
+          }}
+        />
       </Stack>
     </Container>
   );

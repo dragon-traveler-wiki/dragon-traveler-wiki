@@ -21,6 +21,7 @@ import { getTierListRoutePath } from '@/features/tier-list/utils/tier-list-route
 import type { Team } from '@/features/teams/types';
 import type { TierList } from '@/features/tier-list/types';
 import { useGradientAccent } from '@/hooks';
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
 type Kind = 'team' | 'tier_list';
@@ -34,6 +35,7 @@ export default function ModeratedItemsBrowser() {
   const [search, setSearch] = useState('');
   const [debouncedSearch] = useDebouncedValue(search, 300);
   const [actingId, setActingId] = useState<string | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
 
   const teams = useCommunityItems<Team>('team', {
     search: kind === 'team' ? debouncedSearch : '',
@@ -154,7 +156,7 @@ export default function ModeratedItemsBrowser() {
                       color="red"
                       loading={actingId === id}
                       disabled={actingId !== null}
-                      onClick={() => void act(id, 'delete')}
+                      onClick={() => setPendingDelete(id)}
                     >
                       Delete
                     </Button>
@@ -165,6 +167,20 @@ export default function ModeratedItemsBrowser() {
           })}
         </Stack>
       )}
+
+      <ConfirmActionModal
+        opened={pendingDelete !== null}
+        onCancel={() => setPendingDelete(null)}
+        title="Delete this publication?"
+        message="It will be removed for everyone and can't be restored."
+        confirmLabel="Delete"
+        confirmColor="red"
+        onConfirm={() => {
+          const id = pendingDelete;
+          setPendingDelete(null);
+          if (id) void act(id, 'delete');
+        }}
+      />
 
       {hasMore && (
         <Group justify="center">

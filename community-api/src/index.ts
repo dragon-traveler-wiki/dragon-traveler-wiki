@@ -773,8 +773,10 @@ app.get('/v1/admin/reports', async (c) => {
   if (!user) return c.json({ error: 'Authentication required' }, 401);
   if (user.role !== 'moderator') return c.json({ error: 'Forbidden' }, 403);
   const result = await c.env.DB.prepare(
-    `SELECT r.*, i.kind, i.title, i.slug, i.status AS item_status, u.display_name AS reporter_name
+    `SELECT r.*, i.kind, i.title, i.slug, i.status AS item_status, u.display_name AS reporter_name,
+            i.owner_user_id AS author_id, a.display_name AS author_name
     FROM reports r JOIN community_items i ON i.id = r.item_id JOIN users u ON u.id = r.reporter_user_id
+    JOIN users a ON a.id = i.owner_user_id
     ORDER BY CASE WHEN r.status = 'open' THEN 0 ELSE 1 END, r.created_at DESC LIMIT 200`,
   ).all();
   return c.json({ reports: result.results });
@@ -791,29 +793,32 @@ app.patch('/v1/admin/reports/:id', async (c) => {
     })
     .parse(await c.req.json());
   const report = await c.env.DB.prepare(
-    'SELECT item_id FROM reports WHERE id = ?',
+    'SELECT item_id, status FROM reports WHERE id = ?',
   )
     .bind(c.req.param('id'))
-    .first<{ item_id: string }>();
+    .first<{ item_id: string; status: string }>();
   if (!report) return c.json({ error: 'Not found' }, 404);
+  if (report.status !== 'open')
+    return c.json({ error: 'This report has already been resolved' }, 409);
   const now = Math.floor(Date.now() / 1000);
+  // Hiding, restoring, or deleting acts on the item, so every open report on it
+  // is resolved together; a dismissal only settles the one report.
   const statements = [
-    c.env.DB.prepare(
-      'UPDATE reports SET status = ?, resolution_note = ?, resolved_by_user_id = ?, resolved_at = ? WHERE id = ?',
-    ).bind(
-      input.action === 'dismiss' ? 'dismissed' : 'resolved',
-      input.note,
-      user.id,
-      now,
-      c.req.param('id'),
-    ),
+    input.action === 'dismiss'
+      ? c.env.DB.prepare(
+          "UPDATE reports SET status = 'dismissed', resolution_note = ?, resolved_by_user_id = ?, resolved_at = ? WHERE id = ?",
+        ).bind(input.note, user.id, now, c.req.param('id'))
+      : c.env.DB.prepare(
+          "UPDATE reports SET status = 'resolved', resolution_note = ?, resolved_by_user_id = ?, resolved_at = ? WHERE item_id = ? AND status = 'open'",
+        ).bind(input.note, user.id, now, report.item_id),
   ];
   const status =
     input.action === 'dismiss' ? null : statusForModerationAction(input.action);
   if (status)
     statements.push(
       c.env.DB.prepare(
-        "UPDATE community_items SET status = ?, updated_at = ?, deleted_at = CASE WHEN ? = 'deleted' THEN ? ELSE NULL END WHERE id = ?",
+        // Never touch an already-deleted item: hide/restore would resurrect it.
+        "UPDATE community_items SET status = ?, updated_at = ?, deleted_at = CASE WHEN ? = 'deleted' THEN ? ELSE NULL END WHERE id = ? AND status != 'deleted'",
       ).bind(status, now, status, now, report.item_id),
     );
   await c.env.DB.batch(statements);
