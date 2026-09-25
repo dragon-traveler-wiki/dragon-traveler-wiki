@@ -1,4 +1,4 @@
-import { Button } from '@mantine/core';
+import { ActionIcon, Tooltip } from '@mantine/core';
 import { useContext, useState } from 'react';
 import { IoPin, IoPinOutline } from 'react-icons/io5';
 import { TierListReferenceContext } from '@/contexts';
@@ -57,17 +57,21 @@ export default function ReferenceTierListToggle({
     }
   };
 
+  const label = isReference
+    ? 'Remove as site reference'
+    : 'Set as site reference';
   return (
-    <Button
-      variant={isReference ? 'filled' : 'light'}
-      color="grape"
-      loading={working}
-      leftSection={
-        isReference ? <IoPin size={14} /> : <IoPinOutline size={14} />
-      }
-      onClick={() => void toggle()}
-    >
-      {isReference ? 'Site reference' : 'Set as site reference'}
-    </Button>
+    <Tooltip label={label} withArrow>
+      <ActionIcon
+        variant={isReference ? 'filled' : 'subtle'}
+        color="grape"
+        size="sm"
+        loading={working}
+        aria-label={label}
+        onClick={() => void toggle()}
+      >
+        {isReference ? <IoPin size={14} /> : <IoPinOutline size={14} />}
+      </ActionIcon>
+    </Tooltip>
   );
 }

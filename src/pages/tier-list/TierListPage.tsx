@@ -22,6 +22,7 @@ import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import { getCharacterIdentityKey } from '@/features/characters/utils/character-route';
 import CommunityActions from '@/features/community/CommunityActions';
 import RevisionHistory from '@/features/community/RevisionHistory';
+import ReferenceTierListBadge from '@/features/tier-list/components/ReferenceTierListBadge';
 import ReferenceTierListToggle from '@/features/tier-list/components/ReferenceTierListToggle';
 import TierListContent from '@/features/tier-list/components/TierListContent';
 import TierListEntityCard from '@/features/tier-list/components/TierListEntityCard';
@@ -153,7 +154,6 @@ export default function TierListPage() {
       <Button variant="light" loading={exporting} onClick={exportAsImage}>
         Export Image
       </Button>
-      <ReferenceTierListToggle tierList={tierList} />
       {tierList.community && (
         <CommunityActions
           community={tierList.community}
@@ -196,10 +196,14 @@ export default function TierListPage() {
             headerActions={headerActions}
             bylineActions={
               tierList.community && (
-                <CommunityActions
-                  community={tierList.community}
-                  show={{ reactions: true }}
-                />
+                <>
+                  <ReferenceTierListBadge tierList={tierList} />
+                  <CommunityActions
+                    community={tierList.community}
+                    show={{ reactions: true }}
+                  />
+                  <ReferenceTierListToggle tierList={tierList} />
+                </>
               )
             }
             disableNameClamp={exporting}
