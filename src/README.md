@@ -133,6 +133,16 @@ moderator-pinned default from `GET /v1/settings` (`site_settings` table, set via
 button on a character tier list's page). The API only reports a pinned list while
 it's still published, so removing or hiding it clears the default automatically.
 
+Moderators can suspend users for 1, 7, or 30 days or ban them permanently
+(`POST /v1/admin/users/:id/suspend`, `/unsuspend`). A suspended account can still
+read and delete its own items but the API rejects publish, edit, vote, and report
+(`requireActiveUser`, HTTP 403 with `code: 'suspended'`) and blocks account
+deletion and unlinking, so a suspension can't be dodged by starting over. The
+active suspension comes back on `GET /v1/auth/me` (shown via `SuspensionNotice`
+on the account page) and, for moderator viewers only, on `GET /v1/users/:id`.
+Every moderator action is written to the `moderation_actions` audit table and
+shown on the moderation page's Log tab.
+
 Report-resolution notifications are a lightweight, in-app-only badge — there's
 no email on file to notify with (neither OAuth scope requests one). `users.reports_seen_at`
 (set whenever `GET /v1/me/reports` is fetched, i.e. whenever the account page loads)

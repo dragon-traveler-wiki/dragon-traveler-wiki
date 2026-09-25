@@ -58,6 +58,19 @@ export default function PrivacyPage() {
 
         <Stack gap="xs">
           <Title order={2} size="h3">
+            Moderation records
+          </Title>
+          <Text>
+            When a moderator hides, restores, or deletes content, or suspends or
+            bans an account, we keep a record of the action, who took it, and
+            any reason given. A suspension's reason is shown to the affected
+            user. These records are kept for running and auditing the site and
+            aren't shown publicly.
+          </Text>
+        </Stack>
+
+        <Stack gap="xs">
+          <Title order={2} size="h3">
             Who else sees it
           </Title>
           <Text>

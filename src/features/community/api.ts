@@ -3,8 +3,10 @@ import type {
   CommunityListResponse,
   CommunityRevision,
   CommunityUser,
+  ModerationAction,
   MyReport,
   PublicProfile,
+  SuspensionDuration,
 } from './types';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
@@ -262,4 +264,31 @@ export async function setReferenceTierList(
     headers: { 'X-CSRF-Token': csrfToken },
     body: JSON.stringify({ id }),
   });
+}
+
+export async function suspendUser(
+  userId: string,
+  input: {
+    duration: SuspensionDuration;
+    reason: string;
+    hideContent: boolean;
+  },
+  csrfToken: string,
+) {
+  await request(`/v1/admin/users/${encodeURIComponent(userId)}/suspend`, {
+    method: 'POST',
+    headers: { 'X-CSRF-Token': csrfToken },
+    body: JSON.stringify(input),
+  });
+}
+
+export async function unsuspendUser(userId: string, csrfToken: string) {
+  await request(`/v1/admin/users/${encodeURIComponent(userId)}/unsuspend`, {
+    method: 'POST',
+    headers: { 'X-CSRF-Token': csrfToken },
+  });
+}
+
+export async function getModerationActions() {
+  return request<{ actions: ModerationAction[] }>('/v1/admin/actions');
 }

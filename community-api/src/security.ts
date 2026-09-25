@@ -1,4 +1,5 @@
 import type { Context } from 'hono';
+import { activeSuspension, suspensionMessage } from './suspension';
 import type { Env, SessionUser } from './types';
 
 const encoder = new TextEncoder();
@@ -60,7 +61,8 @@ export async function getSessionUser(
   const tokenHash = await sha256(token);
   const now = Math.floor(Date.now() / 1000);
   const row = await c.env.DB.prepare(
-    `SELECT u.id, u.display_name, u.avatar_url, u.role, u.primary_provider, s.csrf_token
+    `SELECT u.id, u.display_name, u.avatar_url, u.role, u.primary_provider, u.suspended_until,
+            u.suspension_permanent, u.suspension_reason, s.csrf_token
        FROM sessions s JOIN users u ON u.id = s.user_id
       WHERE s.token_hash = ? AND s.expires_at > ? AND u.deleted_at IS NULL`,
   )
@@ -71,6 +73,9 @@ export async function getSessionUser(
       avatar_url: string | null;
       role: 'user' | 'moderator';
       primary_provider: 'github' | 'discord' | null;
+      suspended_until: number | null;
+      suspension_permanent: number;
+      suspension_reason: string;
       csrf_token: string;
     }>();
   if (!row) return null;
@@ -80,6 +85,7 @@ export async function getSessionUser(
     avatarUrl: row.avatar_url,
     role: row.role,
     primaryProvider: row.primary_provider,
+    suspension: activeSuspension(row, now),
     csrfToken: row.csrf_token,
   };
 }
@@ -92,6 +98,28 @@ export async function requireUser(
   const csrf = c.req.header('X-CSRF-Token');
   if (!csrf || csrf !== user.csrfToken)
     return c.json({ error: 'Invalid CSRF token' }, 403);
+  return user;
+}
+
+/**
+ * Like requireUser, but also refuses suspended accounts. Use it for actions
+ * that publish or influence public content (publish, edit, vote, report).
+ */
+export async function requireActiveUser(
+  c: Context<{ Bindings: Env }>,
+): Promise<SessionUser | Response> {
+  const user = await requireUser(c);
+  if (isResponse(user)) return user;
+  if (user.suspension) {
+    return c.json(
+      {
+        error: suspensionMessage(user.suspension),
+        code: 'suspended',
+        suspension: user.suspension,
+      },
+      403,
+    );
+  }
   return user;
 }
 

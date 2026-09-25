@@ -21,6 +21,7 @@ import { getTierListRoutePath } from '@/features/tier-list/utils/tier-list-route
 import type { Team } from '@/features/teams/types';
 import type { TierList } from '@/features/tier-list/types';
 import { useGradientAccent } from '@/hooks';
+import SuspendUserModal from '@/features/community/SuspendUserModal';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
@@ -36,6 +37,10 @@ export default function ModeratedItemsBrowser() {
   const [debouncedSearch] = useDebouncedValue(search, 300);
   const [actingId, setActingId] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+  const [suspendTarget, setSuspendTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   const teams = useCommunityItems<Team>('team', {
     search: kind === 'team' ? debouncedSearch : '',
@@ -160,6 +165,20 @@ export default function ModeratedItemsBrowser() {
                     >
                       Delete
                     </Button>
+                    <Button
+                      size="xs"
+                      variant="subtle"
+                      color="red"
+                      disabled={actingId !== null}
+                      onClick={() =>
+                        setSuspendTarget({
+                          id: item.community!.author.id,
+                          name: item.community!.author.displayName,
+                        })
+                      }
+                    >
+                      Suspend author
+                    </Button>
                   </Group>
                 </Group>
               </Card>
@@ -168,6 +187,13 @@ export default function ModeratedItemsBrowser() {
         </Stack>
       )}
 
+      <SuspendUserModal
+        opened={suspendTarget !== null}
+        userId={suspendTarget?.id ?? ''}
+        userName={suspendTarget?.name ?? ''}
+        onClose={() => setSuspendTarget(null)}
+        onSuspended={retry}
+      />
       <ConfirmActionModal
         opened={pendingDelete !== null}
         onCancel={() => setPendingDelete(null)}

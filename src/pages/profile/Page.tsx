@@ -17,7 +17,11 @@ import EntityNotFound from '@/components/ui/EntityNotFound';
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
 import CommunityStatsBadges from '@/features/community/CommunityStatsBadges';
 import CommunityActions from '@/features/community/CommunityActions';
-import { getPublicProfile } from '@/features/community/api';
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
+import { getPublicProfile, unsuspendUser } from '@/features/community/api';
+import { useCommunityAuth } from '@/features/community/auth-context';
+import SuspendUserModal from '@/features/community/SuspendUserModal';
+import { showErrorToast, showSuccessToast } from '@/utils/toast';
 import type { PublicProfile } from '@/features/community/types';
 import { useCharacterResolution } from '@/features/characters/hooks/use-character-resolution';
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
@@ -38,6 +42,10 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState(false);
+  const [profileVersion, setProfileVersion] = useState(0);
+  const { csrfToken } = useCommunityAuth();
+  const [suspendOpen, setSuspendOpen] = useState(false);
+  const [confirmLiftOpen, setConfirmLiftOpen] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
@@ -61,7 +69,25 @@ export default function ProfilePage() {
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [userId, profileVersion]);
+
+  const liftSuspension = async () => {
+    if (!csrfToken || !userId) return;
+    setConfirmLiftOpen(false);
+    try {
+      await unsuspendUser(userId, csrfToken);
+      showSuccessToast({
+        title: 'Suspension lifted',
+        message: 'They can publish, edit, vote, and report again.',
+      });
+      setProfileVersion((version) => version + 1);
+    } catch (error) {
+      showErrorToast({
+        title: 'Could not lift suspension',
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  };
 
   const { data: characters } = useCharacters();
   const { preferredByName: charMap, byIdentity: characterByIdentity } =
@@ -129,8 +155,56 @@ export default function ProfilePage() {
           <Stack gap={4}>
             <Title order={1}>{profile.displayName}</Title>
             <CommunityStatsBadges stats={profile.stats} />
+            {profile.moderation && (
+              <Group gap="xs">
+                {profile.moderation.suspension && (
+                  <Badge color="red" variant="light">
+                    {profile.moderation.suspension.permanent
+                      ? 'Banned'
+                      : 'Suspended'}
+                  </Badge>
+                )}
+                {profile.moderation.suspension ? (
+                  <Button
+                    size="compact-xs"
+                    variant="light"
+                    color="teal"
+                    onClick={() => setConfirmLiftOpen(true)}
+                  >
+                    Lift suspension
+                  </Button>
+                ) : (
+                  profile.moderation.canSuspend && (
+                    <Button
+                      size="compact-xs"
+                      variant="light"
+                      color="red"
+                      onClick={() => setSuspendOpen(true)}
+                    >
+                      Suspend user
+                    </Button>
+                  )
+                )}
+              </Group>
+            )}
           </Stack>
         </Group>
+
+        <SuspendUserModal
+          opened={suspendOpen}
+          userId={profile.id}
+          userName={profile.displayName}
+          onClose={() => setSuspendOpen(false)}
+          onSuspended={() => setProfileVersion((version) => version + 1)}
+        />
+        <ConfirmActionModal
+          opened={confirmLiftOpen}
+          onCancel={() => setConfirmLiftOpen(false)}
+          title="Lift this suspension?"
+          message="They'll be able to publish, edit, vote, and report again. Items that were hidden stay hidden until restored."
+          confirmLabel="Lift suspension"
+          onConfirm={() => void liftSuspension()}
+        />
 
         <Stack gap="sm">
           <Group gap="xs" align="baseline">

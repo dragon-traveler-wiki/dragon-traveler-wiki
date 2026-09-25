@@ -1,4 +1,5 @@
 import { Anchor, Container, List, Stack, Text, Title } from '@mantine/core';
+import { GITHUB_REPO_URL } from '@/constants/github';
 import { Link } from 'react-router';
 
 export default function CommunityGuidelinesPage() {
@@ -81,6 +82,29 @@ export default function CommunityGuidelinesPage() {
             the status of reports you've filed on your{' '}
             <Anchor component={Link} to="/account">
               account page
+            </Anchor>
+            .
+          </Text>
+        </Stack>
+
+        <Stack gap="xs">
+          <Title order={2} size="h3">
+            Suspensions and bans
+          </Title>
+          <Text>
+            For repeated or serious violations, moderators can suspend an
+            account for a set time (1, 7, or 30 days) or ban it permanently. A
+            suspended or banned account can still browse the site and delete its
+            own publications, but can't publish, edit, vote, or report, and
+            can't delete the account or unlink sign-ins while the suspension is
+            in force. Moderators may also hide the account's existing
+            publications. The reason is shown on your{' '}
+            <Anchor component={Link} to="/account">
+              account page
+            </Anchor>
+            . To appeal, open an issue on the{' '}
+            <Anchor href={GITHUB_REPO_URL} target="_blank" rel="noreferrer">
+              project's GitHub repository
             </Anchor>
             .
           </Text>

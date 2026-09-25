@@ -1,3 +1,5 @@
+import type { Suspension } from './suspension';
+
 export type Provider = 'github' | 'discord';
 export type CommunityKind = 'team' | 'tier_list';
 
@@ -22,6 +24,8 @@ export interface SessionUser {
   avatarUrl: string | null;
   role: 'user' | 'moderator';
   primaryProvider: Provider | null;
+  /** The suspension currently in force, if any. */
+  suspension: Suspension | null;
   csrfToken: string;
 }
 

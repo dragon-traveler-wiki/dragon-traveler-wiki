@@ -18,6 +18,8 @@ import { Link } from 'react-router';
 import { getReports, resolveReport } from '@/features/community/api';
 import { useCommunityAuth } from '@/features/community/auth-context';
 import ModeratedItemsBrowser from '@/features/community/ModeratedItemsBrowser';
+import ModerationLog from '@/features/community/ModerationLog';
+import SuspendUserModal from '@/features/community/SuspendUserModal';
 import { useGradientAccent } from '@/hooks';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
@@ -60,6 +62,10 @@ export default function ModerationPage() {
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [actingId, setActingId] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+  const [suspendTarget, setSuspendTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   const load = useCallback(() => {
     if (user?.role !== 'moderator') return;
@@ -135,6 +141,7 @@ export default function ModerationPage() {
               Reports
             </Tabs.Tab>
             <Tabs.Tab value="browse">Browse content</Tabs.Tab>
+            <Tabs.Tab value="log">Log</Tabs.Tab>
           </Tabs.List>
           <Tabs.Panel value="reports" pt="md">
             <Stack gap="lg">
@@ -244,6 +251,20 @@ export default function ModerationPage() {
                             >
                               Delete
                             </Button>
+                            <Button
+                              size="xs"
+                              variant="subtle"
+                              color="red"
+                              disabled={actingId !== null}
+                              onClick={() =>
+                                setSuspendTarget({
+                                  id: report.author_id,
+                                  name: report.author_name,
+                                })
+                              }
+                            >
+                              Suspend author
+                            </Button>
                           </Group>
                         </>
                       ) : (
@@ -262,7 +283,17 @@ export default function ModerationPage() {
           <Tabs.Panel value="browse" pt="md">
             <ModeratedItemsBrowser />
           </Tabs.Panel>
+          <Tabs.Panel value="log" pt="md">
+            <ModerationLog />
+          </Tabs.Panel>
         </Tabs>
+        <SuspendUserModal
+          opened={suspendTarget !== null}
+          userId={suspendTarget?.id ?? ''}
+          userName={suspendTarget?.name ?? ''}
+          onClose={() => setSuspendTarget(null)}
+          onSuspended={load}
+        />
         <ConfirmActionModal
           opened={pendingDelete !== null}
           onCancel={() => setPendingDelete(null)}

@@ -104,6 +104,7 @@ function slugify(value) {
 }
 
 const RESET_SQL = [
+  "DELETE FROM moderation_actions WHERE moderator_user_id LIKE 'seed-%';",
   "DELETE FROM site_settings WHERE value LIKE 'seed-%';",
   "DELETE FROM reports WHERE item_id LIKE 'seed-%' OR reporter_user_id LIKE 'seed-%';",
   "DELETE FROM votes WHERE item_id LIKE 'seed-%' OR user_id LIKE 'seed-%';",
@@ -753,6 +754,28 @@ REPORTS.forEach(
     );
   },
 );
+
+// a suspended user plus a few audit-log rows so those screens have content
+statements.push(
+  `UPDATE users SET suspended_until = ${NOW + 3 * DAY}, suspension_reason = 'Repeated spam publications' WHERE id = 'seed-voter-8';`,
+);
+[
+  ['suspend-7d', 'user', 'seed-voter-8', 'Repeated spam publications', 4 * DAY],
+  ['hide', 'team', 'seed-team-11', '', 3 * DAY],
+  ['delete', 'team', 'seed-team-12', 'Spam', 2 * DAY],
+].forEach(([action, targetKind, targetId, note, ago], i) => {
+  statements.push(
+    insert('moderation_actions', {
+      id: `seed-action-${i + 1}`,
+      moderator_user_id: MOD_ID,
+      action,
+      target_kind: targetKind,
+      target_id: targetId,
+      note,
+      created_at: NOW - ago,
+    }),
+  );
+});
 
 // pin a seeded character tier list as the site's default reference
 statements.push(

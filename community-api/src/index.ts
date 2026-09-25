@@ -4,7 +4,18 @@ import { HTTPException } from 'hono/http-exception';
 import { ZodError, z } from 'zod';
 import { deleteAccount, finishOAuth, logout, startOAuth } from './auth';
 import { statusForModerationAction } from './moderation';
-import { getSessionUser, isResponse, requireUser } from './security';
+import {
+  getSessionUser,
+  isResponse,
+  requireActiveUser,
+  requireUser,
+} from './security';
+import {
+  activeSuspension,
+  SUSPENSION_DURATIONS,
+  suspensionEnd,
+  suspensionMessage,
+} from './suspension';
 import type { CommunityKind, Env, Provider, SessionUser } from './types';
 import { parsePayload, slugify, validateCatalogReferences } from './validation';
 
@@ -48,11 +59,29 @@ app.get('/v1/health', (c) => c.json({ ok: true }));
 
 app.get('/v1/users/:id', async (c) => {
   const row = await c.env.DB.prepare(
-    'SELECT id, display_name, avatar_url FROM users WHERE id = ? AND deleted_at IS NULL',
+    `SELECT id, display_name, avatar_url, role, suspended_until, suspension_permanent,
+            suspension_reason FROM users WHERE id = ? AND deleted_at IS NULL`,
   )
     .bind(c.req.param('id'))
-    .first<{ id: string; display_name: string; avatar_url: string | null }>();
+    .first<{
+      id: string;
+      display_name: string;
+      avatar_url: string | null;
+      role: 'user' | 'moderator';
+      suspended_until: number | null;
+      suspension_permanent: number;
+      suspension_reason: string;
+    }>();
   if (!row) return c.json({ error: 'Not found' }, 404);
+  const viewer = await getSessionUser(c);
+  // Suspension details are only visible to moderators.
+  const moderation =
+    viewer?.role === 'moderator'
+      ? {
+          canSuspend: row.role !== 'moderator' && row.id !== viewer.id,
+          suspension: activeSuspension(row, Math.floor(Date.now() / 1000)),
+        }
+      : undefined;
   const stats = await c.env.DB.prepare(
     `SELECT COALESCE(SUM(kind = 'team'), 0) AS teams,
             COALESCE(SUM(kind = 'tier_list'), 0) AS tier_lists,
@@ -71,9 +100,37 @@ app.get('/v1/users/:id', async (c) => {
         tierLists: stats?.tier_lists ?? 0,
         upvotes: stats?.upvotes ?? 0,
       },
+      moderation,
     },
   });
 });
+
+type ActionTarget = 'team' | 'tier_list' | 'user' | 'report' | 'setting';
+
+/** Audit-log row for a moderator action; include it in the action's own batch. */
+function logAction(
+  db: D1Database,
+  moderatorId: string,
+  action: string,
+  targetKind: ActionTarget,
+  targetId: string,
+  note: string,
+  now: number,
+) {
+  return db
+    .prepare(
+      'INSERT INTO moderation_actions (id, moderator_user_id, action, target_kind, target_id, note, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    )
+    .bind(
+      crypto.randomUUID(),
+      moderatorId,
+      action,
+      targetKind,
+      targetId,
+      note,
+      now,
+    );
+}
 
 const REFERENCE_TIER_LIST_KEY = 'reference_tier_list_id';
 
@@ -101,9 +158,20 @@ app.put('/v1/admin/settings/reference-tier-list', async (c) => {
     .object({ id: z.string().min(1).max(64).nullable() })
     .parse(await c.req.json());
   if (input.id === null) {
-    await c.env.DB.prepare('DELETE FROM site_settings WHERE key = ?')
-      .bind(REFERENCE_TIER_LIST_KEY)
-      .run();
+    await c.env.DB.batch([
+      c.env.DB.prepare('DELETE FROM site_settings WHERE key = ?').bind(
+        REFERENCE_TIER_LIST_KEY,
+      ),
+      logAction(
+        c.env.DB,
+        user.id,
+        'clear-reference',
+        'setting',
+        REFERENCE_TIER_LIST_KEY,
+        '',
+        Math.floor(Date.now() / 1000),
+      ),
+    ]);
     return c.json({ ok: true });
   }
   const item = await c.env.DB.prepare(
@@ -116,18 +184,23 @@ app.put('/v1/admin/settings/reference-tier-list', async (c) => {
       { error: 'Only a published character tier list can be the reference' },
       400,
     );
-  await c.env.DB.prepare(
-    `INSERT INTO site_settings (key, value, updated_at, updated_by_user_id) VALUES (?, ?, ?, ?)
+  const now = Math.floor(Date.now() / 1000);
+  await c.env.DB.batch([
+    c.env.DB.prepare(
+      `INSERT INTO site_settings (key, value, updated_at, updated_by_user_id) VALUES (?, ?, ?, ?)
      ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at,
        updated_by_user_id = excluded.updated_by_user_id`,
-  )
-    .bind(
+    ).bind(REFERENCE_TIER_LIST_KEY, input.id, now, user.id),
+    logAction(
+      c.env.DB,
+      user.id,
+      'set-reference',
+      'setting',
       REFERENCE_TIER_LIST_KEY,
       input.id,
-      Math.floor(Date.now() / 1000),
-      user.id,
-    )
-    .run();
+      now,
+    ),
+  ]);
   return c.json({ ok: true });
 });
 
@@ -154,6 +227,7 @@ app.get('/v1/auth/me', async (c) => {
       primaryProvider: user.primaryProvider,
       identities: identities.results,
       unreadReportCount: unread?.count ?? 0,
+      suspension: user.suspension,
     },
     csrfToken: user.csrfToken,
   });
@@ -170,9 +244,26 @@ app.post('/v1/auth/logout', async (c) => {
   return logout(c, user);
 });
 
+// A suspended account can't be deleted or have identities unlinked, since that
+// would free the identity to start over with a clean slate.
+function suspendedAccountBlock(c: ApiContext, user: SessionUser) {
+  return user.suspension
+    ? c.json(
+        {
+          error: `${suspensionMessage(user.suspension)} Account changes are unavailable while suspended.`,
+          code: 'suspended',
+          suspension: user.suspension,
+        },
+        403,
+      )
+    : null;
+}
+
 app.delete('/v1/auth/me', async (c) => {
   const user = await requireUser(c);
   if (isResponse(user)) return user;
+  const blocked = suspendedAccountBlock(c, user);
+  if (blocked) return blocked;
   return deleteAccount(c, user);
 });
 
@@ -180,6 +271,8 @@ for (const provider of ['github', 'discord'] as const) {
   app.delete(`/v1/auth/${provider}/unlink`, async (c) => {
     const user = await requireUser(c);
     if (isResponse(user)) return user;
+    const blocked = suspendedAccountBlock(c, user);
+    if (blocked) return blocked;
     const identities = await c.env.DB.prepare(
       'SELECT provider FROM oauth_identities WHERE user_id = ?',
     )
@@ -478,7 +571,7 @@ for (const collection of ['teams', 'tier-lists'] as const) {
     getItem(c, routeKind(collection), c.req.param('id')),
   );
   app.post(`/v1/${collection}`, async (c) => {
-    const user = await requireUser(c);
+    const user = await requireActiveUser(c);
     if (isResponse(user)) return user;
     const limited = await rateLimit(c, user, 'publish');
     if (limited) return limited;
@@ -520,7 +613,7 @@ for (const collection of ['teams', 'tier-lists'] as const) {
     return c.json({ id, slug: itemSlug }, 201);
   });
   app.patch(`/v1/${collection}/:id`, async (c) => {
-    const user = await requireUser(c);
+    const user = await requireActiveUser(c);
     if (isResponse(user)) return user;
     const limited = await rateLimit(c, user, 'edit');
     if (limited) return limited;
@@ -597,7 +690,7 @@ for (const collection of ['teams', 'tier-lists'] as const) {
     return c.json({ ok: true });
   });
   app.put(`/v1/${collection}/:id/upvote`, async (c) => {
-    const user = await requireUser(c);
+    const user = await requireActiveUser(c);
     if (isResponse(user)) return user;
     const limited = await rateLimit(c, user, 'vote');
     if (limited) return limited;
@@ -650,7 +743,7 @@ for (const collection of ['teams', 'tier-lists'] as const) {
     return c.json({ score: score?.score ?? 0, viewerHasUpvoted: false });
   });
   app.post(`/v1/${collection}/:id/reports`, async (c) => {
-    const user = await requireUser(c);
+    const user = await requireActiveUser(c);
     if (isResponse(user)) return user;
     const limited = await rateLimit(c, user, 'report');
     if (limited) return limited;
@@ -727,11 +820,20 @@ for (const collection of ['teams', 'tier-lists'] as const) {
     if (!existing) return c.json({ error: 'Not found' }, 404);
     const status = statusForModerationAction(input.action);
     const now = Math.floor(Date.now() / 1000);
-    await c.env.DB.prepare(
-      "UPDATE community_items SET status = ?, updated_at = ?, deleted_at = CASE WHEN ? = 'deleted' THEN ? ELSE NULL END WHERE id = ?",
-    )
-      .bind(status, now, status, now, c.req.param('id'))
-      .run();
+    await c.env.DB.batch([
+      c.env.DB.prepare(
+        "UPDATE community_items SET status = ?, updated_at = ?, deleted_at = CASE WHEN ? = 'deleted' THEN ? ELSE NULL END WHERE id = ?",
+      ).bind(status, now, status, now, c.req.param('id')),
+      logAction(
+        c.env.DB,
+        user.id,
+        input.action,
+        routeKind(collection),
+        c.req.param('id'),
+        '',
+        now,
+      ),
+    ]);
     return c.json({ ok: true });
   });
 }
@@ -793,10 +895,11 @@ app.patch('/v1/admin/reports/:id', async (c) => {
     })
     .parse(await c.req.json());
   const report = await c.env.DB.prepare(
-    'SELECT item_id, status FROM reports WHERE id = ?',
+    `SELECT r.item_id, r.status, i.kind FROM reports r
+       JOIN community_items i ON i.id = r.item_id WHERE r.id = ?`,
   )
     .bind(c.req.param('id'))
-    .first<{ item_id: string; status: string }>();
+    .first<{ item_id: string; status: string; kind: CommunityKind }>();
   if (!report) return c.json({ error: 'Not found' }, 404);
   if (report.status !== 'open')
     return c.json({ error: 'This report has already been resolved' }, 409);
@@ -812,6 +915,27 @@ app.patch('/v1/admin/reports/:id', async (c) => {
           "UPDATE reports SET status = 'resolved', resolution_note = ?, resolved_by_user_id = ?, resolved_at = ? WHERE item_id = ? AND status = 'open'",
         ).bind(input.note, user.id, now, report.item_id),
   ];
+  statements.push(
+    input.action === 'dismiss'
+      ? logAction(
+          c.env.DB,
+          user.id,
+          'dismiss-report',
+          'report',
+          c.req.param('id'),
+          input.note,
+          now,
+        )
+      : logAction(
+          c.env.DB,
+          user.id,
+          input.action,
+          report.kind,
+          report.item_id,
+          input.note,
+          now,
+        ),
+  );
   const status =
     input.action === 'dismiss' ? null : statusForModerationAction(input.action);
   if (status)
@@ -823,6 +947,105 @@ app.patch('/v1/admin/reports/:id', async (c) => {
     );
   await c.env.DB.batch(statements);
   return c.json({ ok: true });
+});
+
+const SuspendInput = z.object({
+  duration: z.enum(SUSPENSION_DURATIONS),
+  reason: z.string().trim().max(500).default(''),
+  hideContent: z.boolean().default(false),
+});
+
+app.post('/v1/admin/users/:id/suspend', async (c) => {
+  const moderator = await requireUser(c);
+  if (isResponse(moderator)) return moderator;
+  if (moderator.role !== 'moderator')
+    return c.json({ error: 'Forbidden' }, 403);
+  const limited = await rateLimit(c, moderator, 'moderate');
+  if (limited) return limited;
+  const input = SuspendInput.parse(await c.req.json());
+  const targetId = c.req.param('id');
+  if (targetId === moderator.id)
+    return c.json({ error: 'You cannot suspend yourself' }, 400);
+  const target = await c.env.DB.prepare(
+    'SELECT role FROM users WHERE id = ? AND deleted_at IS NULL',
+  )
+    .bind(targetId)
+    .first<{ role: 'user' | 'moderator' }>();
+  if (!target) return c.json({ error: 'Not found' }, 404);
+  if (target.role === 'moderator')
+    return c.json({ error: 'Moderators cannot be suspended' }, 400);
+  const now = Math.floor(Date.now() / 1000);
+  const until = suspensionEnd(input.duration, now);
+  const statements = [
+    c.env.DB.prepare(
+      'UPDATE users SET suspended_until = ?, suspension_permanent = ?, suspension_reason = ?, updated_at = ? WHERE id = ?',
+    ).bind(
+      until,
+      input.duration === 'permanent' ? 1 : 0,
+      input.reason,
+      now,
+      targetId,
+    ),
+    logAction(
+      c.env.DB,
+      moderator.id,
+      `suspend-${input.duration}`,
+      'user',
+      targetId,
+      input.reason,
+      now,
+    ),
+  ];
+  if (input.hideContent) {
+    statements.push(
+      c.env.DB.prepare(
+        "UPDATE community_items SET status = 'hidden', updated_at = ? WHERE owner_user_id = ? AND status = 'published'",
+      ).bind(now, targetId),
+    );
+  }
+  await c.env.DB.batch(statements);
+  return c.json({ ok: true });
+});
+
+app.post('/v1/admin/users/:id/unsuspend', async (c) => {
+  const moderator = await requireUser(c);
+  if (isResponse(moderator)) return moderator;
+  if (moderator.role !== 'moderator')
+    return c.json({ error: 'Forbidden' }, 403);
+  const limited = await rateLimit(c, moderator, 'moderate');
+  if (limited) return limited;
+  const targetId = c.req.param('id');
+  const target = await c.env.DB.prepare(
+    'SELECT id FROM users WHERE id = ? AND deleted_at IS NULL',
+  )
+    .bind(targetId)
+    .first<{ id: string }>();
+  if (!target) return c.json({ error: 'Not found' }, 404);
+  const now = Math.floor(Date.now() / 1000);
+  await c.env.DB.batch([
+    c.env.DB.prepare(
+      "UPDATE users SET suspended_until = NULL, suspension_permanent = 0, suspension_reason = '', updated_at = ? WHERE id = ?",
+    ).bind(now, targetId),
+    logAction(c.env.DB, moderator.id, 'unsuspend', 'user', targetId, '', now),
+  ]);
+  return c.json({ ok: true });
+});
+
+app.get('/v1/admin/actions', async (c) => {
+  const user = await getSessionUser(c);
+  if (!user) return c.json({ error: 'Authentication required' }, 401);
+  if (user.role !== 'moderator') return c.json({ error: 'Forbidden' }, 403);
+  const result = await c.env.DB.prepare(
+    `SELECT a.id, a.action, a.target_kind, a.target_id, a.note, a.created_at,
+            m.display_name AS moderator_name,
+            COALESCE(i.title, t.display_name) AS target_label
+       FROM moderation_actions a
+       JOIN users m ON m.id = a.moderator_user_id
+       LEFT JOIN community_items i ON a.target_kind IN ('team', 'tier_list') AND i.id = a.target_id
+       LEFT JOIN users t ON a.target_kind = 'user' AND t.id = a.target_id
+      ORDER BY a.created_at DESC LIMIT 200`,
+  ).all();
+  return c.json({ actions: result.results });
 });
 
 app.notFound((c) => c.json({ error: 'Not found' }, 404));

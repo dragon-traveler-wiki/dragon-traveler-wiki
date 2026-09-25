@@ -36,6 +36,15 @@ export interface CommunityIdentity {
   username: string;
 }
 
+export interface Suspension {
+  /** Unix seconds the suspension ends; null when permanent. */
+  until: number | null;
+  permanent: boolean;
+  reason: string;
+}
+
+export type SuspensionDuration = '1d' | '7d' | '30d' | 'permanent';
+
 export interface CommunityUser {
   id: string;
   displayName: string;
@@ -44,6 +53,7 @@ export interface CommunityUser {
   primaryProvider: 'discord' | 'github' | null;
   identities: CommunityIdentity[];
   unreadReportCount: number;
+  suspension: Suspension | null;
 }
 
 export interface CommunityStats {
@@ -58,6 +68,22 @@ export interface PublicProfile {
   displayName: string;
   avatarUrl: string | null;
   stats: CommunityStats;
+  /** Only present when the viewer is a moderator. */
+  moderation?: {
+    canSuspend: boolean;
+    suspension: Suspension | null;
+  };
+}
+
+export interface ModerationAction {
+  id: string;
+  action: string;
+  target_kind: 'team' | 'tier_list' | 'user' | 'report' | 'setting';
+  target_id: string;
+  target_label: string | null;
+  note: string;
+  moderator_name: string;
+  created_at: number;
 }
 
 export interface CommunityRevision {

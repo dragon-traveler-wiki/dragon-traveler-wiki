@@ -26,6 +26,7 @@ import { useCharacterResolution } from '@/features/characters/hooks/use-characte
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import { getMyItems, getMyReports } from '@/features/community/api';
 import CommunityActions from '@/features/community/CommunityActions';
+import SuspensionNotice from '@/features/community/SuspensionNotice';
 import CommunityStatsBadges from '@/features/community/CommunityStatsBadges';
 import { toDisplayItems } from '@/features/community/hooks';
 import TeamCard from '@/features/teams/components/TeamCard';
@@ -267,6 +268,7 @@ export default function AccountPage() {
             </Text>
           </div>
         </Group>
+        {user.suspension && <SuspensionNotice suspension={user.suspension} />}
         <CommunityStatsBadges
           stats={{
             teams: items.filter(
