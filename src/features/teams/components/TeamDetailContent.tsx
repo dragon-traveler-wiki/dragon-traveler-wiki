@@ -1,14 +1,5 @@
-import {
-  Badge,
-  Box,
-  Button,
-  Group,
-  SimpleGrid,
-  Stack,
-  Title,
-} from '@mantine/core';
+import { Badge, Box, Group, SimpleGrid, Stack, Title } from '@mantine/core';
 import type { RefObject } from 'react';
-import { IoDownload } from 'react-icons/io5';
 import WyrmspellCard from '@/features/wiki/wyrmspells/components/WyrmspellCard';
 import { useMobileTooltip } from '@/hooks';
 import type { Character } from '@/features/characters/types';
@@ -33,7 +24,6 @@ interface TeamDetailContentProps {
   wyrmspells: Wyrmspell[];
   exportRef: RefObject<HTMLDivElement | null>;
   exporting: boolean;
-  onExportAsImage: () => void;
 }
 
 function renderWyrmspellCard(
@@ -66,7 +56,6 @@ export default function TeamDetailContent({
   wyrmspells,
   exportRef,
   exporting,
-  onExportAsImage,
 }: TeamDetailContentProps) {
   const hasWyrmspells = hasTeamWyrmspells(team);
 
@@ -116,16 +105,6 @@ export default function TeamDetailContent({
               {team.members.length} members
             </Badge>
           </Group>
-          <Button
-            variant="subtle"
-            color={accentPrimary}
-            size="sm"
-            leftSection={<IoDownload size={16} />}
-            loading={exporting}
-            onClick={onExportAsImage}
-          >
-            Export Image
-          </Button>
         </Group>
         <Box ref={exportRef} style={{ padding: 8 }}>
           <Stack gap="md">

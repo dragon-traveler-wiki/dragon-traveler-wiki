@@ -135,6 +135,8 @@ export default function SavedTeamPage() {
   return (
     <Box>
       <TeamHeroSection
+        onExportAsImage={exportAsImage}
+        exporting={exporting}
         team={team}
         factionInfo={factionInfo}
         artifactMap={artifactMap}
@@ -183,7 +185,6 @@ export default function SavedTeamPage() {
           wyrmspells={wyrmspells}
           exportRef={exportRef}
           exporting={exporting}
-          onExportAsImage={exportAsImage}
         />
       </Container>
     </Box>

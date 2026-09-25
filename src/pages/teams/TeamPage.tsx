@@ -124,6 +124,8 @@ export default function TeamPage() {
   return (
     <Box>
       <TeamHeroSection
+        onExportAsImage={exportAsImage}
+        exporting={exporting}
         team={team}
         factionInfo={factionInfo}
         artifactMap={artifactMap}
@@ -176,7 +178,6 @@ export default function TeamPage() {
           wyrmspells={wyrmspells}
           exportRef={exportRef}
           exporting={exporting}
-          onExportAsImage={exportAsImage}
         />
         {team.community && (
           <RevisionHistory kind="team" id={team.community.id} />

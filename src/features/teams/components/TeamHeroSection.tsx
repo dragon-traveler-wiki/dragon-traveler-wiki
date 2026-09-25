@@ -56,6 +56,8 @@ export function TeamHeroSection({
   isDark,
   tooltipProps,
   onRequestEdit,
+  onExportAsImage,
+  exporting = false,
   onRequestDelete,
   bylineActions,
   ownerActions,
@@ -67,6 +69,8 @@ export function TeamHeroSection({
   isDark: boolean;
   tooltipProps: ReturnType<typeof useMobileTooltip>;
   onRequestEdit: () => void;
+  onExportAsImage: () => void;
+  exporting?: boolean;
   onRequestDelete?: () => void;
   /** Upvote/report controls shown beside the byline on public detail pages. */
   bylineActions?: ReactNode;
@@ -101,6 +105,13 @@ export function TeamHeroSection({
                 {team.community && !team.community.viewerOwns
                   ? 'Remix Team'
                   : 'Edit Team'}
+              </Button>
+              <Button
+                variant="light"
+                loading={exporting}
+                onClick={onExportAsImage}
+              >
+                Export Image
               </Button>
               {ownerActions}
               {onRequestDelete && (
