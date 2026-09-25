@@ -87,12 +87,14 @@ export default function AccountMenu() {
       </Menu>
     );
   }
+  // Alerts: answers to your own reports, plus open reports for moderators.
+  const alertCount = user.unreadReportCount + user.openReportCount;
   return (
     <Menu shadow="md" position="bottom-end" width={220} withArrow>
       <Menu.Target>
         <Indicator
-          disabled={user.unreadReportCount === 0}
-          label={user.unreadReportCount}
+          disabled={alertCount === 0}
+          label={alertCount}
           size={16}
           color="red"
           offset={4}
@@ -141,6 +143,13 @@ export default function AccountMenu() {
             to="/moderation"
             leftSection={<IoShieldCheckmarkOutline />}
             color={accent.secondary}
+            rightSection={
+              user.openReportCount > 0 ? (
+                <Badge size="sm" circle color="red">
+                  {user.openReportCount}
+                </Badge>
+              ) : undefined
+            }
           >
             Moderation
           </Menu.Item>

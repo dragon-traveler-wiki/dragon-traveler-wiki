@@ -21,6 +21,10 @@
       "migrations_dir": "migrations",
     },
   ],
+  "triggers": {
+    // Daily housekeeping: purge old handled reports and expired sessions.
+    "crons": ["17 3 * * *"],
+  },
   "ratelimits": [
     {
       "name": "WRITE_RATE_LIMITER",

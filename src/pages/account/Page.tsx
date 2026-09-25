@@ -20,21 +20,13 @@ import {
   IoLogoGithub,
   IoPersonOutline,
 } from 'react-icons/io5';
-import { Link, useNavigate, useSearchParams } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
-import { useCharacterResolution } from '@/features/characters/hooks/use-character-resolution';
-import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import { getMyItems, getMyReports } from '@/features/community/api';
-import CommunityActions from '@/features/community/CommunityActions';
+import MyPublications from '@/features/community/MyPublications';
+import MyReports from '@/features/community/MyReports';
 import SuspensionNotice from '@/features/community/SuspensionNotice';
 import CommunityStatsBadges from '@/features/community/CommunityStatsBadges';
-import { toDisplayItems } from '@/features/community/hooks';
-import TeamCard from '@/features/teams/components/TeamCard';
-import type { Team } from '@/features/teams/types';
-import { getTeamRoutePath } from '@/features/teams/utils/team-route';
-import TierListCard from '@/features/tier-list/components/TierListCard';
-import type { TierList } from '@/features/tier-list/types';
-import { getTierListRoutePath } from '@/features/tier-list/utils/tier-list-route';
 import { useCommunityAuth } from '@/features/community/auth-context';
 import type { CommunityItem, MyReport } from '@/features/community/types';
 import { useGradientAccent } from '@/hooks';
@@ -59,10 +51,6 @@ export default function AccountPage() {
     refresh,
   } = useCommunityAuth();
   const { accent } = useGradientAccent();
-  const navigate = useNavigate();
-  const { data: characters } = useCharacters();
-  const { preferredByName: charMap, byIdentity: characterByIdentity } =
-    useCharacterResolution(characters);
   const [items, setItems] = useState<
     Array<CommunityItem<Record<string, unknown>>>
   >([]);
@@ -366,123 +354,20 @@ export default function AccountPage() {
             </Group>
           </Stack>
         </Card>
-        <Stack>
-          <Title order={2}>Your publications</Title>
-          {itemsLoading ? (
-            <Loader size="sm" color={accent.primary} />
-          ) : items.length === 0 ? (
-            <Text c="dimmed">You have not published anything yet.</Text>
-          ) : (
-            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-              {items.map((item) => {
-                const removeItem = () =>
-                  setItems((current) =>
-                    current.filter((other) => other.id !== item.id),
-                  );
-                const [display] = toDisplayItems([item]);
-                const hiddenBadge = item.status === 'hidden' && (
-                  <Badge variant="outline" color="red" size="sm">
-                    Hidden
-                  </Badge>
-                );
-                if (item.kind === 'team') {
-                  const team = display as unknown as Team;
-                  return (
-                    <TeamCard
-                      key={item.id}
-                      team={team}
-                      charMap={charMap}
-                      characterByIdentity={characterByIdentity}
-                      onNavigate={() => navigate(getTeamRoutePath(team))}
-                      actions={
-                        <>
-                          {hiddenBadge}
-                          <CommunityActions
-                            community={item}
-                            onEdit={() =>
-                              navigate('/teams', { state: { editTeam: team } })
-                            }
-                            onDeleted={removeItem}
-                          />
-                        </>
-                      }
-                    />
-                  );
-                }
-                const tierList = display as unknown as TierList;
-                return (
-                  <TierListCard
-                    key={item.id}
-                    tierList={tierList}
-                    charMap={charMap}
-                    characterByIdentity={characterByIdentity}
-                    onNavigate={() => navigate(getTierListRoutePath(tierList))}
-                    actions={
-                      <>
-                        {hiddenBadge}
-                        <CommunityActions
-                          community={item}
-                          onEdit={() =>
-                            navigate('/tier-list', {
-                              state: { editTierList: tierList },
-                            })
-                          }
-                          onDeleted={removeItem}
-                        />
-                      </>
-                    }
-                  />
-                );
-              })}
-            </SimpleGrid>
-          )}
-        </Stack>
-        <Stack>
-          <Title order={2}>Your reports</Title>
-          {reportsLoading ? (
-            <Loader size="sm" color={accent.primary} />
-          ) : reports.length === 0 ? (
-            <Text c="dimmed">You have not reported anything.</Text>
-          ) : (
-            <Stack gap="xs">
-              {reports.map((report) => {
-                const path =
-                  report.kind === 'team'
-                    ? `/teams/${report.item_id}/${report.slug}`
-                    : `/tier-list/${report.item_id}/${report.slug}`;
-                return (
-                  <Card withBorder key={report.id}>
-                    <Group justify="space-between" wrap="wrap">
-                      <Stack gap={4}>
-                        <Anchor component={Link} to={path} fw={600}>
-                          {report.title}
-                        </Anchor>
-                        <Group gap="xs">
-                          <Badge variant="light" color={accent.primary}>
-                            {report.reason}
-                          </Badge>
-                          <Badge variant="outline" color={accent.secondary}>
-                            Report {report.status}
-                          </Badge>
-                          {report.item_status === 'hidden' && (
-                            <Badge variant="outline" color="red">
-                              Item hidden
-                            </Badge>
-                          )}
-                        </Group>
-                        {report.resolution_note && (
-                          <Text size="sm" c="dimmed">
-                            Moderator note: {report.resolution_note}
-                          </Text>
-                        )}
-                      </Stack>
-                    </Group>
-                  </Card>
-                );
-              })}
-            </Stack>
-          )}
-        </Stack>
+        <MyPublications
+          items={items}
+          loading={itemsLoading}
+          onRemoved={(id) =>
+            setItems((current) => current.filter((item) => item.id !== id))
+          }
+        />
+        <MyReports
+          reports={reports}
+          loading={reportsLoading}
+          onWithdrawn={(id) =>
+            setReports((current) => current.filter((r) => r.id !== id))
+          }
+        />
         <Card withBorder>
           <Stack>
             <Title order={2} size="h3" c="red">

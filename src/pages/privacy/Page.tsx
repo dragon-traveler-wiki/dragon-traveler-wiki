@@ -65,7 +65,10 @@ export default function PrivacyPage() {
             bans an account, we keep a record of the action, who took it, and
             any reason given. A suspension's reason is shown to the affected
             user. These records are kept for running and auditing the site and
-            aren't shown publicly.
+            aren't shown publicly. Reports themselves are removed automatically
+            90 days after a moderator handles them (open reports are kept until
+            handled), and you can withdraw a report of your own while it's still
+            open.
           </Text>
         </Stack>
 

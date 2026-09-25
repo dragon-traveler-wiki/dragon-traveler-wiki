@@ -289,6 +289,14 @@ export async function unsuspendUser(userId: string, csrfToken: string) {
   });
 }
 
-export async function getModerationActions() {
-  return request<{ actions: ModerationAction[] }>('/v1/admin/actions');
+export async function getModerationActions(userId?: string) {
+  const query = userId ? `?user=${encodeURIComponent(userId)}` : '';
+  return request<{ actions: ModerationAction[] }>(`/v1/admin/actions${query}`);
+}
+
+export async function withdrawReport(id: string, csrfToken: string) {
+  await request(`/v1/me/reports/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers: { 'X-CSRF-Token': csrfToken },
+  });
 }

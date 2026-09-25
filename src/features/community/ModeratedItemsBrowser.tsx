@@ -21,6 +21,7 @@ import { getTierListRoutePath } from '@/features/tier-list/utils/tier-list-route
 import type { Team } from '@/features/teams/types';
 import type { TierList } from '@/features/tier-list/types';
 import { useGradientAccent } from '@/hooks';
+import { capitalize } from '@/features/community/report-status';
 import SuspendUserModal from '@/features/community/SuspendUserModal';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
@@ -50,7 +51,7 @@ export default function ModeratedItemsBrowser() {
     search: kind === 'tier_list' ? debouncedSearch : '',
     status,
   });
-  const { data, loading, hasMore, loadingMore, loadMore, retry } =
+  const { data, loading, hasMore, loadingMore, loadMore, refresh } =
     kind === 'team' ? teams : tierLists;
 
   const act = async (id: string, action: 'hide' | 'restore' | 'delete') => {
@@ -59,7 +60,7 @@ export default function ModeratedItemsBrowser() {
     try {
       await moderateItem(kind, id, action, csrfToken);
       showSuccessToast({ title: 'Done', message: `Item ${action}d.` });
-      retry();
+      refresh();
     } catch (error) {
       showErrorToast({
         title: 'Moderation action failed',
@@ -132,7 +133,7 @@ export default function ModeratedItemsBrowser() {
                       variant="outline"
                       color={status === 'hidden' ? 'red' : 'gray'}
                     >
-                      {status}
+                      {capitalize(status)}
                     </Badge>
                     {status === 'hidden' ? (
                       <Button
@@ -192,7 +193,7 @@ export default function ModeratedItemsBrowser() {
         userId={suspendTarget?.id ?? ''}
         userName={suspendTarget?.name ?? ''}
         onClose={() => setSuspendTarget(null)}
-        onSuspended={retry}
+        onSuspended={refresh}
       />
       <ConfirmActionModal
         opened={pendingDelete !== null}

@@ -56,13 +56,18 @@ export function useCommunityItems<T>(
   const [total, setTotal] = useState<number | null>(null);
   const [requestVersion, setRequestVersion] = useState(0);
   const cursorRef = useRef<string | null>(null);
+  // A refresh() keeps the current items on screen while it refetches, so the
+  // list doesn't collapse to a spinner and jump the page's scroll position.
+  const silentRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
     cursorRef.current = null;
+    const silent = silentRef.current;
+    silentRef.current = false;
     queueMicrotask(() => {
       if (!cancelled) {
-        setLoading(true);
+        if (!silent) setLoading(true);
         setError(null);
       }
     });
@@ -110,6 +115,10 @@ export function useCommunityItems<T>(
   }, [kind, search, sort, owner, status, loadingMore]);
 
   const retry = useCallback(() => setRequestVersion((value) => value + 1), []);
+  const refresh = useCallback(() => {
+    silentRef.current = true;
+    setRequestVersion((value) => value + 1);
+  }, []);
   return {
     data,
     total,
@@ -119,6 +128,7 @@ export function useCommunityItems<T>(
     loadMore,
     error,
     retry,
+    refresh,
   };
 }
 

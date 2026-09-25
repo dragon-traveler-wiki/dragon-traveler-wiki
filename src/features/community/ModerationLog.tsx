@@ -11,6 +11,7 @@ const ACTION_LABELS: Record<string, string> = {
   delete: 'Deleted',
   'dismiss-report': 'Dismissed report on',
   unsuspend: 'Lifted suspension of',
+  'hide-content': 'Hid all items of',
   'suspend-1d': 'Suspended (1 day)',
   'suspend-7d': 'Suspended (7 days)',
   'suspend-30d': 'Suspended (30 days)',
@@ -27,15 +28,18 @@ const ACTION_COLORS: Record<string, string> = {
   'suspend-permanent': 'red',
 };
 
-/** Read-only audit trail of moderator actions, newest first. */
-export default function ModerationLog() {
+/**
+ * Read-only audit trail of moderator actions, newest first. With `userId`,
+ * only actions against that user or the items they own.
+ */
+export default function ModerationLog({ userId }: { userId?: string }) {
   const { accent } = useGradientAccent();
   const [actions, setActions] = useState<ModerationAction[] | null>(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    getModerationActions()
+    getModerationActions(userId)
       .then((result) => {
         if (!cancelled) setActions(result.actions);
       })
@@ -45,7 +49,7 @@ export default function ModerationLog() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [userId]);
 
   if (failed) return <Text c="dimmed">Could not load the moderation log.</Text>;
   if (actions === null) return <Loader size="sm" color={accent.primary} />;

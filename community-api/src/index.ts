@@ -4,6 +4,7 @@ import { HTTPException } from 'hono/http-exception';
 import { ZodError, z } from 'zod';
 import { deleteAccount, finishOAuth, logout, startOAuth } from './auth';
 import { statusForModerationAction } from './moderation';
+import { purgeExpired } from './retention';
 import {
   getSessionUser,
   isResponse,
@@ -218,12 +219,19 @@ app.get('/v1/auth/me', async (c) => {
   )
     .bind(user.id, user.id)
     .first<{ count: number }>();
+  const openReports =
+    user.role === 'moderator'
+      ? await c.env.DB.prepare(
+          "SELECT COUNT(*) AS count FROM reports WHERE status = 'open'",
+        ).first<{ count: number }>()
+      : null;
   return c.json({
     user: {
       id: user.id,
       displayName: user.displayName,
       avatarUrl: user.avatarUrl,
       role: user.role,
+      openReportCount: openReports?.count ?? 0,
       primaryProvider: user.primaryProvider,
       identities: identities.results,
       unreadReportCount: unread?.count ?? 0,
@@ -976,6 +984,13 @@ app.post('/v1/admin/users/:id/suspend', async (c) => {
     return c.json({ error: 'Moderators cannot be suspended' }, 400);
   const now = Math.floor(Date.now() / 1000);
   const until = suspensionEnd(input.duration, now);
+  const published = input.hideContent
+    ? await c.env.DB.prepare(
+        "SELECT COUNT(*) AS count FROM community_items WHERE owner_user_id = ? AND status = 'published'",
+      )
+        .bind(targetId)
+        .first<{ count: number }>()
+    : null;
   const statements = [
     c.env.DB.prepare(
       'UPDATE users SET suspended_until = ?, suspension_permanent = ?, suspension_reason = ?, updated_at = ? WHERE id = ?',
@@ -1001,6 +1016,15 @@ app.post('/v1/admin/users/:id/suspend', async (c) => {
       c.env.DB.prepare(
         "UPDATE community_items SET status = 'hidden', updated_at = ? WHERE owner_user_id = ? AND status = 'published'",
       ).bind(now, targetId),
+      logAction(
+        c.env.DB,
+        moderator.id,
+        'hide-content',
+        'user',
+        targetId,
+        `${published?.count ?? 0} published item(s) hidden`,
+        now,
+      ),
     );
   }
   await c.env.DB.batch(statements);
@@ -1035,6 +1059,8 @@ app.get('/v1/admin/actions', async (c) => {
   const user = await getSessionUser(c);
   if (!user) return c.json({ error: 'Authentication required' }, 401);
   if (user.role !== 'moderator') return c.json({ error: 'Forbidden' }, 403);
+  // With ?user=<id>, only actions against that user or against items they own.
+  const subject = c.req.query('user');
   const result = await c.env.DB.prepare(
     `SELECT a.id, a.action, a.target_kind, a.target_id, a.note, a.created_at,
             m.display_name AS moderator_name,
@@ -1043,9 +1069,32 @@ app.get('/v1/admin/actions', async (c) => {
        JOIN users m ON m.id = a.moderator_user_id
        LEFT JOIN community_items i ON a.target_kind IN ('team', 'tier_list') AND i.id = a.target_id
        LEFT JOIN users t ON a.target_kind = 'user' AND t.id = a.target_id
+      WHERE ?1 IS NULL
+         OR (a.target_kind = 'user' AND a.target_id = ?1)
+         OR (a.target_kind IN ('team', 'tier_list') AND i.owner_user_id = ?1)
       ORDER BY a.created_at DESC LIMIT 200`,
-  ).all();
+  )
+    .bind(subject ?? null)
+    .all();
   return c.json({ actions: result.results });
+});
+
+// Lets a reporter withdraw a report that no moderator has handled yet.
+app.delete('/v1/me/reports/:id', async (c) => {
+  const user = await requireUser(c);
+  if (isResponse(user)) return user;
+  const report = await c.env.DB.prepare(
+    'SELECT status FROM reports WHERE id = ? AND reporter_user_id = ?',
+  )
+    .bind(c.req.param('id'), user.id)
+    .first<{ status: string }>();
+  if (!report) return c.json({ error: 'Not found' }, 404);
+  if (report.status !== 'open')
+    return c.json({ error: 'Only open reports can be withdrawn' }, 409);
+  await c.env.DB.prepare('DELETE FROM reports WHERE id = ?')
+    .bind(c.req.param('id'))
+    .run();
+  return c.json({ ok: true });
 });
 
 app.notFound((c) => c.json({ error: 'Not found' }, 404));
@@ -1063,4 +1112,10 @@ app.onError((error, c) => {
   return c.json({ error: 'Internal server error' }, 500);
 });
 
-export default app;
+export default {
+  fetch: app.fetch,
+  // Daily housekeeping (see the cron trigger in wrangler.jsonc).
+  async scheduled(_controller, env, ctx) {
+    ctx.waitUntil(purgeExpired(env.DB, Math.floor(Date.now() / 1000)));
+  },
+} satisfies ExportedHandler<Env>;

@@ -141,7 +141,15 @@ deletion and unlinking, so a suspension can't be dodged by starting over. The
 active suspension comes back on `GET /v1/auth/me` (shown via `SuspensionNotice`
 on the account page) and, for moderator viewers only, on `GET /v1/users/:id`.
 Every moderator action is written to the `moderation_actions` audit table and
-shown on the moderation page's Log tab.
+shown on the moderation page's Log tab; a moderator viewing a profile also sees
+that user's own history (`GET /v1/admin/actions?user=<id>`). Users can withdraw
+their own open reports (`DELETE /v1/me/reports/:id`), and a daily cron
+(`scheduled` handler, `retention.ts`) deletes handled reports after 90 days and
+expired sessions. `AccountMenu` counts `unreadReportCount` (answers to your
+reports) plus `openReportCount` (moderators only) for its alert dot, and the
+Moderation menu item shows the open count. Long publication and report lists on
+the account and profile pages use `PagedGrid`, and `useCommunityItems().refresh`
+refetches in place (no spinner) after moderator actions.
 
 Report-resolution notifications are a lightweight, in-app-only badge — there's
 no email on file to notify with (neither OAuth scope requests one). `users.reports_seen_at`

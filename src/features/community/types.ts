@@ -53,6 +53,8 @@ export interface CommunityUser {
   primaryProvider: 'discord' | 'github' | null;
   identities: CommunityIdentity[];
   unreadReportCount: number;
+  /** Open reports awaiting review; always 0 for non-moderators. */
+  openReportCount: number;
   suspension: Suspension | null;
 }
 
