@@ -19,6 +19,7 @@ import { CHARACTER_GRID_SPACING, STORAGE_KEY } from '@/constants/ui';
 import { useCharacterResolution } from '@/features/characters/hooks/use-character-resolution';
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import { getCharacterIdentityKey } from '@/features/characters/utils/character-route';
+import { toBuilderDraft } from '@/features/community/builder-edit';
 import CommunityActions from '@/features/community/CommunityActions';
 import RevisionHistory from '@/features/community/RevisionHistory';
 import ReferenceTierListToggle from '@/features/tier-list/components/ReferenceTierListToggle';
@@ -87,11 +88,7 @@ export default function TierListPage() {
 
   const openEditInBuilder = () => {
     navigate('/tier-list', {
-      state: {
-        editTierList: tierList.community?.viewerOwns
-          ? tierList
-          : { ...tierList, community: undefined },
-      },
+      state: { editTierList: toBuilderDraft(tierList) },
     });
   };
 

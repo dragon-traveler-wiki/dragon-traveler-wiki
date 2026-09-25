@@ -70,6 +70,8 @@ export default function TierListCard({
         role: 'link' as const,
         tabIndex: 0,
         onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => {
+          // Enter/Space on an inner button or link must not navigate the card.
+          if (e.target !== e.currentTarget) return;
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             onNavigate();

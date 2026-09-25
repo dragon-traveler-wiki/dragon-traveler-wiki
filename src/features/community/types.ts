@@ -31,7 +31,7 @@ export interface CommunityListResponse<T> {
   total?: number | null;
 }
 
-export interface CommunityIdentity {
+interface CommunityIdentity {
   provider: 'discord' | 'github';
   username: string;
 }

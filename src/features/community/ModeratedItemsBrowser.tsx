@@ -75,6 +75,7 @@ export default function ModeratedItemsBrowser() {
     <Stack gap="md">
       <Group gap="sm" wrap="wrap">
         <SegmentedControl
+          aria-label="Content type"
           value={kind}
           onChange={(value) => setKind(value as Kind)}
           data={[
@@ -83,6 +84,7 @@ export default function ModeratedItemsBrowser() {
           ]}
         />
         <SegmentedControl
+          aria-label="Status"
           value={status}
           onChange={(value) => setStatus(value as Status)}
           data={[
@@ -91,6 +93,7 @@ export default function ModeratedItemsBrowser() {
           ]}
         />
         <TextInput
+          aria-label="Search content"
           placeholder="Search..."
           value={search}
           onChange={(event) => setSearch(event.currentTarget.value)}

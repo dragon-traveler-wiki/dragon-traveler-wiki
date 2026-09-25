@@ -177,7 +177,7 @@ export default function ModerationPage() {
             <Badge variant="light" color={accent.primary}>
               {REPORT_REASON_LABELS[report.reason] ?? report.reason}
             </Badge>
-            <Badge variant="filled" color={status.color}>
+            <Badge variant="filled" color={status.color} autoContrast>
               {status.label}
             </Badge>
             <Badge
@@ -191,6 +191,7 @@ export default function ModerationPage() {
           {isOpen ? (
             <>
               <Textarea
+                aria-label="Resolution note"
                 placeholder="Add a resolution note (optional)..."
                 autosize
                 minRows={1}
@@ -297,6 +298,7 @@ export default function ModerationPage() {
           <Tabs.Panel value="reports" pt="md">
             <Stack gap="md">
               <SegmentedControl
+                aria-label="Filter reports"
                 value={filter}
                 onChange={(value) => setFilter(value as ReportFilter)}
                 data={[

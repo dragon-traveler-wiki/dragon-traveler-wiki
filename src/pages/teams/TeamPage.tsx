@@ -2,6 +2,7 @@ import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import EntityNotFound from '@/components/ui/EntityNotFound';
 import { STORAGE_KEY } from '@/constants/ui';
+import { toBuilderDraft } from '@/features/community/builder-edit';
 import CommunityActions from '@/features/community/CommunityActions';
 import RevisionHistory from '@/features/community/RevisionHistory';
 import TeamDetailContent from '@/features/teams/components/TeamDetailContent';
@@ -96,11 +97,7 @@ export default function TeamPage() {
 
   const openEditInBuilder = () => {
     navigate('/teams', {
-      state: {
-        editTeam: team.community?.viewerOwns
-          ? team
-          : { ...team, community: undefined },
-      },
+      state: { editTeam: toBuilderDraft(team) },
     });
   };
 

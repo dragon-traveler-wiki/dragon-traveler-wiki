@@ -47,7 +47,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T;
 }
 
-export function collectionForKind(kind: CommunityKind): string {
+function collectionForKind(kind: CommunityKind): string {
   return kind === 'team' ? 'teams' : 'tier-lists';
 }
 

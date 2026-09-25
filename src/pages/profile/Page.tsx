@@ -20,6 +20,7 @@ import { useCharacterResolution } from '@/features/characters/hooks/use-characte
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import { getPublicProfile, unsuspendUser } from '@/features/community/api';
 import { useCommunityAuth } from '@/features/community/auth-context';
+import { toBuilderDraft } from '@/features/community/builder-edit';
 import CommunityActions from '@/features/community/CommunityActions';
 import CommunityStatsBadges from '@/features/community/CommunityStatsBadges';
 import ModerationLog from '@/features/community/ModerationLog';
@@ -94,22 +95,12 @@ export default function ProfilePage() {
   const tierLists = useTierLists({ owner: userId });
 
   const requestEditTeam = (team: Team) => {
-    navigate('/teams', {
-      state: {
-        editTeam: team.community?.viewerOwns
-          ? team
-          : { ...team, community: undefined },
-      },
-    });
+    navigate('/teams', { state: { editTeam: toBuilderDraft(team) } });
   };
 
   const requestEditTierList = (tierList: TierList) => {
     navigate('/tier-list', {
-      state: {
-        editTierList: tierList.community?.viewerOwns
-          ? tierList
-          : { ...tierList, community: undefined },
-      },
+      state: { editTierList: toBuilderDraft(tierList) },
     });
   };
 
@@ -156,7 +147,7 @@ export default function ProfilePage() {
                 )}
                 {profile.moderation.suspension ? (
                   <Button
-                    size="compact-xs"
+                    size="compact-sm"
                     variant="light"
                     color="teal"
                     onClick={() => setConfirmLiftOpen(true)}
@@ -166,7 +157,7 @@ export default function ProfilePage() {
                 ) : (
                   profile.moderation.canSuspend && (
                     <Button
-                      size="compact-xs"
+                      size="compact-sm"
                       variant="light"
                       color="red"
                       onClick={() => setSuspendOpen(true)}

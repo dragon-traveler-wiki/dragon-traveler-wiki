@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { getCommunityItem, listCommunityItems } from './api';
 import type { CommunityItem, CommunityKind, CommunityMeta } from './types';
 
-export type CommunityPayload<T> = T & { community: CommunityMeta };
+type CommunityPayload<T> = T & { community: CommunityMeta };
 
 export interface CommunityItemsOptions {
   search?: string;

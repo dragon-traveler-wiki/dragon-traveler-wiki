@@ -17,6 +17,7 @@ import { showErrorToast, showSuccessToast } from '@/utils/toast';
 import { deleteCommunityItem, reportCommunityItem, setUpvote } from './api';
 import { useCommunityAuth } from './auth-context';
 import type { CommunityMeta } from './types';
+import { REPORT_REASON_LABELS } from './report-status';
 import TurnstileWidget from './TurnstileWidget';
 
 type ActionGroup = 'reactions' | 'edit' | 'delete';
@@ -26,7 +27,7 @@ export default function CommunityActions({
   onEdit,
   onDeleted,
   show,
-  size = 'compact-xs',
+  size = 'compact-sm',
   trailing,
 }: {
   community: CommunityMeta;
@@ -40,7 +41,7 @@ export default function CommunityActions({
    */
   show?: Partial<Record<ActionGroup, boolean>>;
   /** Detail pages pass a regular button size to match their other actions. */
-  size?: 'compact-xs' | 'md';
+  size?: 'compact-sm' | 'md';
   /** Extra controls rendered inside the button group, right after the actions. */
   trailing?: ReactNode;
 }) {
@@ -48,7 +49,7 @@ export default function CommunityActions({
   const showReactions = show ? Boolean(show.reactions) : true;
   const showEdit = show ? Boolean(show.edit) : true;
   const showDelete = show ? Boolean(show.delete) : true;
-  const compact = size === 'compact-xs';
+  const compact = size === 'compact-sm';
   const { user, csrfToken, login } = useCommunityAuth();
   const { accent } = useGradientAccent();
   const [score, setScore] = useState(community.score);
@@ -253,14 +254,13 @@ export default function CommunityActions({
               for what's reportable.
             </Text>
             <Select
+              label="Reason"
               value={reason}
               onChange={setReason}
-              data={[
-                { value: 'spam', label: 'Spam' },
-                { value: 'broken', label: 'Broken or invalid data' },
-                { value: 'abusive', label: 'Abusive content' },
-                { value: 'other', label: 'Other' },
-              ]}
+              data={Object.entries(REPORT_REASON_LABELS).map(
+                ([value, label]) => ({ value, label }),
+              )}
+              allowDeselect={false}
             />
             <Textarea
               label="Details"

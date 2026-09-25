@@ -99,7 +99,7 @@ export default function MyReports({
             <Badge variant="light" color={accent.primary}>
               {REPORT_REASON_LABELS[report.reason] ?? report.reason}
             </Badge>
-            <Badge variant="filled" color={status.color}>
+            <Badge variant="filled" color={status.color} autoContrast>
               {status.label}
             </Badge>
             {report.item_status !== 'published' && (
@@ -116,7 +116,7 @@ export default function MyReports({
           {report.status === 'open' && (
             <Group>
               <Button
-                size="compact-xs"
+                size="compact-sm"
                 variant="subtle"
                 color="gray"
                 loading={withdrawing}
@@ -141,6 +141,7 @@ export default function MyReports({
       ) : (
         <>
           <SegmentedControl
+            aria-label="Filter your reports"
             value={filter}
             onChange={(value) => setFilter(value as Filter)}
             data={[
