@@ -1,9 +1,10 @@
 import { Badge, Group, Loader, Text, Timeline } from '@mantine/core';
 import { useEffect, useState } from 'react';
-import { IoCreateOutline } from 'react-icons/io5';
+import { IoCheckmarkCircle } from 'react-icons/io5';
 import CollapsibleSectionCard from '@/components/ui/CollapsibleSectionCard';
+import { IMAGE_SIZE } from '@/constants/ui';
 import { useGradientAccent } from '@/hooks';
-import { formatRelativeTime, formatShortDate } from '@/utils/timestamps';
+import { formatShortDate } from '@/utils/timestamps';
 import { getRevisions } from './api';
 import type { CommunityKind, CommunityRevision } from './types';
 
@@ -36,16 +37,12 @@ export default function RevisionHistory({ kind, id }: RevisionHistoryProps) {
 
   return (
     <CollapsibleSectionCard color="gray" header="Edit history">
-      <Timeline
-        active={-1}
-        bulletSize={28}
-        lineWidth={2}
-        color={accent.primary}
-      >
+      <Timeline active={-1} bulletSize={28} lineWidth={2}>
         {revisions.map((revision) => (
           <Timeline.Item
             key={revision.revision}
-            bullet={<IoCreateOutline size={14} />}
+            color={accent.primary}
+            bullet={<IoCheckmarkCircle size={IMAGE_SIZE.ICON_LG} />}
             title={
               <Group gap="xs" wrap="wrap" align="center">
                 <Text fw={600} size="sm">
@@ -54,14 +51,12 @@ export default function RevisionHistory({ kind, id }: RevisionHistoryProps) {
                 <Badge size="xs" variant="light" color={accent.primary}>
                   Revision {revision.revision}
                 </Badge>
+                <Badge size="xs" variant="light" color="gray">
+                  Edited by {revision.editorName}
+                </Badge>
               </Group>
             }
-          >
-            <Text size="xs" c="dimmed">
-              Edited by {revision.editorName} ·{' '}
-              {formatRelativeTime(revision.createdAt)}
-            </Text>
-          </Timeline.Item>
+          />
         ))}
       </Timeline>
     </CollapsibleSectionCard>
