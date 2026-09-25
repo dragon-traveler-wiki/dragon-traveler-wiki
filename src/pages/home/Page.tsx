@@ -16,7 +16,10 @@ import {
   IoStatsChart,
   IoTrophy,
 } from 'react-icons/io5';
-import { CharacterOwnershipContext } from '@/contexts';
+import {
+  CharacterOwnershipContext,
+  TierListReferenceContext,
+} from '@/contexts';
 import { useGradientAccent } from '@/hooks';
 import { useContext } from 'react';
 import ActiveCodesSection from '@/features/home/components/ActiveCodesSection';
@@ -43,6 +46,7 @@ const LANGUAGES = [
 export default function Home() {
   const { accent } = useGradientAccent();
   const { showCharacterTiers } = useContext(CharacterOwnershipContext);
+  const { selectedTierList } = useContext(TierListReferenceContext);
 
   return (
     <Stack gap={0}>
@@ -50,7 +54,9 @@ export default function Home() {
 
       <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
         <Stack gap="xl">
-          {showCharacterTiers && (
+          {/* Featured characters come from the reference tier list, so the whole
+              section is omitted when there's no default and no chosen list. */}
+          {showCharacterTiers && selectedTierList && (
             <ScrollReveal>
               <HomeSectionCard
                 title="Featured Characters"
