@@ -1,6 +1,6 @@
 import { ActionIcon, Tooltip } from '@mantine/core';
 import { useContext, useState } from 'react';
-import { IoPin, IoPinOutline } from 'react-icons/io5';
+import { IoStar, IoStarOutline } from 'react-icons/io5';
 import { TierListReferenceContext } from '@/contexts';
 import { setReferenceTierList } from '@/features/community/api';
 import { useCommunityAuth } from '@/features/community/auth-context';
@@ -9,7 +9,7 @@ import { getTierListEntityType } from '@/features/tier-list/types';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
 /**
- * Moderator-only control that pins a published character tier list as the
+ * Moderator-only control that marks a published character tier list as the
  * site-wide default "Tier List Reference" (used for tier badges on characters
  * and the home page). Viewers can still pick their own in Settings.
  */
@@ -70,7 +70,7 @@ export default function ReferenceTierListToggle({
         aria-label={label}
         onClick={() => void toggle()}
       >
-        {isReference ? <IoPin size={14} /> : <IoPinOutline size={14} />}
+        {isReference ? <IoStar size={14} /> : <IoStarOutline size={14} />}
       </ActionIcon>
     </Tooltip>
   );
