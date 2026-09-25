@@ -45,7 +45,7 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core';
-import { IoCreate, IoTrash } from 'react-icons/io5';
+import { IoCreate, IoDownload, IoTrash } from 'react-icons/io5';
 import { Link } from 'react-router';
 
 export function TeamHeroSection({
@@ -108,6 +108,7 @@ export function TeamHeroSection({
               </Button>
               <Button
                 variant="light"
+                leftSection={<IoDownload size={14} />}
                 loading={exporting}
                 onClick={onExportAsImage}
               >

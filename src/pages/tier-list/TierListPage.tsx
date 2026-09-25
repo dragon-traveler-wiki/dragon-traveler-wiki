@@ -10,7 +10,7 @@ import {
 } from '@mantine/core';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { IoCreate } from 'react-icons/io5';
+import { IoCreate, IoDownload } from 'react-icons/io5';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
 import CollapsibleSectionCard from '@/components/ui/CollapsibleSectionCard';
@@ -150,7 +150,12 @@ export default function TierListPage() {
       >
         {tierList.community?.viewerOwns ? 'Edit' : 'Remix'}
       </Button>
-      <Button variant="light" loading={exporting} onClick={exportAsImage}>
+      <Button
+        variant="light"
+        leftSection={<IoDownload size={14} />}
+        loading={exporting}
+        onClick={exportAsImage}
+      >
         Export Image
       </Button>
       {tierList.community && (
