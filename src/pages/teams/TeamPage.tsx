@@ -26,7 +26,7 @@ import {
   useMobileTooltip,
 } from '@/hooks';
 import { getTeamRoutePath } from '@/features/teams/utils/team-route';
-import { Box, Container } from '@mantine/core';
+import { Box, Container, Stack } from '@mantine/core';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
@@ -166,22 +166,24 @@ export default function TeamPage() {
       />
 
       <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
-        <TeamDetailContent
-          team={team}
-          charMap={charMap}
-          characterByIdentity={characterByIdentity}
-          getCharacterPath={getCharacterPath}
-          factionColor={factionColor}
-          accentPrimary={accent.primary}
-          isDark={isDark}
-          tooltipProps={tooltipProps}
-          wyrmspells={wyrmspells}
-          exportRef={exportRef}
-          exporting={exporting}
-        />
-        {team.community && (
-          <RevisionHistory kind="team" id={team.community.id} />
-        )}
+        <Stack gap="md">
+          <TeamDetailContent
+            team={team}
+            charMap={charMap}
+            characterByIdentity={characterByIdentity}
+            getCharacterPath={getCharacterPath}
+            factionColor={factionColor}
+            accentPrimary={accent.primary}
+            isDark={isDark}
+            tooltipProps={tooltipProps}
+            wyrmspells={wyrmspells}
+            exportRef={exportRef}
+            exporting={exporting}
+          />
+          {team.community && (
+            <RevisionHistory kind="team" id={team.community.id} />
+          )}
+        </Stack>
       </Container>
     </Box>
   );

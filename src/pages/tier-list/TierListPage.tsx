@@ -1,6 +1,5 @@
 import {
   Badge,
-  Box,
   Button,
   Container,
   Group,
@@ -195,7 +194,7 @@ export default function TierListPage() {
           }}
         />
 
-        <Box>
+        <Stack gap="md">
           <TierListContent
             tierList={tierList}
             resolveTierEntryEntity={resolveTierEntryEntity}
@@ -242,7 +241,7 @@ export default function TierListPage() {
           {tierList.community && (
             <RevisionHistory kind="tier_list" id={tierList.community.id} />
           )}
-        </Box>
+        </Stack>
       </Stack>
     </Container>
   );

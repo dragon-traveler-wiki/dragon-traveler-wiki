@@ -1,7 +1,9 @@
-import { Loader, Stack, Text } from '@mantine/core';
+import { Badge, Group, Loader, Text, Timeline } from '@mantine/core';
 import { useEffect, useState } from 'react';
+import { IoCreateOutline } from 'react-icons/io5';
 import CollapsibleSectionCard from '@/components/ui/CollapsibleSectionCard';
-import { formatRelativeTime } from '@/utils';
+import { useGradientAccent } from '@/hooks';
+import { formatRelativeTime, formatShortDate } from '@/utils/timestamps';
 import { getRevisions } from './api';
 import type { CommunityKind, CommunityRevision } from './types';
 
@@ -10,7 +12,9 @@ interface RevisionHistoryProps {
   id: string;
 }
 
+/** Edit history for a published item, styled like the site changelog timeline. */
 export default function RevisionHistory({ kind, id }: RevisionHistoryProps) {
+  const { accent } = useGradientAccent();
   const [revisions, setRevisions] = useState<CommunityRevision[] | null>(null);
 
   useEffect(() => {
@@ -32,14 +36,34 @@ export default function RevisionHistory({ kind, id }: RevisionHistoryProps) {
 
   return (
     <CollapsibleSectionCard color="gray" header="Edit history">
-      <Stack gap={4}>
+      <Timeline
+        active={-1}
+        bulletSize={28}
+        lineWidth={2}
+        color={accent.primary}
+      >
         {revisions.map((revision) => (
-          <Text key={revision.revision} size="sm" c="dimmed">
-            Revision {revision.revision} — edited by {revision.editorName}{' '}
-            {formatRelativeTime(revision.createdAt)}
-          </Text>
+          <Timeline.Item
+            key={revision.revision}
+            bullet={<IoCreateOutline size={14} />}
+            title={
+              <Group gap="xs" wrap="wrap" align="center">
+                <Text fw={600} size="sm">
+                  {formatShortDate(revision.createdAt)}
+                </Text>
+                <Badge size="xs" variant="light" color={accent.primary}>
+                  Revision {revision.revision}
+                </Badge>
+              </Group>
+            }
+          >
+            <Text size="xs" c="dimmed">
+              Edited by {revision.editorName} ·{' '}
+              {formatRelativeTime(revision.createdAt)}
+            </Text>
+          </Timeline.Item>
         ))}
-      </Stack>
+      </Timeline>
     </CollapsibleSectionCard>
   );
 }
