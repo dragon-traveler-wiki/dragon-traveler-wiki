@@ -104,6 +104,7 @@ function slugify(value) {
 }
 
 const RESET_SQL = [
+  "DELETE FROM site_settings WHERE value LIKE 'seed-%';",
   "DELETE FROM reports WHERE item_id LIKE 'seed-%' OR reporter_user_id LIKE 'seed-%';",
   "DELETE FROM votes WHERE item_id LIKE 'seed-%' OR user_id LIKE 'seed-%';",
   "DELETE FROM community_revisions WHERE item_id LIKE 'seed-%' OR editor_user_id LIKE 'seed-%';",
@@ -751,6 +752,16 @@ REPORTS.forEach(
       }),
     );
   },
+);
+
+// pin a seeded character tier list as the site's default reference
+statements.push(
+  insert('site_settings', {
+    key: 'reference_tier_list_id',
+    value: 'seed-tier-01',
+    updated_at: NOW,
+    updated_by_user_id: MOD_ID,
+  }),
 );
 
 // make the resolved reports you filed show up as "unread" in the header badge

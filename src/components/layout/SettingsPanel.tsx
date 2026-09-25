@@ -3,12 +3,15 @@ import MobileBottomDrawer from '@/components/ui/MobileBottomDrawer';
 import { normalizeContentType } from '@/constants/content-types';
 import { TRANSITION, Z_INDEX } from '@/constants/ui';
 import type { CustomMantineAccent } from '@/contexts';
+
+const SITE_DEFAULT_VALUE = '__site_default__';
 import {
   BannerContext,
   CharacterOwnershipContext,
   CharacterSkinContext,
   LocaleContext,
   TierListReferenceContext,
+  getSavedTierListKey,
   UiOpacityContext,
 } from '@/contexts';
 import {
@@ -76,8 +79,13 @@ export default function SettingsPanel({
     tierLists,
     savedTierLists,
     loading,
-    selectedTierListName,
-    setSelectedTierListName,
+    selectedTierList,
+    selectedKey,
+    siteReferenceId,
+    usingSiteDefault,
+    selectTierList,
+    followSiteDefault,
+    clearSelection,
   } = useContext(TierListReferenceContext);
   const {
     selectedBanner,
@@ -124,21 +132,54 @@ export default function SettingsPanel({
   }, [isMobile, opened]);
 
   const tierListOptions = useMemo(() => {
-    const toOption = (list: { name: string; content_type: string }) => ({
-      value: list.name,
+    const toOption = (
+      list: { name: string; content_type: string },
+      value: string,
+    ) => ({
+      value,
       label: `${list.name} (${normalizeContentType(list.content_type, 'All')})`,
     });
-    const official = tierLists.map(toOption);
-    const officialNames = new Set(tierLists.map((l) => l.name));
-    const uniqueSaved = savedTierLists.filter(
-      (l) => !officialNames.has(l.name),
+    const communityOptions = tierLists.flatMap((list) =>
+      list.community ? [toOption(list, list.community.id)] : [],
     );
-    if (uniqueSaved.length === 0) return official;
-    return [
-      { group: 'Official', items: official },
-      { group: 'My Saved', items: uniqueSaved.map(toOption) },
-    ];
-  }, [tierLists, savedTierLists]);
+    // Keep the active community list selectable even when it isn't in the
+    // top-rated page that was loaded.
+    const activeCommunity = selectedTierList?.community;
+    if (
+      selectedTierList &&
+      activeCommunity &&
+      !communityOptions.some((option) => option.value === activeCommunity.id)
+    ) {
+      communityOptions.unshift(toOption(selectedTierList, activeCommunity.id));
+    }
+    const siteDefaultName = tierLists.find(
+      (list) => list.community?.id === siteReferenceId,
+    )?.name;
+    const groups = [];
+    if (siteReferenceId) {
+      groups.push({
+        group: 'Default',
+        items: [
+          {
+            value: SITE_DEFAULT_VALUE,
+            label: siteDefaultName
+              ? `Site default (${siteDefaultName})`
+              : 'Site default',
+          },
+        ],
+      });
+    }
+    groups.push({ group: 'Community', items: communityOptions });
+    if (savedTierLists.length > 0) {
+      groups.push({
+        group: 'My Saved',
+        items: savedTierLists.map((list) =>
+          toOption(list, getSavedTierListKey(list)),
+        ),
+      });
+    }
+    return groups;
+  }, [tierLists, savedTierLists, selectedTierList, siteReferenceId]);
 
   const controlSize = isMobile ? 'md' : 'sm';
   const selectComboboxProps = {
@@ -446,14 +487,22 @@ export default function SettingsPanel({
               label="Tier List Reference"
               placeholder="Select tier list"
               data={tierListOptions}
-              value={selectedTierListName || null}
-              onChange={(value) => setSelectedTierListName(value ?? '')}
+              value={
+                usingSiteDefault && siteReferenceId
+                  ? SITE_DEFAULT_VALUE
+                  : selectedKey || null
+              }
+              onChange={(value) => {
+                if (!value) clearSelection();
+                else if (value === SITE_DEFAULT_VALUE) followSiteDefault();
+                else selectTierList(value);
+              }}
               comboboxProps={selectComboboxProps}
               onDropdownOpen={() => setIsSelectDropdownOpen(true)}
               onDropdownClose={() => setIsSelectDropdownOpen(false)}
               clearable
               size={controlSize}
-              disabled={loading || tierListOptions.length === 0}
+              disabled={loading}
             />
           )}
         </Stack>

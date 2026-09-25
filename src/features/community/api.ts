@@ -248,3 +248,18 @@ export async function moderateItem(
     },
   );
 }
+
+export async function getSiteSettings() {
+  return request<{ referenceTierListId: string | null }>('/v1/settings');
+}
+
+export async function setReferenceTierList(
+  id: string | null,
+  csrfToken: string,
+) {
+  await request('/v1/admin/settings/reference-tier-list', {
+    method: 'PUT',
+    headers: { 'X-CSRF-Token': csrfToken },
+    body: JSON.stringify({ id }),
+  });
+}

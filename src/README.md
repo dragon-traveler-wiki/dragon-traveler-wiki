@@ -123,6 +123,15 @@ user-published through the Cloudflare Worker in `community-api/` (see the root
   local-only fallback for drafts; wrapped per-feature as `getTeamRoutePath`/
   `getTierListRoutePath`.
 
+The site-wide **Tier List Reference** (tier badges on characters and the home
+marquee) is `TierListReferenceContext`. A viewer's explicit choice is stored by
+list id (or `saved:<slug>` for a local list) and, if that list is later deleted or
+hidden, falls back to the site default. With no stored choice it follows the
+moderator-pinned default from `GET /v1/settings` (`site_settings` table, set via
+`PUT /v1/admin/settings/reference-tier-list` from the "Set as site reference"
+button on a character tier list's page). The API only reports a pinned list while
+it's still published, so removing or hiding it clears the default automatically.
+
 Report-resolution notifications are a lightweight, in-app-only badge — there's
 no email on file to notify with (neither OAuth scope requests one). `users.reports_seen_at`
 (set whenever `GET /v1/me/reports` is fetched, i.e. whenever the account page loads)

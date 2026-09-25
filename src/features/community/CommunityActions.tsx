@@ -199,7 +199,7 @@ export default function CommunityActions({
           opened={confirmDeleteOpen}
           onCancel={() => setConfirmDeleteOpen(false)}
           title="Delete this publication?"
-          message="This can only be restored by a moderator."
+          message="This can't be undone."
           confirmLabel="Delete"
           confirmColor="red"
           onConfirm={() => void remove()}

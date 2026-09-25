@@ -22,6 +22,7 @@ import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import { getCharacterIdentityKey } from '@/features/characters/utils/character-route';
 import CommunityActions from '@/features/community/CommunityActions';
 import RevisionHistory from '@/features/community/RevisionHistory';
+import ReferenceTierListToggle from '@/features/tier-list/components/ReferenceTierListToggle';
 import TierListContent from '@/features/tier-list/components/TierListContent';
 import TierListEntityCard from '@/features/tier-list/components/TierListEntityCard';
 import { useTierList } from '@/features/tier-list/hooks/use-tier-list-data';
@@ -152,6 +153,7 @@ export default function TierListPage() {
       <Button variant="light" loading={exporting} onClick={exportAsImage}>
         Export Image
       </Button>
+      <ReferenceTierListToggle tierList={tierList} />
       {tierList.community && (
         <CommunityActions
           community={tierList.community}

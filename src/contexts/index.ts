@@ -37,6 +37,7 @@ export type { SearchDataContextValue } from './search-data';
 export {
   TierListReferenceContext,
   TierListReferenceProvider,
+  getSavedTierListKey,
 } from './tier-list-reference-context';
 export type { TierListReferenceContextValue } from './tier-list-reference-context';
 export { UiOpacityContext } from './ui-opacity';

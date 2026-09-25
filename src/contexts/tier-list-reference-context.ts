@@ -1,4 +1,4 @@
-﻿import {
+import {
   createContext,
   createElement,
   useCallback,
@@ -8,19 +8,45 @@
   type ReactNode,
 } from 'react';
 import { STORAGE_KEY } from '@/constants/ui';
-import { useTierLists } from '@/features/tier-list/hooks/use-tier-list-data';
+import {
+  CommunityApiError,
+  getSiteSettings,
+  isCommunityApiConfigured,
+} from '@/features/community/api';
+import {
+  useTierList,
+  useTierLists,
+} from '@/features/tier-list/hooks/use-tier-list-data';
 import {
   getTierListEntityType,
   type TierList as TierListType,
 } from '@/features/tier-list/types';
 import { loadSavedTierLists } from '@/features/tier-list/saved-tier-lists';
 
+/** Stored choice meaning "show no tiers"; no stored value means "follow the site default". */
+const NONE = '__none__';
+const SAVED_PREFIX = 'saved:';
+
+/** Select value for one of the viewer's locally saved tier lists. */
+export const getSavedTierListKey = (tierList: Pick<TierListType, 'slug'>) =>
+  `${SAVED_PREFIX}${tierList.slug}`;
+
 export interface TierListReferenceContextValue {
+  /** Top published character tier lists, offered as options. */
   tierLists: TierListType[];
   savedTierLists: TierListType[];
   loading: boolean;
-  selectedTierListName: string;
-  setSelectedTierListName: (name: string) => void;
+  /** The tier list currently used as the reference, if any. */
+  selectedTierList: TierListType | null;
+  /** Community id, `saved:<slug>`, or '' when there's no reference. */
+  selectedKey: string;
+  /** Moderator-pinned default reference (a published community list id). */
+  siteReferenceId: string | null;
+  usingSiteDefault: boolean;
+  selectTierList: (key: string) => void;
+  followSiteDefault: () => void;
+  clearSelection: () => void;
+  refreshSiteReference: () => void;
 }
 
 export const TierListReferenceContext =
@@ -28,12 +54,20 @@ export const TierListReferenceContext =
     tierLists: [],
     savedTierLists: [],
     loading: false,
-    selectedTierListName: '',
-    setSelectedTierListName: () => {},
+    selectedTierList: null,
+    selectedKey: '',
+    siteReferenceId: null,
+    usingSiteDefault: true,
+    selectTierList: () => {},
+    followSiteDefault: () => {},
+    clearSelection: () => {},
+    refreshSiteReference: () => {},
   });
 
-function readSavedTierLists(): TierListType[] {
-  return loadSavedTierLists();
+function readSavedCharacterTierLists(): TierListType[] {
+  return loadSavedTierLists().filter(
+    (tierList) => getTierListEntityType(tierList) === 'character',
+  );
 }
 
 export function TierListReferenceProvider({
@@ -41,7 +75,7 @@ export function TierListReferenceProvider({
 }: {
   children: ReactNode;
 }) {
-  const { data: allTierLists, loading } = useTierLists();
+  const { data: allTierLists, loading: listLoading } = useTierLists();
   const tierLists = useMemo(
     () =>
       allTierLists.filter(
@@ -49,25 +83,21 @@ export function TierListReferenceProvider({
       ),
     [allTierLists],
   );
-  const [savedTierLists, setSavedTierLists] = useState<TierListType[]>(() =>
-    readSavedTierLists().filter(
-      (tierList) => getTierListEntityType(tierList) === 'character',
-    ),
+  const [savedTierLists, setSavedTierLists] = useState<TierListType[]>(
+    readSavedCharacterTierLists,
   );
-  const [selectedTierListName, setSelectedTierListName] = useState(() => {
-    if (typeof window === 'undefined') return '';
+  const [stored, setStored] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
     return (
       window.localStorage.getItem(STORAGE_KEY.CHARACTER_TIER_LIST_REFERENCE) ||
-      ''
+      null
     );
   });
+  const [siteReferenceId, setSiteReferenceId] = useState<string | null>(null);
+  const [settingsVersion, setSettingsVersion] = useState(0);
 
   const refreshSaved = useCallback(() => {
-    setSavedTierLists(
-      readSavedTierLists().filter(
-        (tierList) => getTierListEntityType(tierList) === 'character',
-      ),
-    );
+    setSavedTierLists(readSavedCharacterTierLists());
   }, []);
 
   useEffect(() => {
@@ -83,47 +113,107 @@ export function TierListReferenceProvider({
   }, [refreshSaved]);
 
   useEffect(() => {
+    if (!isCommunityApiConfigured) return;
+    let cancelled = false;
+    getSiteSettings()
+      .then((settings) => {
+        if (!cancelled) setSiteReferenceId(settings.referenceTierListId);
+      })
+      .catch(() => {
+        if (!cancelled) setSiteReferenceId(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [settingsVersion]);
+
+  useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (selectedTierListName) {
+    if (stored) {
       window.localStorage.setItem(
         STORAGE_KEY.CHARACTER_TIER_LIST_REFERENCE,
-        selectedTierListName,
+        stored,
       );
     } else {
       window.localStorage.removeItem(STORAGE_KEY.CHARACTER_TIER_LIST_REFERENCE);
     }
-  }, [selectedTierListName]);
+  }, [stored]);
 
+  const usingSiteDefault = stored === null;
+  const selectedKey = stored === NONE ? '' : (stored ?? siteReferenceId ?? '');
+  const isSaved = selectedKey.startsWith(SAVED_PREFIX);
+  const communityId = selectedKey && !isSaved ? selectedKey : null;
+
+  const {
+    data: fetchedTierList,
+    loading: fetching,
+    error: fetchError,
+  } = useTierList(communityId);
+
+  const selectedTierList = useMemo(() => {
+    if (!selectedKey) return null;
+    if (isSaved) {
+      return (
+        savedTierLists.find(
+          (tierList) => getSavedTierListKey(tierList) === selectedKey,
+        ) ?? null
+      );
+    }
+    return fetchedTierList?.community?.id === selectedKey &&
+      getTierListEntityType(fetchedTierList) === 'character'
+      ? fetchedTierList
+      : null;
+  }, [selectedKey, isSaved, savedTierLists, fetchedTierList]);
+
+  // A list the viewer explicitly chose that no longer exists (deleted, hidden,
+  // or a stale value from before choices were keyed by id) falls back to the
+  // site default rather than leaving a dead selection behind.
   useEffect(() => {
-    if (loading || tierLists.length === 0) return;
-    if (!selectedTierListName) {
-      queueMicrotask(() => {
-        setSelectedTierListName(tierLists[0].name);
-      });
-      return;
-    }
-    const existsInOfficial = tierLists.some(
-      (list) => list.name === selectedTierListName,
-    );
-    const existsInSaved = savedTierLists.some(
-      (list) => list.name === selectedTierListName,
-    );
-    if (!existsInOfficial && !existsInSaved) {
-      queueMicrotask(() => {
-        setSelectedTierListName(tierLists[0].name);
-      });
-    }
-  }, [selectedTierListName, tierLists, savedTierLists, loading]);
+    if (stored === null || stored === NONE) return;
+    const missing = isSaved
+      ? !savedTierLists.some(
+          (tierList) => getSavedTierListKey(tierList) === stored,
+        )
+      : fetchError instanceof CommunityApiError && fetchError.status === 404;
+    if (missing) queueMicrotask(() => setStored(null));
+  }, [stored, isSaved, savedTierLists, fetchError]);
+
+  const selectTierList = useCallback((key: string) => setStored(key), []);
+  const followSiteDefault = useCallback(() => setStored(null), []);
+  const clearSelection = useCallback(() => setStored(NONE), []);
+  const refreshSiteReference = useCallback(
+    () => setSettingsVersion((version) => version + 1),
+    [],
+  );
 
   const value = useMemo(
     () => ({
       tierLists,
       savedTierLists,
-      loading,
-      selectedTierListName,
-      setSelectedTierListName,
+      loading: listLoading || fetching,
+      selectedTierList,
+      selectedKey,
+      siteReferenceId,
+      usingSiteDefault,
+      selectTierList,
+      followSiteDefault,
+      clearSelection,
+      refreshSiteReference,
     }),
-    [tierLists, savedTierLists, loading, selectedTierListName],
+    [
+      tierLists,
+      savedTierLists,
+      listLoading,
+      fetching,
+      selectedTierList,
+      selectedKey,
+      siteReferenceId,
+      usingSiteDefault,
+      selectTierList,
+      followSiteDefault,
+      clearSelection,
+      refreshSiteReference,
+    ],
   );
 
   return createElement(TierListReferenceContext.Provider, { value }, children);
