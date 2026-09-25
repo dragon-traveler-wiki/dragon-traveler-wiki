@@ -172,12 +172,15 @@ export default function TierListPage() {
   return (
     <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="md">
-        <Breadcrumbs
-          items={[
-            { label: 'Tier List', path: '/tier-list' },
-            { label: tierList.name || 'Untitled' },
-          ]}
-        />
+        <Group justify="space-between" wrap="wrap">
+          <Breadcrumbs
+            items={[
+              { label: 'Tier List', path: '/tier-list' },
+              { label: tierList.name || 'Untitled' },
+            ]}
+          />
+          {headerActions}
+        </Group>
         <Title order={1}>{tierList.name || 'Untitled'}</Title>
 
         <ConfirmActionModal
@@ -197,7 +200,6 @@ export default function TierListPage() {
             tierList={tierList}
             resolveTierEntryEntity={resolveTierEntryEntity}
             viewMode="grid"
-            headerActions={headerActions}
             bylineActions={
               tierList.community && (
                 <>
