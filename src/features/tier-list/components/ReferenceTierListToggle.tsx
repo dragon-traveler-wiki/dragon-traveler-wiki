@@ -1,6 +1,6 @@
 import { ActionIcon, Tooltip } from '@mantine/core';
 import { useContext, useState } from 'react';
-import { IoStar, IoStarOutline } from 'react-icons/io5';
+import { MdOutlinePushPin, MdPushPin } from 'react-icons/md';
 import { TierListReferenceContext } from '@/contexts';
 import { setReferenceTierList } from '@/features/community/api';
 import { useCommunityAuth } from '@/features/community/auth-context';
@@ -70,7 +70,7 @@ export default function ReferenceTierListToggle({
         aria-label={label}
         onClick={() => void toggle()}
       >
-        {isReference ? <IoStar size={14} /> : <IoStarOutline size={14} />}
+        {isReference ? <MdPushPin size={16} /> : <MdOutlinePushPin size={16} />}
       </ActionIcon>
     </Tooltip>
   );
