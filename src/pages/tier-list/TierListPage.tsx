@@ -239,7 +239,11 @@ export default function TierListPage() {
             </CollapsibleSectionCard>
           )}
           {tierList.community && (
-            <RevisionHistory kind="tier_list" id={tierList.community.id} />
+            <RevisionHistory
+              kind="tier_list"
+              id={tierList.community.id}
+              publishedAt={tierList.community.createdAt}
+            />
           )}
         </Stack>
       </Stack>

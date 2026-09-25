@@ -111,9 +111,10 @@ user-published through the Cloudflare Worker in `community-api/` (see the root
   used by both browse pages, passed through `PageFilterHeaderControls`'
   `extraControls` slot.
 - **`features/community/RevisionHistory.tsx`** — reads
-  `GET /{collection}/:id/revisions` and renders a collapsible edit history on
-  the team/tier-list detail pages; renders nothing if the item has never been
-  edited.
+  `GET /{collection}/:id/revisions` and renders a collapsed "Edit History" section
+  on the team/tier-list detail pages, deliberately mirroring the "Change History"
+  section (`components/common/ChangeHistory.tsx`) on wiki data pages; renders
+  nothing if the item has never been edited.
 - **`features/community/ModeratedItemsBrowser.tsx`** — the moderation page's
   "Browse content" tab; lets moderators search/filter published or hidden items
   by kind and hide/restore/delete them directly via `POST /{collection}/:id/moderate`,

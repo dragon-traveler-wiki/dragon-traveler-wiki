@@ -181,7 +181,11 @@ export default function TeamPage() {
             exporting={exporting}
           />
           {team.community && (
-            <RevisionHistory kind="team" id={team.community.id} />
+            <RevisionHistory
+              kind="team"
+              id={team.community.id}
+              publishedAt={team.community.createdAt}
+            />
           )}
         </Stack>
       </Container>
