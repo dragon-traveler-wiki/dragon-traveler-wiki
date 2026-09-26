@@ -32,7 +32,7 @@ handling, and the cron entry point. Routes live in `src/routes/` by area (`auth`
 `register…Routes(app)` function. Shared request helpers (rate limiting, Turnstile,
 the audit log, cursors, item presentation) are in `src/helpers.ts`; domain rules are
 in their own small modules (`suspension`, `retention`, `moderation`, `validation`,
-`security`, `auth`).
+`security`, `auth`, `time`).
 
 ## Configuration
 
@@ -70,14 +70,14 @@ served from the `api.dtwiki.org` custom domain.
 All under `/v1`. Writes need the session cookie plus an `X-CSRF-Token` header;
 publish and report also need an `X-Turnstile-Token`.
 
-| Area          | Endpoints                                                                                                                                                                                                   |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Auth          | `GET /auth/:provider/start` / `callback`, `GET /auth/me`, `POST /auth/logout`, `DELETE /auth/me`, `DELETE /auth/:provider/unlink`, `PATCH /auth/primary`                                                    |
-| Content       | `GET/POST /teams`, `/tier-lists`; `GET/PATCH/DELETE /:collection/:id`; `GET /:collection/:id/revisions`                                                                                                     |
-| Interaction   | `PUT/DELETE /:collection/:id/upvote`, `POST /:collection/:id/reports`                                                                                                                                       |
-| Profiles      | `GET /users/:id`, `GET /me/items`, `GET/DELETE /me/reports`                                                                                                                                                 |
-| Site settings | `GET /settings` (pinned reference tier list)                                                                                                                                                                |
-| Moderation    | `POST /:collection/:id/moderate`, `GET /admin/reports`, `PATCH /admin/reports/:id`, `POST /admin/users/:id/suspend` / `unsuspend` / `role`, `GET /admin/actions`, `PUT /admin/settings/reference-tier-list` |
+| Area        | Endpoints                                                                                                                                                                                                   |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auth        | `GET /auth/:provider/start` / `callback`, `GET /auth/me`, `POST /auth/logout`, `DELETE /auth/me`, `DELETE /auth/:provider/unlink`, `PATCH /auth/primary`                                                    |
+| Content     | `GET/POST /teams`, `/tier-lists`; `GET/PATCH/DELETE /:collection/:id`; `GET /:collection/:id/revisions`                                                                                                     |
+| Interaction | `PUT/DELETE /:collection/:id/upvote`, `POST /:collection/:id/reports`                                                                                                                                       |
+| Profiles    | `GET /users/:id`, `GET /me/items`, `GET/DELETE /me/reports`                                                                                                                                                 |
+| Site        | `GET /health`, `GET /settings` (pinned reference tier list)                                                                                                                                                 |
+| Moderation  | `POST /:collection/:id/moderate`, `GET /admin/reports`, `PATCH /admin/reports/:id`, `POST /admin/users/:id/suspend` / `unsuspend` / `role`, `GET /admin/actions`, `PUT /admin/settings/reference-tier-list` |
 
 List endpoints take `limit` (max 50), `cursor`, `sort` (`top`/`new`), `q`, `owner`,
 and (moderators) `status=hidden`; the first page also returns `total`.

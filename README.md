@@ -14,6 +14,7 @@ A community-driven English wiki for the Chinese mobile game **Dragon Traveler** 
 - Resources and useful links directories
 - Game events tracker and redemption codes tracker
 - Tier list viewer/builder and team builder
+- Community accounts (Discord/GitHub sign-in): publish, vote on, and report public teams and tier lists, with moderation tools
 - Fuzzy global search and keyboard shortcuts
 - Dark/light theme toggle
 
@@ -62,35 +63,22 @@ CI runs `npm run format:check` as part of the complete quality suite.
 
 ### Community API
 
-Public teams and tier lists are served by the Worker in `community-api/`.
-Install and run it separately when working on publishing, accounts, voting, or
-moderation:
+Public teams and tier lists are served by the Worker in `community-api/`, which
+has its own [README](community-api/README.md) covering setup, configuration,
+endpoints, deployment, and operations. To work on publishing, accounts, or
+moderation locally:
 
 ```bash
 cd community-api
 npm install
 npx wrangler d1 migrations apply dragon-traveler-community --local
-npm run dev
+npm run dev        # http://localhost:8787
+npm run seed       # optional: dummy content for manual testing
 ```
 
-To fill the local database with dummy teams, tier lists, votes, and reports for
-manual QA (including enough items to test pagination), run `npm run seed` in
-`community-api/`; `npm run seed:reset` removes it again. The script only touches
-rows whose ids start with `seed-` and only ever targets the local database.
-
-Copy `.dev.vars.example` to `.dev.vars`, configure Discord and GitHub OAuth
-applications, and use `http://localhost:8787/v1/auth/<provider>/callback` as
-their local callback URLs. The frontend also needs `VITE_API_BASE_URL` and
-`VITE_TURNSTILE_SITE_KEY`; Cloudflare's published test site key is suitable for
-local development.
-
-See [`community-api/README.md`](community-api/README.md) for configuration,
-endpoints, deployment, and operations.
-
-Production deployment additionally requires a real D1 database ID in
-`community-api/wrangler.jsonc`, Worker secrets for both OAuth providers and
-Turnstile, `api.dtwiki.org` as the Worker custom domain, and the GitHub Actions
-Cloudflare credentials documented in `.github/workflows/community-api.yml`.
+The frontend reads `VITE_API_BASE_URL` and `VITE_TURNSTILE_SITE_KEY` from
+`.env.local` (`.env.example` has local defaults, including Cloudflare's published
+Turnstile test key).
 
 ### Build for Production
 
@@ -104,9 +92,12 @@ Output is written to `dist/`. In CI, data is fetched from the private [dragon-tr
 
 ```
 dragon-traveler-wiki/
-├── src/             # React source — see src/README.md for details
-├── public/          # Static assets copied as-is to dist
+├── src/             # React app — see src/README.md
+├── community-api/   # Cloudflare Worker + D1 for community content — see its README
+├── tests/           # Frontend tests — see tests/README.md
 ├── scripts/         # Build-time scripts
+├── docs/            # Cross-cutting conventions (import policy)
+├── public/          # Static assets copied as-is to dist
 └── .github/         # CI/CD workflows
 ```
 

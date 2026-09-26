@@ -10,11 +10,11 @@ src/
 │   ├── layout/      # Page-level shells (AppLayout, ListPageShell, FilteredListShell, etc.)
 │   ├── tools/       # Floating tools (SearchModal, ExportButton, SuggestModal, etc.)
 │   └── ui/          # Low-level UI primitives (ClassTag, SafeImage, etc.)
-├── constants/       # App-wide constants (colors, styles, ui, accents, glass)
+├── constants/       # App-wide constants (colors, styles, ui, glass, route-meta, nav-items, ...)
 ├── contexts/        # React contexts (SearchDataContext, gradient theme, UI opacity, etc.)
 ├── features/        # Feature modules — each is self-contained
 │   ├── characters/
-│   ├── community/   # Community API client: auth, publish/vote/report, hooks (see Community-Published Content below)
+│   ├── community/   # Community accounts, publishing, and moderation client (has its own README)
 │   ├── teams/
 │   ├── tier-list/
 │   └── wiki/        # All wiki database features (artifacts, gear, relics, wyrms, etc.)
@@ -67,112 +67,14 @@ for full schema validation.
 
 ## Community-Published Content
 
-Teams and tier lists are **not** static data-layer content — they're
-user-published through the Cloudflare Worker in `community-api/` (see the root
-`README.md`). The frontend client lives in `features/community/`:
-
-- **`features/community/hooks.ts`** — `useCommunityItems(kind, options)` pages
-  published items a page at a time (not the whole catalog), where `options` is
-  `{ search?, sort?, owner?, status? }` (`owner` powers profile pages; `status:
-'hidden'` is moderator-only and silently falls back to `'published'`
-  otherwise); `useCommunityItem(kind, id)` fetches a single item by id for
-  detail pages; `useCommunityItemsFull(kind)` auto-loads further pages up to a
-  cap for callers that need a broad in-memory set (e.g. the global search
-  index) — browse pages should use the paginated hook, not this one.
-- **`features/community/auth-context.tsx`** — session/auth state (login, link/unlink
-  identities, primary identity, delete account) via `useCommunityAuth()`.
-- **`features/community/api.ts`** — typed fetch wrappers for every `community-api` endpoint.
-- **`features/community/CommunityActions.tsx`** / **`PublishModal.tsx`** — shared
-  upvote/report/edit/delete controls and the publish/update flow, reused by both
-  the teams and tier-list features. `CommunityActions` only ever shows Edit/Delete
-  to the item's owner, even for moderators — moderator actions on other people's
-  items go through `ModeratedItemsBrowser` instead (see below), not this component.
-- **`features/community/display-author.ts`** — `getDisplayAuthor(item)` prefers the
-  real signed-in publisher (`item.community.author.displayName`) over the
-  free-text `author` field in the payload, which is unverified and only present
-  for local (unpublished) drafts.
-- **`features/community/AuthorLink.tsx`** — renders a published item's author as a
-  link to `/profile/:userId` (`pages/profile/Page.tsx`); falls back to plain text
-  for local drafts with no `community.author`. Used everywhere a "by X" credit
-  is shown instead of a raw `getDisplayAuthor()` string.
-- **`features/community/run-action.ts`** — `runAction(fn, { errorTitle, success })` runs
-  an API call and shows the standard success/error toasts, returning
-  `{ ok, value }`. Use it instead of hand-written try/catch + toast blocks; the
-  caller keeps its own loading state and follow-ups.
-- **`features/community/pagination.ts`** / **`CommunityLoadMore.tsx`** — browse pages
-  fetch server pages of 24 (`total` comes back on the first page) while showing client
-  page numbers over the whole catalog: `getCommunityPaginationTotal` picks the server
-  total unless client-side filters have narrowed the loaded set, and `CommunityLoadMore`
-  fetches the next server page once the viewer reaches the last loaded client page.
-- **`features/community/use-card-preview-layout.ts`** — shared portrait sizing for the
-  preview strips on `TeamCard` and `TierListCard`; both render through
-  `components/ui/OverflowRow.tsx`, which fits as many items as the width allows and
-  ends with a "+N" chip.
-- **`features/community/CommunityStatsBadges.tsx`** — team/tier-list/upvote-received
-  totals, shown on both the public profile and the account page (profile stats come
-  from `GET /v1/users/:id`).
-- **`features/community/CommunitySortControl.tsx`** — the top-rated/newest `Select`
-  used by both browse pages, passed through `PageFilterHeaderControls`'
-  `extraControls` slot.
-- **`features/community/RevisionHistory.tsx`** — reads
-  `GET /{collection}/:id/revisions` and renders a collapsed "Edit History" section
-  on the team/tier-list detail pages, deliberately mirroring the "Change History"
-  section (`components/common/ChangeHistory.tsx`) on wiki data pages; renders
-  nothing if the item has never been edited.
-- **`features/community/ModeratedItemsBrowser.tsx`** — the moderation page's
-  "Browse content" tab; lets moderators search/filter published or hidden items
-  by kind and hide/restore/delete them directly via `POST /{collection}/:id/moderate`,
-  independent of any report.
-- **`features/community/route.ts`** — `getCommunityRoutePath(basePath, item)` builds
-  the canonical `<basePath>/<id>/<slug>` detail path for a published item, or a
-  local-only fallback for drafts; wrapped per-feature as `getTeamRoutePath`/
-  `getTierListRoutePath`.
-
-The site-wide **Tier List Reference** (tier badges on characters and the home
-marquee) is `TierListReferenceContext`. A viewer's explicit choice is stored by
-list id (or `saved:<slug>` for a local list) and, if that list is later deleted or
-hidden, falls back to the site default. With no stored choice it follows the
-moderator-pinned default from `GET /v1/settings` (`site_settings` table, set via
-`PUT /v1/admin/settings/reference-tier-list` from the "Set as site reference"
-button on a character tier list's page). The API only reports a pinned list while
-it's still published, so removing or hiding it clears the default automatically.
-
-Moderators can suspend users for 1, 7, or 30 days or ban them permanently
-(`POST /v1/admin/users/:id/suspend`, `/unsuspend`). A suspended account can still
-read and delete its own items but the API rejects publish, edit, vote, and report
-(`requireActiveUser`, HTTP 403 with `code: 'suspended'`) and blocks account
-deletion and unlinking, so a suspension can't be dodged by starting over. The
-active suspension comes back on `GET /v1/auth/me` (shown via `SuspensionNotice`
-on the account page) and, for moderator viewers only, on `GET /v1/users/:id`.
-Moderators are managed from a user's profile page (`POST /v1/admin/users/:id/role`,
-immediate; people named in `MODERATOR_IDENTITIES` are permanent and can't be
-demoted). Every moderator action is written to the `moderation_actions` audit table and
-shown on the moderation page's Log tab; a moderator viewing a profile also sees
-that user's own history (`GET /v1/admin/actions?user=<id>`). Open reports are closed
-automatically whenever their item is dealt with (moderated from any tab, deleted by
-its author, or removed with the author's account), and `CommunityAuthProvider`
-re-checks `/v1/auth/me` on tab focus (and every minute for moderators) so alert
-counts stay current. Users can withdraw
-their own open reports (`DELETE /v1/me/reports/:id`), and a daily cron
-(`scheduled` handler, `retention.ts`) deletes handled reports after 90 days and
-expired sessions. `AccountMenu` counts `unreadReportCount` (answers to your
-reports) plus `openReportCount` (moderators only) for its alert dot, and the
-Moderation menu item shows the open count. Long publication and report lists on
-the account and profile pages use `PagedGrid`, and `useCommunityItems().refresh`
-refetches in place (no spinner) after moderator actions.
-
-Report-resolution notifications are a lightweight, in-app-only badge — there's
-no email on file to notify with (neither OAuth scope requests one). `users.reports_seen_at`
-(set whenever `GET /v1/me/reports` is fetched, i.e. whenever the account page loads)
-is compared against each report's `resolved_at` to compute `unreadReportCount` on
-`/v1/auth/me`; `AccountMenu.tsx` renders it as a badge. `pages/account/Page.tsx`
-calls `refresh()` on the auth context after fetching reports so the badge clears
-immediately rather than waiting for the next natural context refresh.
-
+Teams and tier lists are **not** static data-layer content — they're published by
+signed-in users through the Cloudflare Worker in [`community-api/`](../community-api/README.md).
+The client lives in `features/community/`, and its architecture (data hooks,
+pagination, cards, moderation tools, the site-wide tier list reference) is
+documented in [`features/community/README.md`](features/community/README.md).
 `features/teams/hooks/use-teams-data.ts` and
-`features/tier-list/hooks/use-tier-list-data.ts` are thin wrappers around these
-primitives (`useTeams`/`useTeam`/`useTeamsFull`, etc.) — follow that pattern for
-any future community-published content type rather than adding a new one.
+`features/tier-list/hooks/use-tier-list-data.ts` wrap its hooks; follow that
+pattern for any future community content type.
 
 ## Adding a New Database Page
 
@@ -186,20 +88,17 @@ Checklist for adding a new dataset (e.g. "Mounts"):
 6. **Navigation** — add the catalog route ID through `routeLeaf()` in `constants/nav-items.ts`
 7. **Search** — add to `SearchDataContextValue`, load it in `SearchDataProvider`, and add its typed adapter to `features/search/search-registry.ts`
 
-`usePagination(total, pageSize, filterKey)` resets to page 1 whenever the filter key
-or the page size changes, so pages and hooks don't need their own reset effect.
-
 ## Key Shared Hooks
 
-| Hook                  | Purpose                                         |
-| --------------------- | ----------------------------------------------- |
-| `useDataFetch`        | Fetch + cache a JSON file                       |
-| `useFilteredPageData` | Filter, sort, paginate a dataset for list pages |
-| `useFilters`          | Filter state with localStorage persistence      |
-| `usePagination`       | Page/offset state                               |
-| `useSort`             | Sort column/direction state                     |
-| `useDarkMode`         | Current color scheme                            |
-| `useIsMobile`         | Responsive breakpoint                           |
+| Hook                  | Purpose                                            |
+| --------------------- | -------------------------------------------------- |
+| `useDataFetch`        | Fetch + cache a JSON file                          |
+| `useFilteredPageData` | Filter, sort, paginate a dataset for list pages    |
+| `useFilters`          | Filter state with localStorage persistence         |
+| `usePagination`       | Page/offset state; resets on filter or size change |
+| `useSort`             | Sort column/direction state                        |
+| `useDarkMode`         | Current color scheme                               |
+| `useIsMobile`         | Responsive breakpoint                              |
 
 ## Styling Conventions
 
@@ -214,6 +113,7 @@ or the page size changes, so pages and hooks don't need their own reset effect.
 - Quality-tier border colors: `QUALITY_BORDER_COLOR[quality]` from `constants/colors`
 - Row/position colors: red = Front, orange = Middle, blue = Back
 
+Import and barrel rules are in [`docs/import-policy.md`](../docs/import-policy.md).
 Formatting conventions are defined in the repository `.editorconfig` and
 enforced by `npm run format:check`. Run `npm run check` before opening a pull
 request to execute formatting, lint, tests, and type checking together.
@@ -254,7 +154,8 @@ wrapped in `LoadingRegion` (hidden from assistive tech, one announced status).
 Community-specific ones (`CommunityCardsLoading`, `CommunityBrowseLoading`,
 `ProfilePageLoading`, `AccountPageLoading`, `TierListPageLoading`) size their
 placeholders from `COMMUNITY_CARD_HEIGHT` so pages don't jump when content
-arrives; update those heights if a card's layout changes.
+arrives; update those heights if a card's layout changes. Wrap any custom
+placeholder in `LoadingRegion` too.
 
 ## Page Shells
 
@@ -268,7 +169,3 @@ for the top section. Community-published detail pages (`TeamPage`, `TierListPage
 don't — they use their own header (`TeamHeroSection`, or a plain title for tier
 lists) and skip prev/next navigation, since an open-ended, popularity-sorted
 public catalog doesn't have a stable "next item" the way a fixed wiki dataset does.
-Reusable route, list, detail, builder, and home skeletons live in
-`components/layout/PageLoadingSkeleton.tsx`. Wrap custom placeholders in
-`LoadingRegion` so decorative skeletons are hidden from assistive technology and
-the loading state is announced once.
