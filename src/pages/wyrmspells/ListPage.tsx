@@ -240,7 +240,7 @@ export default function Wyrmspells() {
                   const maxQuality = getMaxQuality(spell);
                   return (
                     <InteractiveSurface
-                      key={spell.name}
+                      key={spell.slug}
                       component={Link}
                       to={`/wyrmspells/${spell.slug}`}
                       p="md"
@@ -341,7 +341,7 @@ export default function Wyrmspells() {
                       const iconSrc = getWyrmspellIcon(spell.slug, spell.type);
                       const maxQuality = getMaxQuality(spell);
                       return (
-                        <Table.Tr key={spell.name}>
+                        <Table.Tr key={spell.slug}>
                           <Table.Td>
                             {iconSrc && (
                               <SafeImage

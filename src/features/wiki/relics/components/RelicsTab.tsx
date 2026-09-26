@@ -190,7 +190,7 @@ export default function RelicsTab({
               const oracleScroll = item.oracle_scroll;
               return (
                 <EntitySummaryCard
-                  key={item.name}
+                  key={item.slug}
                   to={
                     oracleScroll ? `/oracle-scrolls/${oracleScroll.slug}` : null
                   }
@@ -273,7 +273,7 @@ export default function RelicsTab({
                   const iconSrc = getRelicIcon(item.slug, item.quality);
                   const oracleScroll = item.oracle_scroll;
                   return (
-                    <Table.Tr key={item.name}>
+                    <Table.Tr key={item.slug}>
                       <Table.Td>
                         {iconSrc && (
                           <SafeImage

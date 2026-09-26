@@ -194,7 +194,7 @@ export default function WyrmsListPage() {
                   const phaseColor = WYRM_PHASE_COLOR[wyrm.phase];
                   return (
                     <EntitySummaryCard
-                      key={wyrm.name}
+                      key={wyrm.slug}
                       to={`/wyrms/${wyrm.slug}`}
                       title={wyrm.name}
                       imageSrc={iconSrc}
@@ -267,7 +267,7 @@ export default function WyrmsListPage() {
                       const iconSrc = getWyrmPortrait(wyrm.slug);
                       const phaseColor = WYRM_PHASE_COLOR[wyrm.phase];
                       return (
-                        <Table.Tr key={wyrm.name}>
+                        <Table.Tr key={wyrm.slug}>
                           <Table.Td>
                             {iconSrc && (
                               <SafeImage

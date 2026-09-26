@@ -162,7 +162,7 @@ export default function GearTab({
               const iconSrc = getGearIcon(item.type, item.slug);
               return (
                 <EntitySummaryCard
-                  key={item.name}
+                  key={item.slug}
                   to={`/gear-sets/${item.set}`}
                   title={item.name}
                   imageSrc={iconSrc}
@@ -247,7 +247,7 @@ export default function GearTab({
                   const setBonus = setData?.set_bonus ?? item.set_bonus;
                   const iconSrc = getGearIcon(item.type, item.slug);
                   return (
-                    <Table.Tr key={item.name}>
+                    <Table.Tr key={item.slug}>
                       <Table.Td>
                         {iconSrc && (
                           <SafeImage

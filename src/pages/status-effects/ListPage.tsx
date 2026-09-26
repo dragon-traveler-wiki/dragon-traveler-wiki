@@ -150,7 +150,7 @@ export default function StatusEffects() {
                       ? getStatusEffectIcon(effect.slug, effect.type)
                       : undefined;
                   return (
-                    <StaticSurface key={effect.name} p="sm">
+                    <StaticSurface key={effect.slug} p="sm">
                       <Stack gap="xs">
                         <Group gap="sm" wrap="nowrap">
                           <SafeImage
@@ -220,7 +220,7 @@ export default function StatusEffects() {
                           ? getStatusEffectIcon(effect.slug, effect.type)
                           : undefined;
                       return (
-                        <Table.Tr key={effect.name}>
+                        <Table.Tr key={effect.slug}>
                           <Table.Td>
                             <SafeImage
                               src={iconSrc}

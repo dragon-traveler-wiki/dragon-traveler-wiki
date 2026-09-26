@@ -76,7 +76,7 @@ export default function GoldenAlliancesTab({
         <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
           {pageItems.map((alliance) => (
             <InteractiveSurface
-              key={alliance.name}
+              key={alliance.slug}
               component={Link}
               to={`/howlkins/${alliance.slug}`}
               p="md"

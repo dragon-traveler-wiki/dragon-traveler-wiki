@@ -173,7 +173,7 @@ export default function Artifacts() {
                   const iconSrc = getArtifactIcon(artifact.slug);
                   return (
                     <EntitySummaryCard
-                      key={artifact.name}
+                      key={artifact.slug}
                       to={`/artifacts/${artifact.slug}`}
                       title={artifact.name}
                       imageSrc={iconSrc}
@@ -257,7 +257,7 @@ export default function Artifacts() {
                     {pageItems.map((artifact) => {
                       const iconSrc = getArtifactIcon(artifact.slug);
                       return (
-                        <Table.Tr key={artifact.name}>
+                        <Table.Tr key={artifact.slug}>
                           <Table.Td>
                             {iconSrc && (
                               <SafeImage

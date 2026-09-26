@@ -167,7 +167,7 @@ export default function Resources() {
                     resource.category,
                   );
                   return (
-                    <StaticSurface key={resource.name} p="sm">
+                    <StaticSurface key={resource.slug} p="sm">
                       <Stack gap="xs">
                         <Group gap="sm" wrap="nowrap">
                           {iconSrc && (
@@ -243,7 +243,7 @@ export default function Resources() {
                         resource.category,
                       );
                       return (
-                        <Table.Tr key={resource.name}>
+                        <Table.Tr key={resource.slug}>
                           <Table.Td>
                             {iconSrc && (
                               <SafeImage

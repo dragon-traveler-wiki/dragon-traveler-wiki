@@ -195,7 +195,7 @@ export default function GearUsageTab({
                       const setName =
                         gearSetBySlug.get(item.set)?.name ?? item.set;
                       return (
-                        <Table.Tr key={item.name}>
+                        <Table.Tr key={item.slug}>
                           <Table.Td>
                             {iconSrc && (
                               <SafeImage
