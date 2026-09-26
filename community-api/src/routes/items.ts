@@ -1,4 +1,3 @@
-import { isModerator } from '../auth';
 import {
   COLLECTIONS,
   decodeCursor,
