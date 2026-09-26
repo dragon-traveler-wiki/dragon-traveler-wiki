@@ -13,11 +13,11 @@ import { IoFlagOutline, IoThumbsUpOutline, IoTrash } from 'react-icons/io5';
 import { Link } from 'react-router';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import { useGradientAccent } from '@/hooks';
-import { showErrorToast, showSuccessToast } from '@/utils/toast';
 import { deleteCommunityItem, reportCommunityItem, setUpvote } from './api';
 import { useCommunityAuth } from './auth-context';
 import type { CommunityMeta } from './types';
 import { REPORT_REASON_LABELS } from './report-status';
+import { runAction } from './run-action';
 import TurnstileWidget from './TurnstileWidget';
 
 type ActionGroup = 'reactions' | 'edit' | 'delete';
@@ -73,54 +73,43 @@ export default function CommunityActions({
     }
     if (!csrfToken || community.viewerOwns) return;
     setWorking(true);
-    try {
-      const result = await setUpvote(
-        community.kind,
-        community.id,
-        !upvoted,
-        csrfToken,
-      );
-      setScore(result.score);
-      setUpvoted(result.viewerHasUpvoted);
-    } catch (error) {
-      showErrorToast({
-        title: 'Could not update vote',
-        message: error instanceof Error ? error.message : String(error),
-      });
-    } finally {
-      setWorking(false);
+    const result = await runAction(
+      () => setUpvote(community.kind, community.id, !upvoted, csrfToken),
+      { errorTitle: 'Could not update vote' },
+    );
+    if (result.ok) {
+      setScore(result.value.score);
+      setUpvoted(result.value.viewerHasUpvoted);
     }
+    setWorking(false);
   };
 
   const report = async () => {
     if (!csrfToken || !reason || !turnstileToken) return;
     setWorking(true);
-    try {
-      await reportCommunityItem(
-        community.kind,
-        community.id,
-        reason,
-        note,
-        csrfToken,
-        turnstileToken,
-      );
-      showSuccessToast({
-        title: 'Report received',
-        message: 'A moderator can now review this publication.',
-      });
-      setReportOpen(false);
-      setTurnstileToken(null);
-      setChallengeVersion((value) => value + 1);
-    } catch (error) {
-      showErrorToast({
-        title: 'Could not submit report',
-        message: error instanceof Error ? error.message : String(error),
-      });
-      setTurnstileToken(null);
-      setChallengeVersion((value) => value + 1);
-    } finally {
-      setWorking(false);
-    }
+    const result = await runAction(
+      () =>
+        reportCommunityItem(
+          community.kind,
+          community.id,
+          reason,
+          note,
+          csrfToken,
+          turnstileToken,
+        ),
+      {
+        errorTitle: 'Could not submit report',
+        success: {
+          title: 'Report received',
+          message: 'A moderator can now review this publication.',
+        },
+      },
+    );
+    if (result.ok) setReportOpen(false);
+    // A Turnstile token is single-use, so always ask for a fresh one.
+    setTurnstileToken(null);
+    setChallengeVersion((value) => value + 1);
+    setWorking(false);
   };
 
   const closeReport = () => {
@@ -133,21 +122,18 @@ export default function CommunityActions({
     if (!csrfToken) return;
     setConfirmDeleteOpen(false);
     setWorking(true);
-    try {
-      await deleteCommunityItem(community.kind, community.id, csrfToken);
-      showSuccessToast({
-        title: 'Deleted',
-        message: 'The publication is no longer public.',
-      });
-      onDeleted?.();
-    } catch (error) {
-      showErrorToast({
-        title: 'Could not delete',
-        message: error instanceof Error ? error.message : String(error),
-      });
-    } finally {
-      setWorking(false);
-    }
+    const result = await runAction(
+      () => deleteCommunityItem(community.kind, community.id, csrfToken),
+      {
+        errorTitle: 'Could not delete',
+        success: {
+          title: 'Deleted',
+          message: 'The publication is no longer public.',
+        },
+      },
+    );
+    if (result.ok) onDeleted?.();
+    setWorking(false);
   };
 
   return (

@@ -22,7 +22,7 @@ import { useGradientAccent } from '@/hooks';
 import SuspendUserModal from '@/features/community/SuspendUserModal';
 import { CommunityCardsLoading } from '@/components/layout/PageLoadingSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
-import { showErrorToast, showSuccessToast } from '@/utils/toast';
+import { runAction } from '@/features/community/run-action';
 
 type Kind = 'team' | 'tier_list';
 type Status = 'published' | 'hidden';
@@ -60,19 +60,18 @@ export default function ModeratedItemsBrowser({
   const act = async (id: string, action: 'hide' | 'restore' | 'delete') => {
     if (!csrfToken) return;
     setActingId(id);
-    try {
-      await moderateItem(kind, id, action, csrfToken);
-      showSuccessToast({ title: 'Done', message: `Item ${action}d.` });
+    const result = await runAction(
+      () => moderateItem(kind, id, action, csrfToken),
+      {
+        errorTitle: 'Moderation action failed',
+        success: { title: 'Done', message: `Item ${action}d.` },
+      },
+    );
+    if (result.ok) {
       refresh();
       onChanged?.();
-    } catch (error) {
-      showErrorToast({
-        title: 'Moderation action failed',
-        message: error instanceof Error ? error.message : String(error),
-      });
-    } finally {
-      setActingId(null);
     }
+    setActingId(null);
   };
 
   return (

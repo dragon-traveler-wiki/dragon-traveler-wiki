@@ -34,7 +34,8 @@ import type { AdminReport } from '@/features/community/types';
 import SuspendUserModal from '@/features/community/SuspendUserModal';
 import { useGradientAccent } from '@/hooks';
 import { formatShortDate } from '@/utils/timestamps';
-import { showErrorToast, showSuccessToast } from '@/utils/toast';
+import { errorMessage, runAction } from '@/features/community/run-action';
+import { showErrorToast } from '@/utils/toast';
 
 type ReportFilter = 'open' | 'closed';
 
@@ -75,7 +76,7 @@ export default function ModerationPage() {
       .catch((error: unknown) =>
         showErrorToast({
           title: 'Could not load reports',
-          message: error instanceof Error ? error.message : String(error),
+          message: errorMessage(error),
         }),
       )
       .finally(() => setReportsLoaded(true));
@@ -97,24 +98,23 @@ export default function ModerationPage() {
   const act = async (id: string, action: string) => {
     if (!csrfToken) return;
     setActingId(id);
-    try {
-      await resolveReport(id, action, notes[id] ?? '', csrfToken);
+    const result = await runAction(
+      () => resolveReport(id, action, notes[id] ?? '', csrfToken),
+      {
+        errorTitle: 'Moderation action failed',
+        success: { title: 'Done', message: 'Report resolved.' },
+      },
+    );
+    if (result.ok) {
       setNotes((prev) => {
         const next = { ...prev };
         delete next[id];
         return next;
       });
-      showSuccessToast({ title: 'Done', message: 'Report resolved.' });
       load();
       void refresh();
-    } catch (error) {
-      showErrorToast({
-        title: 'Moderation action failed',
-        message: error instanceof Error ? error.message : String(error),
-      });
-    } finally {
-      setActingId(null);
     }
+    setActingId(null);
   };
 
   if (loading)

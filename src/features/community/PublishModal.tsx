@@ -16,10 +16,10 @@ import {
 } from 'react-icons/io5';
 import { Link } from 'react-router';
 import { useGradientAccent } from '@/hooks';
-import { showErrorToast, showSuccessToast } from '@/utils/toast';
 import { publishCommunityItem, updateCommunityItem } from './api';
 import { useCommunityAuth } from './auth-context';
 import type { CommunityKind } from './types';
+import { runAction } from './run-action';
 import TurnstileWidget from './TurnstileWidget';
 
 interface PublishModalProps<T> {
@@ -57,27 +57,36 @@ export default function PublishModal<T>({
   const publish = async () => {
     if (!csrfToken || (!publicationId && !turnstileToken)) return;
     setPublishing(true);
-    try {
-      const result = publicationId
-        ? (await updateCommunityItem(kind, publicationId, payload, csrfToken),
-          { id: publicationId })
-        : await publishCommunityItem(kind, payload, csrfToken, turnstileToken!);
-      showSuccessToast({
-        title: publicationId ? 'Updated' : 'Published',
-        message: `Your ${kind === 'team' ? 'team' : 'tier list'} is now public.`,
-      });
+    const result = await runAction(
+      async () => {
+        if (!publicationId) {
+          return publishCommunityItem(
+            kind,
+            payload,
+            csrfToken,
+            turnstileToken!,
+          );
+        }
+        await updateCommunityItem(kind, publicationId, payload, csrfToken);
+        return { id: publicationId };
+      },
+      {
+        errorTitle: 'Could not publish',
+        success: {
+          title: publicationId ? 'Updated' : 'Published',
+          message: `Your ${kind === 'team' ? 'team' : 'tier list'} is now public.`,
+        },
+      },
+    );
+    if (result.ok) {
       close();
-      onPublished?.(result.id);
-    } catch (error) {
-      showErrorToast({
-        title: 'Could not publish',
-        message: error instanceof Error ? error.message : String(error),
-      });
+      onPublished?.(result.value.id);
+    } else {
+      // A Turnstile token is single-use, so always ask for a fresh one.
       setTurnstileToken(null);
       setChallengeVersion((value) => value + 1);
-    } finally {
-      setPublishing(false);
     }
+    setPublishing(false);
   };
 
   return (

@@ -27,6 +27,7 @@ import {
 } from '@/features/community/api';
 import { useCommunityAuth } from '@/features/community/auth-context';
 import { toBuilderDraft } from '@/features/community/builder-edit';
+import { runAction } from '@/features/community/run-action';
 import CommunityActions from '@/features/community/CommunityActions';
 import CommunityStatsBadges from '@/features/community/CommunityStatsBadges';
 import ModerationLog from '@/features/community/ModerationLog';
@@ -42,7 +43,6 @@ import { useTierLists } from '@/features/tier-list/hooks/use-tier-list-data';
 import type { TierList } from '@/features/tier-list/types';
 import { getTierListRoutePath } from '@/features/tier-list/utils/tier-list-route';
 import { useGradientAccent } from '@/hooks';
-import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
 export default function ProfilePage() {
   const { userId } = useParams<{ userId: string }>();
@@ -81,41 +81,31 @@ export default function ProfilePage() {
   const liftSuspension = async () => {
     if (!csrfToken || !userId) return;
     setConfirmLiftOpen(false);
-    try {
-      await unsuspendUser(userId, csrfToken);
-      showSuccessToast({
+    const result = await runAction(() => unsuspendUser(userId, csrfToken), {
+      errorTitle: 'Could not lift suspension',
+      success: {
         title: 'Suspension lifted',
         message: 'They can publish, edit, vote, and report again.',
-      });
-      setProfileVersion((version) => version + 1);
-    } catch (error) {
-      showErrorToast({
-        title: 'Could not lift suspension',
-        message: error instanceof Error ? error.message : String(error),
-      });
-    }
+      },
+    });
+    if (result.ok) setProfileVersion((version) => version + 1);
   };
 
   const changeRole = async () => {
     const role = pendingRole;
     setPendingRole(null);
     if (!csrfToken || !userId || !role) return;
-    try {
-      await setUserRole(userId, role, csrfToken);
-      showSuccessToast({
+    const result = await runAction(() => setUserRole(userId, role, csrfToken), {
+      errorTitle: 'Could not change role',
+      success: {
         title: role === 'moderator' ? 'Moderator added' : 'Moderator removed',
         message:
           role === 'moderator'
             ? 'They can now moderate content.'
             : 'They no longer have moderator access.',
-      });
-      setProfileVersion((version) => version + 1);
-    } catch (error) {
-      showErrorToast({
-        title: 'Could not change role',
-        message: error instanceof Error ? error.message : String(error),
-      });
-    }
+      },
+    });
+    if (result.ok) setProfileVersion((version) => version + 1);
   };
 
   const { data: characters } = useCharacters();

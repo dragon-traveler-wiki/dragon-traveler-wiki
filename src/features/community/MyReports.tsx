@@ -15,7 +15,6 @@ import { CommunityCardsLoading } from '@/components/layout/PageLoadingSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import { useGradientAccent } from '@/hooks';
 import { formatShortDate } from '@/utils/timestamps';
-import { showErrorToast, showSuccessToast } from '@/utils/toast';
 import { withdrawReport } from './api';
 import { useCommunityAuth } from './auth-context';
 import PagedGrid from './PagedGrid';
@@ -24,6 +23,7 @@ import {
   REPORT_REASON_LABELS,
   REPORT_STATUS_DISPLAY,
 } from './report-status';
+import { runAction } from './run-action';
 import type { MyReport } from './types';
 
 type Filter = 'open' | 'closed';
@@ -61,21 +61,15 @@ export default function MyReports({
     setPendingWithdraw(null);
     if (!id || !csrfToken) return;
     setWithdrawing(true);
-    try {
-      await withdrawReport(id, csrfToken);
-      showSuccessToast({
+    const result = await runAction(() => withdrawReport(id, csrfToken), {
+      errorTitle: 'Could not withdraw report',
+      success: {
         title: 'Report withdrawn',
         message: 'A moderator will no longer review it.',
-      });
-      onWithdrawn(id);
-    } catch (error) {
-      showErrorToast({
-        title: 'Could not withdraw report',
-        message: error instanceof Error ? error.message : String(error),
-      });
-    } finally {
-      setWithdrawing(false);
-    }
+      },
+    });
+    if (result.ok) onWithdrawn(id);
+    setWithdrawing(false);
   };
 
   const renderReport = (report: MyReport) => {

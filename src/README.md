@@ -95,6 +95,10 @@ user-published through the Cloudflare Worker in `community-api/` (see the root
   link to `/profile/:userId` (`pages/profile/Page.tsx`); falls back to plain text
   for local drafts with no `community.author`. Used everywhere a "by X" credit
   is shown instead of a raw `getDisplayAuthor()` string.
+- **`features/community/run-action.ts`** — `runAction(fn, { errorTitle, success })` runs
+  an API call and shows the standard success/error toasts, returning
+  `{ ok, value }`. Use it instead of hand-written try/catch + toast blocks; the
+  caller keeps its own loading state and follow-ups.
 - **`features/community/pagination.ts`** / **`CommunityLoadMore.tsx`** — browse pages
   fetch server pages of 24 (`total` comes back on the first page) while showing client
   page numbers over the whole catalog: `getCommunityPaginationTotal` picks the server
@@ -181,6 +185,9 @@ Checklist for adding a new dataset (e.g. "Mounts"):
 5. **Route catalog** — add a stable route ID, path, metadata, optional search keywords, and optional fallback kind to `ROUTE_CATALOG` in `constants/route-meta.ts`; mount the lazy page through `ROUTE_PATH` in `routes/AppRoutes.tsx`
 6. **Navigation** — add the catalog route ID through `routeLeaf()` in `constants/nav-items.ts`
 7. **Search** — add to `SearchDataContextValue`, load it in `SearchDataProvider`, and add its typed adapter to `features/search/search-registry.ts`
+
+`usePagination(total, pageSize, filterKey)` resets to page 1 whenever the filter key
+or the page size changes, so pages and hooks don't need their own reset effect.
 
 ## Key Shared Hooks
 

@@ -25,6 +25,7 @@ import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import { getMyItems, getMyReports } from '@/features/community/api';
 import MyPublications from '@/features/community/MyPublications';
 import MyReports from '@/features/community/MyReports';
+import { runAction } from '@/features/community/run-action';
 import SuspensionNotice from '@/features/community/SuspensionNotice';
 import CommunityStatsBadges from '@/features/community/CommunityStatsBadges';
 import { useCommunityAuth } from '@/features/community/auth-context';
@@ -97,47 +98,33 @@ export default function AccountPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleUnlink = (provider: 'discord' | 'github') => {
+  const handleUnlink = async (provider: 'discord' | 'github') => {
     setUnlinking(provider);
-    unlink(provider)
-      .catch((error: unknown) => {
-        showErrorToast({
-          title: 'Could not unlink identity',
-          message: error instanceof Error ? error.message : String(error),
-        });
-      })
-      .finally(() => setUnlinking(null));
+    await runAction(() => unlink(provider), {
+      errorTitle: 'Could not unlink identity',
+    });
+    setUnlinking(null);
   };
 
-  const handleSetPrimary = (provider: 'discord' | 'github') => {
+  const handleSetPrimary = async (provider: 'discord' | 'github') => {
     setSettingPrimary(provider);
-    setPrimary(provider)
-      .catch((error: unknown) => {
-        showErrorToast({
-          title: 'Could not set primary identity',
-          message: error instanceof Error ? error.message : String(error),
-        });
-      })
-      .finally(() => setSettingPrimary(null));
+    await runAction(() => setPrimary(provider), {
+      errorTitle: 'Could not set primary identity',
+    });
+    setSettingPrimary(null);
   };
 
-  const handleDeleteAccount = () => {
+  const handleDeleteAccount = async () => {
     setConfirmDeleteAccountOpen(false);
     setDeleting(true);
-    deleteAccount()
-      .then(() => {
-        showSuccessToast({
-          title: 'Account deleted',
-          message: 'Your account and publications have been removed.',
-        });
-      })
-      .catch((error: unknown) => {
-        showErrorToast({
-          title: 'Could not delete account',
-          message: error instanceof Error ? error.message : String(error),
-        });
-      })
-      .finally(() => setDeleting(false));
+    await runAction(() => deleteAccount(), {
+      errorTitle: 'Could not delete account',
+      success: {
+        title: 'Account deleted',
+        message: 'Your account and publications have been removed.',
+      },
+    });
+    setDeleting(false);
   };
 
   useEffect(() => {

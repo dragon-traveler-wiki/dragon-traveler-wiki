@@ -10,9 +10,9 @@ import {
 } from '@mantine/core';
 import { useState } from 'react';
 import { useGradientAccent } from '@/hooks';
-import { showErrorToast, showSuccessToast } from '@/utils/toast';
 import { suspendUser } from './api';
 import { useCommunityAuth } from './auth-context';
+import { runAction } from './run-action';
 import type { SuspensionDuration } from './types';
 
 const DURATION_OPTIONS: Array<{ value: SuspensionDuration; label: string }> = [
@@ -48,26 +48,25 @@ export default function SuspendUserModal({
   const submit = async () => {
     if (!csrfToken) return;
     setWorking(true);
-    try {
-      await suspendUser(userId, { duration, reason, hideContent }, csrfToken);
-      showSuccessToast({
-        title: duration === 'permanent' ? 'User banned' : 'User suspended',
-        message: `${userName} can no longer publish, edit, vote, or report${
-          duration === 'permanent' ? '' : ' until the suspension ends'
-        }.`,
-      });
+    const result = await runAction(
+      () => suspendUser(userId, { duration, reason, hideContent }, csrfToken),
+      {
+        errorTitle: 'Could not suspend user',
+        success: {
+          title: duration === 'permanent' ? 'User banned' : 'User suspended',
+          message: `${userName} can no longer publish, edit, vote, or report${
+            duration === 'permanent' ? '' : ' until the suspension ends'
+          }.`,
+        },
+      },
+    );
+    if (result.ok) {
       setReason('');
       setHideContent(false);
       onClose();
       onSuspended?.();
-    } catch (error) {
-      showErrorToast({
-        title: 'Could not suspend user',
-        message: error instanceof Error ? error.message : String(error),
-      });
-    } finally {
-      setWorking(false);
     }
+    setWorking(false);
   };
 
   return (
