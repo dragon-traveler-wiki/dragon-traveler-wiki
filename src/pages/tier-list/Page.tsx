@@ -388,9 +388,6 @@ export default function TierList() {
     pageSize,
     JSON.stringify({ debouncedSearch, viewFilters }),
   );
-  useEffect(() => {
-    setPage(1);
-  }, [pageSize, setPage]);
   const paginatedTierLists = visibleTierLists.slice(offset, offset + pageSize);
 
   const handleRequestExport = useCallback(

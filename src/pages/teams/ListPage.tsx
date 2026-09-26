@@ -242,10 +242,6 @@ export default function Teams() {
     JSON.stringify({ search, viewFilters }),
   );
 
-  useEffect(() => {
-    setPage(1);
-  }, [pageSize, setPage]);
-
   const paginatedTeams = filteredTeams.slice(offset, offset + pageSize);
 
   const mostRecentUpdate = useMemo(() => {

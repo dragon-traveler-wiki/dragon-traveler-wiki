@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import type { ViewMode } from './use-filters';
 import {
   countActiveFilters,
@@ -87,10 +87,6 @@ export function useFilteredPageData<T, F extends object>(
     activePageSize,
     filters,
   );
-
-  useEffect(() => {
-    setPage(1);
-  }, [activePageSize, setPage]);
 
   const pageItems = filtered.slice(offset, offset + activePageSize);
 

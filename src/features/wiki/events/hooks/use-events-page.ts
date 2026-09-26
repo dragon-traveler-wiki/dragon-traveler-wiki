@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { STORAGE_KEY } from '@/constants/ui';
 import {
   buildEventEntries,
@@ -82,8 +82,6 @@ export function useEventsPage(events: GameEvent[]) {
     pageSize,
     `${tab}:${JSON.stringify(filters)}`,
   );
-
-  useEffect(() => setPage(1), [pageSize, setPage]);
 
   return {
     tab,

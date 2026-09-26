@@ -181,10 +181,6 @@ export default function FilterableCharacterPool({
     offset,
   } = usePagination(filtered.length, pageSize, filterKey);
 
-  useEffect(() => {
-    setPage(1);
-  }, [pageSize, setPage]);
-
   const paginated = filtered.slice(offset, offset + pageSize);
 
   const activeFilterCount =

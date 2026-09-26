@@ -161,29 +161,35 @@ export function usePagination(
     Number.isFinite(pageSize) && pageSize > 0 ? Math.floor(pageSize) : 1;
   const totalPages = Math.max(1, Math.ceil(safeTotal / safePageSize));
 
+  // The page resets to 1 whenever the filter key or the page size changes, so
+  // callers don't need an effect of their own for that.
   const [paginationState, setPaginationState] = useState({
     key: filterKey,
+    size: safePageSize,
     page: 1,
   });
 
-  const page = paginationState.key === filterKey ? paginationState.page : 1;
+  const stateIsCurrent =
+    paginationState.key === filterKey && paginationState.size === safePageSize;
+  const page = stateIsCurrent ? paginationState.page : 1;
 
   const setPage: Dispatch<SetStateAction<number>> = useCallback(
     (value) => {
       setPaginationState((prev) => {
-        const currentPage = prev.key === filterKey ? prev.page : 1;
+        const isCurrent = prev.key === filterKey && prev.size === safePageSize;
+        const currentPage = isCurrent ? prev.page : 1;
         const nextPageRaw =
           typeof value === 'function'
             ? (value as (prevState: number) => number)(currentPage)
             : value;
-        const nextPage = clampPage(nextPageRaw, totalPages);
         return {
           key: filterKey,
-          page: nextPage,
+          size: safePageSize,
+          page: clampPage(nextPageRaw, totalPages),
         };
       });
     },
-    [filterKey, totalPages],
+    [filterKey, safePageSize, totalPages],
   );
 
   const effectivePage = clampPage(page, totalPages);

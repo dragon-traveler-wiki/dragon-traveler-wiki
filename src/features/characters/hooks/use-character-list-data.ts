@@ -1,5 +1,5 @@
 import { useMediaQuery } from '@mantine/hooks';
-import { useCallback, useContext, useEffect, useMemo } from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 import { BREAKPOINTS, STORAGE_KEY } from '@/constants/ui';
 import {
   CharacterOwnershipContext,
@@ -264,10 +264,6 @@ export function useCharacterListData(
     pageSize,
     JSON.stringify(filters),
   );
-
-  useEffect(() => {
-    setPage(1);
-  }, [pageSize, setPage]);
 
   const pageItems = filteredAndSorted.slice(offset, offset + pageSize);
 
