@@ -428,14 +428,6 @@ export function writeRoutePages() {
       },
     },
     {
-      pattern: ROUTE_PATH.teamDetail,
-      file: 'global/teams.json',
-      getDescription: (item, fallback) =>
-        truncateText(
-          `${item.content_type ? `${item.content_type} team. ` : ''}${item.description || fallback}`,
-        ),
-    },
-    {
       pattern: ROUTE_PATH.gearSetDetail,
       file: 'enUS/gear-sets.json',
       getDescription: (item, fallback) =>
