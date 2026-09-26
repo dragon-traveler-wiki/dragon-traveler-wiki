@@ -139,6 +139,7 @@ export default function ModeratedItemsBrowser({
                     {status === 'hidden' ? (
                       <Button
                         size="xs"
+                        variant="light"
                         color="teal"
                         loading={actingId === id}
                         disabled={actingId !== null}
@@ -149,7 +150,8 @@ export default function ModeratedItemsBrowser({
                     ) : (
                       <Button
                         size="xs"
-                        color="red"
+                        variant="light"
+                        color="orange"
                         loading={actingId === id}
                         disabled={actingId !== null}
                         onClick={() => void act(id, 'hide')}
@@ -169,7 +171,7 @@ export default function ModeratedItemsBrowser({
                     </Button>
                     <Button
                       size="xs"
-                      variant="subtle"
+                      variant="outline"
                       color="red"
                       disabled={actingId !== null}
                       onClick={() =>

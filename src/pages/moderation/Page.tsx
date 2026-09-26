@@ -211,6 +211,7 @@ export default function ModerationPage() {
                 {report.item_status === 'hidden' ? (
                   <Button
                     size="xs"
+                    variant="light"
                     color="teal"
                     loading={actingId === report.id}
                     disabled={actingId !== null}
@@ -221,7 +222,8 @@ export default function ModerationPage() {
                 ) : (
                   <Button
                     size="xs"
-                    color="red"
+                    variant="light"
+                    color="orange"
                     loading={actingId === report.id}
                     disabled={actingId !== null}
                     onClick={() => void act(report.id, 'hide')}
@@ -232,7 +234,7 @@ export default function ModerationPage() {
                 <Button
                   size="xs"
                   variant="light"
-                  color={accent.primary}
+                  color="gray"
                   loading={actingId === report.id}
                   disabled={actingId !== null}
                   onClick={() => void act(report.id, 'dismiss')}
@@ -251,7 +253,7 @@ export default function ModerationPage() {
                 </Button>
                 <Button
                   size="xs"
-                  variant="subtle"
+                  variant="outline"
                   color="red"
                   disabled={actingId !== null}
                   onClick={() =>

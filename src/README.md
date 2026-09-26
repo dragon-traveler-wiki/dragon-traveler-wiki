@@ -218,6 +218,26 @@ open in a new tab like any link without a `role="link"` container wrapping other
 controls. Anything that must stay separately clickable inside a card (actions,
 author link, character portraits) opts in with `.dt-link-card__above`.
 
+## Buttons
+
+Button styles carry a fixed meaning, so pick by emphasis rather than looks:
+
+- **Primary** — `filled`, accent color: the one main action of a dialog or form
+  (Publish, Submit report).
+- **Secondary** — `light`, accent color: page-level actions (Edit, Remix, Export Image).
+- **Tertiary** — `subtle`: quiet inline actions that repeat (Report, Unlink,
+  Withdraw, Expand). These intentionally have no background at rest, only a hover
+  fill, so a row of them doesn't compete with the content.
+- **Cancel** — `outline`, accent color.
+- **Destructive** — `red`; a confirmation's confirm button is `filled`, an inline
+  Delete is `light` (`subtle` on compact cards), and moderator "Suspend" is
+  `outline`. Reversible moderator actions are softer: Hide is `light` orange,
+  Restore `light` teal, Dismiss `light` gray.
+- **Toggle groups** (view mode, layout) — `filled` for the selected option,
+  `default` for the rest, with `aria-pressed`.
+
+Icon-only buttons (`ActionIcon`) always need an `aria-label`.
+
 ## Loading skeletons
 
 All skeleton layouts live in `components/layout/PageLoadingSkeleton.tsx` and are
