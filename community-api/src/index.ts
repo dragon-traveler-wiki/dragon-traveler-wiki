@@ -25,6 +25,7 @@ const app = new Hono<{ Bindings: Env }>();
 app.use('*', async (c, next) => {
   const requestId = crypto.randomUUID();
   c.header('X-Request-ID', requestId);
+  c.header('X-Content-Type-Options', 'nosniff');
   const started = Date.now();
   try {
     await next();

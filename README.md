@@ -84,6 +84,9 @@ their local callback URLs. The frontend also needs `VITE_API_BASE_URL` and
 `VITE_TURNSTILE_SITE_KEY`; Cloudflare's published test site key is suitable for
 local development.
 
+See [`community-api/README.md`](community-api/README.md) for configuration,
+endpoints, deployment, and operations.
+
 Production deployment additionally requires a real D1 database ID in
 `community-api/wrangler.jsonc`, Worker secrets for both OAuth providers and
 Turnstile, `api.dtwiki.org` as the Worker custom domain, and the GitHub Actions
