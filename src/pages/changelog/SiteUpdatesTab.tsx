@@ -154,9 +154,10 @@ export default function SiteUpdatesTab({
                               </Badge>
                             </Group>
                             <Stack gap={4}>
-                              {changes.map((change) => (
+                              {changes.map((change, changeIndex) => (
                                 <Group
-                                  key={`${change.type}-${change.description}`}
+                                  // The changelog can repeat an identical line within a release.
+                                  key={`${change.type}-${changeIndex}-${change.description}`}
                                   gap="xs"
                                   wrap="nowrap"
                                   align="flex-start"
