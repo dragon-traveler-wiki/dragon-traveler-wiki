@@ -1,5 +1,4 @@
 import {
-  Badge,
   Button,
   Card,
   Group,
@@ -20,7 +19,6 @@ import { getTierListRoutePath } from '@/features/tier-list/utils/tier-list-route
 import type { Team } from '@/features/teams/types';
 import type { TierList } from '@/features/tier-list/types';
 import { useGradientAccent } from '@/hooks';
-import { capitalize } from '@/features/community/report-status';
 import SuspendUserModal from '@/features/community/SuspendUserModal';
 import { CommunityCardsLoading } from '@/components/layout/PageLoadingSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
@@ -138,12 +136,6 @@ export default function ModeratedItemsBrowser({
                     </Text>
                   </Stack>
                   <Group gap="xs">
-                    <Badge
-                      variant="outline"
-                      color={status === 'hidden' ? 'red' : 'gray'}
-                    >
-                      {capitalize(status)}
-                    </Badge>
                     {status === 'hidden' ? (
                       <Button
                         size="xs"
