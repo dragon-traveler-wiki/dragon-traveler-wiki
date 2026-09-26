@@ -4,6 +4,11 @@ export function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+/** Normalizes anything thrown into an Error (for hook `error` state). */
+export function toError(reason: unknown): Error {
+  return reason instanceof Error ? reason : new Error(String(reason));
+}
+
 interface ActionToasts {
   /** Shown as the title of the error toast when the action fails. */
   errorTitle: string;

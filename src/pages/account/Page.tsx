@@ -25,7 +25,7 @@ import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import { getMyItems, getMyReports } from '@/features/community/api';
 import MyPublications from '@/features/community/MyPublications';
 import MyReports from '@/features/community/MyReports';
-import { runAction } from '@/features/community/run-action';
+import { errorMessage, runAction } from '@/features/community/run-action';
 import SuspensionNotice from '@/features/community/SuspensionNotice';
 import CommunityStatsBadges from '@/features/community/CommunityStatsBadges';
 import { useCommunityAuth } from '@/features/community/auth-context';
@@ -138,7 +138,7 @@ export default function AccountPage() {
         setItems([]);
         showErrorToast({
           title: 'Could not load publications',
-          message: error instanceof Error ? error.message : String(error),
+          message: errorMessage(error),
         });
       })
       .finally(() => setItemsLoading(false));
@@ -158,7 +158,7 @@ export default function AccountPage() {
         setReports([]);
         showErrorToast({
           title: 'Could not load reports',
-          message: error instanceof Error ? error.message : String(error),
+          message: errorMessage(error),
         });
       })
       .finally(() => setReportsLoading(false));

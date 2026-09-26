@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getCommunityItem, listCommunityItems } from './api';
+import { toError } from './run-action';
 import type { CommunityItem, CommunityKind, CommunityMeta } from './types';
 
 type CommunityPayload<T> = T & { community: CommunityMeta };
@@ -85,7 +86,7 @@ export function useCommunityItems<T>(
         setData([]);
         setTotal(null);
         setHasMore(false);
-        setError(reason instanceof Error ? reason : new Error(String(reason)));
+        setError(toError(reason));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -108,7 +109,7 @@ export function useCommunityItems<T>(
       cursorRef.current = page.nextCursor;
       setHasMore(page.nextCursor !== null);
     } catch (reason) {
-      setError(reason instanceof Error ? reason : new Error(String(reason)));
+      setError(toError(reason));
     } finally {
       setLoadingMore(false);
     }
@@ -191,7 +192,7 @@ export function useCommunityItem<T>(kind: CommunityKind, id: string | null) {
       .catch((reason: unknown) => {
         if (cancelled) return;
         setData(null);
-        setError(reason instanceof Error ? reason : new Error(String(reason)));
+        setError(toError(reason));
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

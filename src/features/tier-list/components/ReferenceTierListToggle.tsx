@@ -4,9 +4,9 @@ import { MdOutlinePushPin, MdPushPin } from 'react-icons/md';
 import { TierListReferenceContext } from '@/contexts';
 import { setReferenceTierList } from '@/features/community/api';
 import { useCommunityAuth } from '@/features/community/auth-context';
+import { runAction } from '@/features/community/run-action';
 import type { TierList } from '@/features/tier-list/types';
 import { getTierListEntityType } from '@/features/tier-list/types';
-import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
 /**
  * Moderator-only control that marks a published character tier list as the
@@ -38,23 +38,20 @@ export default function ReferenceTierListToggle({
   const isReference = siteReferenceId === id;
   const toggle = async () => {
     setWorking(true);
-    try {
-      await setReferenceTierList(isReference ? null : id, csrfToken);
-      refreshSiteReference();
-      showSuccessToast({
-        title: isReference ? 'Reference removed' : 'Reference set',
-        message: isReference
-          ? 'There is no site default tier list now.'
-          : 'This is now the default tier list reference.',
-      });
-    } catch (error) {
-      showErrorToast({
-        title: 'Could not update reference',
-        message: error instanceof Error ? error.message : String(error),
-      });
-    } finally {
-      setWorking(false);
-    }
+    const result = await runAction(
+      () => setReferenceTierList(isReference ? null : id, csrfToken),
+      {
+        errorTitle: 'Could not update reference',
+        success: {
+          title: isReference ? 'Reference removed' : 'Reference set',
+          message: isReference
+            ? 'There is no site default tier list now.'
+            : 'This is now the default tier list reference.',
+        },
+      },
+    );
+    if (result.ok) refreshSiteReference();
+    setWorking(false);
   };
 
   const label = isReference
