@@ -1,3 +1,5 @@
+import type { ReportStatus } from './report-status';
+
 export type CommunityKind = 'team' | 'tier_list';
 
 export interface CommunityAuthor {
@@ -97,12 +99,31 @@ export interface CommunityRevision {
   createdAt: number;
 }
 
+/** A report as moderators see it in the queue (includes reporter and author). */
+export interface AdminReport {
+  id: string;
+  item_id: string;
+  kind: CommunityKind;
+  slug: string;
+  title: string;
+  reason: string;
+  note: string;
+  status: ReportStatus;
+  item_status: 'published' | 'hidden' | 'deleted';
+  reporter_user_id: string;
+  reporter_name: string;
+  author_id: string;
+  author_name: string;
+  resolution_note: string;
+  created_at: number;
+}
+
 export interface MyReport {
   id: string;
   item_id: string;
   reason: string;
   note: string;
-  status: 'open' | 'dismissed' | 'resolved';
+  status: ReportStatus;
   resolution_note: string;
   created_at: number;
   kind: CommunityKind;

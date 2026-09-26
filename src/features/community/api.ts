@@ -1,4 +1,5 @@
 import type {
+  AdminReport,
   CommunityKind,
   CommunityListResponse,
   CommunityRevision,
@@ -201,9 +202,7 @@ export async function getMyItems() {
 }
 
 export async function getReports() {
-  return request<{ reports: Array<Record<string, unknown>> }>(
-    '/v1/admin/reports',
-  );
+  return request<{ reports: AdminReport[] }>('/v1/admin/reports');
 }
 
 export async function resolveReport(

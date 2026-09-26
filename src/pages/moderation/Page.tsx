@@ -29,34 +29,16 @@ import {
   capitalize,
   REPORT_REASON_LABELS,
   REPORT_STATUS_DISPLAY,
-  type ReportStatus,
 } from '@/features/community/report-status';
+import type { AdminReport } from '@/features/community/types';
 import SuspendUserModal from '@/features/community/SuspendUserModal';
 import { useGradientAccent } from '@/hooks';
 import { formatShortDate } from '@/utils/timestamps';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
-interface Report {
-  id: string;
-  item_id: string;
-  kind: 'team' | 'tier_list';
-  slug: string;
-  title: string;
-  reason: string;
-  note: string;
-  status: ReportStatus;
-  item_status: 'published' | 'hidden' | 'deleted';
-  reporter_user_id: string;
-  reporter_name: string;
-  author_id: string;
-  author_name: string;
-  resolution_note: string;
-  created_at: number;
-}
-
 type ReportFilter = 'open' | 'closed';
 
-function reportedItemPath(report: Report): string {
+function reportedItemPath(report: AdminReport): string {
   return report.kind === 'team'
     ? `/teams/${report.item_id}/${report.slug}`
     : `/tier-list/${report.item_id}/${report.slug}`;
@@ -73,7 +55,7 @@ function UserLink({ id, name }: { id: string; name: string }) {
 export default function ModerationPage() {
   const { user, csrfToken, loading, refresh } = useCommunityAuth();
   const { accent } = useGradientAccent();
-  const [reports, setReports] = useState<Report[]>([]);
+  const [reports, setReports] = useState<AdminReport[]>([]);
   const [reportsLoaded, setReportsLoaded] = useState(false);
   const [filter, setFilter] = useState<ReportFilter>('open');
   const [notes, setNotes] = useState<Record<string, string>>({});
@@ -89,7 +71,7 @@ export default function ModerationPage() {
   const load = useCallback(() => {
     if (user?.role !== 'moderator') return;
     getReports()
-      .then((result) => setReports(result.reports as unknown as Report[]))
+      .then((result) => setReports(result.reports))
       .catch((error: unknown) =>
         showErrorToast({
           title: 'Could not load reports',
@@ -150,7 +132,7 @@ export default function ModerationPage() {
       </Container>
     );
 
-  const renderReport = (report: Report) => {
+  const renderReport = (report: AdminReport) => {
     const status = REPORT_STATUS_DISPLAY[report.status];
     const isOpen = report.status === 'open';
     return (
