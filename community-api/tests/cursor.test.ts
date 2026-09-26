@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decodeCursor, encodeCursor, routeKind } from '../src/index';
+import { decodeCursor, encodeCursor, routeKind } from '../src/helpers';
 
 describe('cursor encoding', () => {
   it('round-trips score, created_at, and id', () => {

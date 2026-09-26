@@ -24,6 +24,16 @@ boot the real request handler against a throwaway local D1 through wrangler's pl
 proxy (`tests/helpers/harness.ts`), with Turnstile and the game catalog stubbed, so they
 run offline in about 20 seconds.
 
+## Code layout
+
+`src/index.ts` only wires the app: request logging, CORS, the route modules, error
+handling, and the cron entry point. Routes live in `src/routes/` by area (`auth`,
+`profiles`, `items`, `interactions`, `moderation`, `settings`), each exporting a
+`register…Routes(app)` function. Shared request helpers (rate limiting, Turnstile,
+the audit log, cursors, item presentation) are in `src/helpers.ts`; domain rules are
+in their own small modules (`suspension`, `retention`, `moderation`, `validation`,
+`security`, `auth`).
+
 ## Configuration
 
 | Name                                                            | Kind                   | Notes                                                                                                                                                                          |
