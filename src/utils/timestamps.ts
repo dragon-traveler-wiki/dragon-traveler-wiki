@@ -30,6 +30,22 @@ export function formatShortDate(unixSeconds: number): string {
   });
 }
 
+/**
+ * Formats a calendar date string like "2026-08-02" as "Aug 2, 2026". Date-only
+ * strings parse as UTC midnight, so formatting in the viewer's timezone would
+ * show the previous day west of UTC; format in UTC to keep the printed day.
+ */
+export function formatIsoDate(isoDate: string): string {
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return isoDate;
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
 /** Formats a unix timestamp (seconds) as a full locale date+time string. */
 export function formatExactDate(unixSeconds: number): string {
   if (!unixSeconds) return '';
