@@ -133,6 +133,21 @@ function logAction(
     );
 }
 
+/** Closes every open report on an item once the item itself has been dealt with. */
+function resolveOpenReports(
+  db: D1Database,
+  itemId: string,
+  note: string,
+  resolvedBy: string | null,
+  now: number,
+) {
+  return db
+    .prepare(
+      "UPDATE reports SET status = 'resolved', resolution_note = ?, resolved_by_user_id = ?, resolved_at = ? WHERE item_id = ? AND status = 'open'",
+    )
+    .bind(note, resolvedBy, now, itemId);
+}
+
 const REFERENCE_TIER_LIST_KEY = 'reference_tier_list_id';
 
 // The moderator-pinned character tier list used as the default "Tier List
@@ -690,11 +705,20 @@ for (const collection of ['teams', 'tier-lists'] as const) {
     if (existing.owner_user_id !== user.id && user.role !== 'moderator')
       return c.json({ error: 'Forbidden' }, 403);
     const now = Math.floor(Date.now() / 1000);
-    await c.env.DB.prepare(
-      "UPDATE community_items SET status = 'deleted', deleted_at = ?, updated_at = ? WHERE id = ?",
-    )
-      .bind(now, now, c.req.param('id'))
-      .run();
+    await c.env.DB.batch([
+      c.env.DB.prepare(
+        "UPDATE community_items SET status = 'deleted', deleted_at = ?, updated_at = ? WHERE id = ?",
+      ).bind(now, now, c.req.param('id')),
+      resolveOpenReports(
+        c.env.DB,
+        c.req.param('id'),
+        existing.owner_user_id === user.id
+          ? 'Removed by its author.'
+          : 'Removed by a moderator.',
+        existing.owner_user_id === user.id ? null : user.id,
+        now,
+      ),
+    ]);
     return c.json({ ok: true });
   });
   app.put(`/v1/${collection}/:id/upvote`, async (c) => {
@@ -832,6 +856,13 @@ for (const collection of ['teams', 'tier-lists'] as const) {
       c.env.DB.prepare(
         "UPDATE community_items SET status = ?, updated_at = ?, deleted_at = CASE WHEN ? = 'deleted' THEN ? ELSE NULL END WHERE id = ?",
       ).bind(status, now, status, now, c.req.param('id')),
+      resolveOpenReports(
+        c.env.DB,
+        c.req.param('id'),
+        'Handled by a moderator.',
+        user.id,
+        now,
+      ),
       logAction(
         c.env.DB,
         user.id,

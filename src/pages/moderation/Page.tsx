@@ -332,7 +332,12 @@ export default function ModerationPage() {
             </Stack>
           </Tabs.Panel>
           <Tabs.Panel value="browse" pt="md">
-            <ModeratedItemsBrowser />
+            <ModeratedItemsBrowser
+              onChanged={() => {
+                load();
+                void refresh();
+              }}
+            />
           </Tabs.Panel>
           {/* Unmounted when hidden so it refetches each time it's opened. */}
           <Tabs.Panel value="log" pt="md" keepMounted={false}>

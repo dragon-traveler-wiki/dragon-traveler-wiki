@@ -51,8 +51,9 @@ export function CommunityAuthProvider({ children }: { children: ReactNode }) {
       setUser(result.user);
       setCsrfToken(result.csrfToken ?? null);
     } catch {
-      setUser(null);
-      setCsrfToken(null);
+      // A failed check (offline, server error) keeps whatever we already had
+      // rather than signing the person out in the UI; an actual signed-out
+      // session comes back as a successful `user: null` response instead.
     } finally {
       setLoading(false);
     }
@@ -61,6 +62,31 @@ export function CommunityAuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     queueMicrotask(() => void refresh());
   }, [refresh]);
+
+  // Keep alert counts current while the site stays open: re-check when the tab
+  // regains focus, and every minute for moderators watching the report queue.
+  const signedInId = user?.id;
+  const isModerator = user?.role === 'moderator';
+  useEffect(() => {
+    if (!signedInId) return;
+    let lastChecked = Date.now();
+    const refreshIfStale = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (Date.now() - lastChecked < 30_000) return;
+      lastChecked = Date.now();
+      void refresh();
+    };
+    document.addEventListener('visibilitychange', refreshIfStale);
+    window.addEventListener('focus', refreshIfStale);
+    const timer = isModerator
+      ? window.setInterval(refreshIfStale, 60_000)
+      : undefined;
+    return () => {
+      document.removeEventListener('visibilitychange', refreshIfStale);
+      window.removeEventListener('focus', refreshIfStale);
+      if (timer !== undefined) window.clearInterval(timer);
+    };
+  }, [signedInId, isModerator, refresh]);
 
   const value = useMemo<AuthContextValue>(
     () => ({

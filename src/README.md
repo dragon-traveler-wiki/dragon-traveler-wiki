@@ -142,7 +142,11 @@ active suspension comes back on `GET /v1/auth/me` (shown via `SuspensionNotice`
 on the account page) and, for moderator viewers only, on `GET /v1/users/:id`.
 Every moderator action is written to the `moderation_actions` audit table and
 shown on the moderation page's Log tab; a moderator viewing a profile also sees
-that user's own history (`GET /v1/admin/actions?user=<id>`). Users can withdraw
+that user's own history (`GET /v1/admin/actions?user=<id>`). Open reports are closed
+automatically whenever their item is dealt with (moderated from any tab, deleted by
+its author, or removed with the author's account), and `CommunityAuthProvider`
+re-checks `/v1/auth/me` on tab focus (and every minute for moderators) so alert
+counts stay current. Users can withdraw
 their own open reports (`DELETE /v1/me/reports/:id`), and a daily cron
 (`scheduled` handler, `retention.ts`) deletes handled reports after 90 days and
 expired sessions. `AccountMenu` counts `unreadReportCount` (answers to your

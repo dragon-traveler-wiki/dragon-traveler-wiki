@@ -29,7 +29,12 @@ import { showErrorToast, showSuccessToast } from '@/utils/toast';
 type Kind = 'team' | 'tier_list';
 type Status = 'published' | 'hidden';
 
-export default function ModeratedItemsBrowser() {
+export default function ModeratedItemsBrowser({
+  onChanged,
+}: {
+  /** Called after a moderation action so the report queue and alert count can update. */
+  onChanged?: () => void;
+}) {
   const { csrfToken } = useCommunityAuth();
   const { accent } = useGradientAccent();
   const [kind, setKind] = useState<Kind>('team');
@@ -61,6 +66,7 @@ export default function ModeratedItemsBrowser() {
       await moderateItem(kind, id, action, csrfToken);
       showSuccessToast({ title: 'Done', message: `Item ${action}d.` });
       refresh();
+      onChanged?.();
     } catch (error) {
       showErrorToast({
         title: 'Moderation action failed',

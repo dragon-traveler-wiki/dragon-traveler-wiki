@@ -374,6 +374,10 @@ export async function deleteAccount(
 ): Promise<Response> {
   const now = Math.floor(Date.now() / 1000);
   await c.env.DB.batch([
+    // Reports about content that's going away no longer need a moderator.
+    c.env.DB.prepare(
+      "UPDATE reports SET status = 'resolved', resolution_note = 'Removed with its author''s account.', resolved_at = ? WHERE status = 'open' AND item_id IN (SELECT id FROM community_items WHERE owner_user_id = ?)",
+    ).bind(now, user.id),
     c.env.DB.prepare(
       "UPDATE community_items SET status = 'deleted', deleted_at = ?, updated_at = ? WHERE owner_user_id = ? AND status != 'deleted'",
     ).bind(now, now, user.id),
