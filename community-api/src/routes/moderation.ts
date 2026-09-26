@@ -4,14 +4,21 @@ import {
   COLLECTIONS,
   logAction,
   rateLimit,
+  readJson,
   resolveOpenReports,
+  resolveOpenReportsForOwner,
   routeKind,
 } from '../helpers';
 import type { App } from '../helpers';
 import { statusForModerationAction } from '../moderation';
 import { getSessionUser, isResponse, requireUser } from '../security';
-import { SUSPENSION_DURATIONS, suspensionEnd } from '../suspension';
+import {
+  activeSuspension,
+  SUSPENSION_DURATIONS,
+  suspensionEnd,
+} from '../suspension';
 import type { CommunityKind, Provider } from '../types';
+import { nowSeconds } from '../time';
 
 const SuspendInput = z.object({
   duration: z.enum(SUSPENSION_DURATIONS),
@@ -45,7 +52,7 @@ export function registerModerationRoutes(app: App) {
         action: z.enum(['dismiss', 'hide', 'restore', 'delete']),
         note: z.string().trim().max(1000).default(''),
       })
-      .parse(await c.req.json());
+      .parse(await readJson(c));
     const report = await c.env.DB.prepare(
       `SELECT r.item_id, r.status, i.kind FROM reports r
        JOIN community_items i ON i.id = r.item_id WHERE r.id = ?`,
@@ -55,7 +62,7 @@ export function registerModerationRoutes(app: App) {
     if (!report) return c.json({ error: 'Not found' }, 404);
     if (report.status !== 'open')
       return c.json({ error: 'This report has already been resolved' }, 409);
-    const now = Math.floor(Date.now() / 1000);
+    const now = nowSeconds();
     // Hiding, restoring, or deleting acts on the item, so every open report on it
     // is resolved together; a dismissal only settles the one report.
     const statements = [
@@ -110,7 +117,7 @@ export function registerModerationRoutes(app: App) {
       return c.json({ error: 'Forbidden' }, 403);
     const limited = await rateLimit(c, moderator, 'moderate');
     if (limited) return limited;
-    const input = SuspendInput.parse(await c.req.json());
+    const input = SuspendInput.parse(await readJson(c));
     const targetId = c.req.param('id');
     if (targetId === moderator.id)
       return c.json({ error: 'You cannot suspend yourself' }, 400);
@@ -122,7 +129,7 @@ export function registerModerationRoutes(app: App) {
     if (!target) return c.json({ error: 'Not found' }, 404);
     if (target.role === 'moderator')
       return c.json({ error: 'Moderators cannot be suspended' }, 400);
-    const now = Math.floor(Date.now() / 1000);
+    const now = nowSeconds();
     const until = suspensionEnd(input.duration, now);
     const published = input.hideContent
       ? await c.env.DB.prepare(
@@ -153,6 +160,14 @@ export function registerModerationRoutes(app: App) {
     ];
     if (input.hideContent) {
       statements.push(
+        // Reports about the items being hidden are settled by hiding them.
+        resolveOpenReportsForOwner(
+          c.env.DB,
+          targetId,
+          'Author suspended; their publications were hidden.',
+          moderator.id,
+          now,
+        ),
         c.env.DB.prepare(
           "UPDATE community_items SET status = 'hidden', updated_at = ? WHERE owner_user_id = ? AND status = 'published'",
         ).bind(now, targetId),
@@ -181,17 +196,33 @@ export function registerModerationRoutes(app: App) {
       return c.json({ error: 'Forbidden' }, 403);
     const limited = await rateLimit(c, moderator, 'moderate');
     if (limited) return limited;
-    const input = RoleInput.parse(await c.req.json());
+    const input = RoleInput.parse(await readJson(c));
     const targetId = c.req.param('id');
     if (targetId === moderator.id)
       return c.json({ error: 'You cannot change your own role' }, 400);
     const target = await c.env.DB.prepare(
-      'SELECT role FROM users WHERE id = ? AND deleted_at IS NULL',
+      'SELECT role, suspended_until, suspension_permanent, suspension_reason FROM users WHERE id = ? AND deleted_at IS NULL',
     )
       .bind(targetId)
-      .first<{ role: 'user' | 'moderator' }>();
+      .first<{
+        role: 'user' | 'moderator';
+        suspended_until: number | null;
+        suspension_permanent: number;
+        suspension_reason: string;
+      }>();
     if (!target) return c.json({ error: 'Not found' }, 404);
     if (target.role === input.role) return c.json({ ok: true });
+    // Moderators can't be suspended, so promoting someone who currently is
+    // would leave a moderator who can't publish or vote. Lifting a suspension
+    // is its own logged action; require it first instead of doing it silently.
+    if (input.role === 'moderator' && activeSuspension(target, nowSeconds()))
+      return c.json(
+        {
+          error:
+            "Lift this person's suspension before making them a moderator.",
+        },
+        400,
+      );
     if (input.role === 'user') {
       const identities = await c.env.DB.prepare(
         'SELECT provider, provider_user_id FROM oauth_identities WHERE user_id = ?',
@@ -211,7 +242,7 @@ export function registerModerationRoutes(app: App) {
           400,
         );
     }
-    const now = Math.floor(Date.now() / 1000);
+    const now = nowSeconds();
     await c.env.DB.batch([
       c.env.DB.prepare(
         'UPDATE users SET role = ?, updated_at = ? WHERE id = ?',
@@ -243,7 +274,7 @@ export function registerModerationRoutes(app: App) {
       .bind(targetId)
       .first<{ id: string }>();
     if (!target) return c.json({ error: 'Not found' }, 404);
-    const now = Math.floor(Date.now() / 1000);
+    const now = nowSeconds();
     await c.env.DB.batch([
       c.env.DB.prepare(
         "UPDATE users SET suspended_until = NULL, suspension_permanent = 0, suspension_reason = '', updated_at = ? WHERE id = ?",
@@ -262,11 +293,14 @@ export function registerModerationRoutes(app: App) {
     const result = await c.env.DB.prepare(
       `SELECT a.id, a.action, a.target_kind, a.target_id, a.note, a.created_at,
             m.display_name AS moderator_name,
-            COALESCE(i.title, t.display_name) AS target_label
+            COALESCE(i.title, t.display_name, ri.title, si.title, CASE WHEN a.target_kind = 'setting' THEN 'Site reference tier list' END) AS target_label
        FROM moderation_actions a
        JOIN users m ON m.id = a.moderator_user_id
        LEFT JOIN community_items i ON a.target_kind IN ('team', 'tier_list') AND i.id = a.target_id
        LEFT JOIN users t ON a.target_kind = 'user' AND t.id = a.target_id
+       LEFT JOIN reports rp ON a.target_kind = 'report' AND rp.id = a.target_id
+       LEFT JOIN community_items ri ON ri.id = rp.item_id
+       LEFT JOIN community_items si ON a.target_kind = 'setting' AND si.id = a.note
       WHERE ?1 IS NULL
          OR (a.target_kind = 'user' AND a.target_id = ?1)
          OR (a.target_kind IN ('team', 'tier_list') AND i.owner_user_id = ?1)
@@ -286,7 +320,7 @@ export function registerModerationRoutes(app: App) {
       if (limited) return limited;
       const input = z
         .object({ action: z.enum(['hide', 'restore', 'delete']) })
-        .parse(await c.req.json());
+        .parse(await readJson(c));
       const existing = await c.env.DB.prepare(
         "SELECT id FROM community_items WHERE id = ? AND kind = ? AND status != 'deleted'",
       )
@@ -294,7 +328,7 @@ export function registerModerationRoutes(app: App) {
         .first<{ id: string }>();
       if (!existing) return c.json({ error: 'Not found' }, 404);
       const status = statusForModerationAction(input.action);
-      const now = Math.floor(Date.now() / 1000);
+      const now = nowSeconds();
       await c.env.DB.batch([
         c.env.DB.prepare(
           "UPDATE community_items SET status = ?, updated_at = ?, deleted_at = CASE WHEN ? = 'deleted' THEN ? ELSE NULL END WHERE id = ?",

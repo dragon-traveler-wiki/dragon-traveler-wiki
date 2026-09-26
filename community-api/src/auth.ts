@@ -9,6 +9,7 @@ import {
   sessionCookie,
   sha256,
 } from './security';
+import { nowSeconds } from './time';
 
 type ApiContext = Context<{ Bindings: Env }>;
 
@@ -62,7 +63,7 @@ export async function startOAuth(
   const state = randomToken();
   const verifier = randomToken(48);
   const challenge = await sha256(verifier);
-  const now = Math.floor(Date.now() / 1000);
+  const now = nowSeconds();
   await c.env.DB.prepare(
     `INSERT INTO oauth_states (state_hash, provider, mode, user_id, code_verifier, return_to, expires_at)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -190,7 +191,7 @@ async function resolveUser(
   )
     .bind(provider, profile.id)
     .first<{ user_id: string; primary_provider: Provider | null }>();
-  const now = Math.floor(Date.now() / 1000);
+  const now = nowSeconds();
 
   if (mode === 'link') {
     if (!linkingUserId) throw new Error('Linking session is no longer valid');
@@ -281,7 +282,7 @@ export async function finishOAuth(
   if (!state || !code || !cookieState || state !== cookieState)
     return c.json({ error: 'Invalid OAuth state' }, 400);
 
-  const now = Math.floor(Date.now() / 1000);
+  const now = nowSeconds();
   const stateHash = await sha256(state);
   const row = await c.env.DB.prepare(
     'SELECT provider, mode, user_id, code_verifier, return_to FROM oauth_states WHERE state_hash = ? AND expires_at > ?',
@@ -372,7 +373,7 @@ export async function deleteAccount(
   c: ApiContext,
   user: SessionUser,
 ): Promise<Response> {
-  const now = Math.floor(Date.now() / 1000);
+  const now = nowSeconds();
   await c.env.DB.batch([
     // Reports about content that's going away no longer need a moderator.
     c.env.DB.prepare(

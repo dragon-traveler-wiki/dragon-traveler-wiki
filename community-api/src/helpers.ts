@@ -156,6 +156,44 @@ export async function verifyTurnstile(c: ApiContext): Promise<Response | null> {
     : c.json({ error: 'Turnstile verification failed' }, 400);
 }
 
+/** Closes open reports on every published item a user owns (used when those items are hidden). */
+export function resolveOpenReportsForOwner(
+  db: D1Database,
+  ownerId: string,
+  note: string,
+  resolvedBy: string,
+  now: number,
+) {
+  return db
+    .prepare(
+      "UPDATE reports SET status = 'resolved', resolution_note = ?, resolved_by_user_id = ?, resolved_at = ? WHERE status = 'open' AND item_id IN (SELECT id FROM community_items WHERE owner_user_id = ? AND status = 'published')",
+    )
+    .bind(note, resolvedBy, now, ownerId);
+}
+
+/** Parses the request body as JSON, answering 400 (not 500) when it is malformed. */
+export async function readJson(c: ApiContext): Promise<unknown> {
+  try {
+    return await c.req.json();
+  } catch {
+    throw new HTTPException(400, {
+      res: c.json({ error: 'Request body must be valid JSON' }, 400),
+    });
+  }
+}
+
+/** Per-IP limit for unauthenticated endpoints that write to the database. */
+export async function rateLimitByIp(
+  c: ApiContext,
+  action: string,
+): Promise<Response | null> {
+  const ip = c.req.header('CF-Connecting-IP') ?? 'unknown';
+  const result = await c.env.WRITE_RATE_LIMITER.limit({
+    key: `${action}:ip:${ip}`,
+  });
+  return result.success ? null : c.json({ error: 'Too many requests' }, 429);
+}
+
 export async function rateLimit(
   c: ApiContext,
   user: SessionUser,

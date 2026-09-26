@@ -624,3 +624,206 @@ describe('retention', () => {
     ]);
   });
 });
+
+describe('robustness', () => {
+  it('ignores a malformed cookie instead of failing the request', async () => {
+    const res = await h.request('/v1/auth/me', {
+      headers: { Cookie: 'dt_session=%; other=%E0%A4%A' },
+    });
+    expect(res.status).toBe(200);
+    expect(await json(res)).toEqual({ user: null });
+  });
+
+  it('answers 400 for a malformed JSON body', async () => {
+    const author = await h.createUser();
+    const res = await h.request('/v1/teams', {
+      method: 'POST',
+      rawBody: '{not json',
+      user: author,
+    });
+    expect(res.status).toBe(400);
+    expect(await json(res)).toMatchObject({
+      error: expect.stringContaining('JSON'),
+    });
+  });
+
+  it('rate limits the unauthenticated OAuth start endpoint', async () => {
+    const statuses: number[] = [];
+    for (let i = 0; i < 70; i += 1) {
+      const res = await h.request('/v1/auth/github/start');
+      statuses.push(res.status);
+    }
+    expect(statuses[0]).toBe(302);
+    expect(statuses).toContain(429);
+    const stored = await h.db
+      .prepare('SELECT COUNT(*) AS count FROM oauth_states')
+      .first<{ count: number }>();
+    expect(stored?.count).toBeLessThanOrEqual(60);
+  });
+});
+
+describe('concurrent edits', () => {
+  it('never answers 500 when two edits overlap, and keeps history consistent', async () => {
+    const author = await h.createUser();
+    const created = await h.request('/v1/teams', {
+      method: 'POST',
+      body: TEAM,
+      user: author,
+    });
+    const { id } = await json<{ id: string }>(created);
+
+    const responses = await Promise.all(
+      ['First edit', 'Second edit'].map((name) =>
+        h.request(`/v1/teams/${id}`, {
+          method: 'PATCH',
+          body: { ...TEAM, name },
+          user: author,
+        }),
+      ),
+    );
+    const statuses = responses.map((res) => res.status);
+    expect(statuses.every((status) => status === 200 || status === 409)).toBe(
+      true,
+    );
+    expect(statuses).toContain(200);
+
+    const succeeded = statuses.filter((status) => status === 200).length;
+    const row = await h.db
+      .prepare('SELECT revision FROM community_items WHERE id = ?')
+      .bind(id)
+      .first<{ revision: number }>();
+    expect(row?.revision).toBe(1 + succeeded);
+    const history = await h.db
+      .prepare(
+        'SELECT COUNT(*) AS count FROM community_revisions WHERE item_id = ?',
+      )
+      .bind(id)
+      .first<{ count: number }>();
+    expect(history?.count).toBe(succeeded);
+  });
+});
+
+describe('review follow-ups', () => {
+  it('refuses to promote someone who is suspended until it is lifted', async () => {
+    const person = await h.createUser();
+    await h.request(`/v1/admin/users/${person.id}/suspend`, {
+      method: 'POST',
+      body: { duration: '7d', reason: 'spam', hideContent: false },
+      user: mod,
+    });
+    const refused = await h.request(`/v1/admin/users/${person.id}/role`, {
+      method: 'POST',
+      body: { role: 'moderator' },
+      user: mod,
+    });
+    expect(refused.status).toBe(400);
+
+    await h.request(`/v1/admin/users/${person.id}/unsuspend`, {
+      method: 'POST',
+      user: mod,
+    });
+    const allowed = await h.request(`/v1/admin/users/${person.id}/role`, {
+      method: 'POST',
+      body: { role: 'moderator' },
+      user: mod,
+    });
+    expect(allowed.status).toBe(200);
+  });
+
+  it('settles reports about hidden items when suspending with hide-content', async () => {
+    const owner = await h.createUser();
+    const reporter = await h.createUser();
+    await h.createItem({ id: 'susp-report', ownerId: owner.id });
+    await h.request('/v1/teams/susp-report/reports', {
+      method: 'POST',
+      body: { reason: 'spam', note: '' },
+      user: reporter,
+    });
+    await h.request(`/v1/admin/users/${owner.id}/suspend`, {
+      method: 'POST',
+      body: { duration: '1d', reason: '', hideContent: true },
+      user: mod,
+    });
+    const report = await h.db
+      .prepare("SELECT status FROM reports WHERE item_id = 'susp-report'")
+      .first<{ status: string }>();
+    expect(report?.status).toBe('resolved');
+  });
+
+  it('shows a re-filed report as open with no leftover resolution', async () => {
+    const owner = await h.createUser();
+    const reporter = await h.createUser();
+    await h.createItem({ id: 'refile', ownerId: owner.id });
+    await h.request('/v1/teams/refile/reports', {
+      method: 'POST',
+      body: { reason: 'spam', note: 'first' },
+      user: reporter,
+    });
+    const first = await h.db
+      .prepare("SELECT id FROM reports WHERE item_id = 'refile'")
+      .first<{ id: string }>();
+    await h.request(`/v1/admin/reports/${first?.id}`, {
+      method: 'PATCH',
+      body: { action: 'dismiss', note: 'looks fine' },
+      user: mod,
+    });
+
+    await h.request('/v1/teams/refile/reports', {
+      method: 'POST',
+      body: { reason: 'abusive', note: 'again' },
+      user: reporter,
+    });
+    const row = await h.db
+      .prepare(
+        "SELECT status, resolution_note, resolved_by_user_id, resolved_at FROM reports WHERE item_id = 'refile'",
+      )
+      .first<Record<string, unknown>>();
+    expect(row).toEqual({
+      status: 'open',
+      resolution_note: '',
+      resolved_by_user_id: null,
+      resolved_at: null,
+    });
+  });
+
+  it('labels audit-log entries for reports and the site reference', async () => {
+    const owner = await h.createUser();
+    const reporter = await h.createUser();
+    await h.createItem({
+      id: 'label-item',
+      kind: 'tier_list',
+      ownerId: owner.id,
+      title: 'Label Test List',
+    });
+    await h.request('/v1/tier-lists/label-item/reports', {
+      method: 'POST',
+      body: { reason: 'spam', note: '' },
+      user: reporter,
+    });
+    const report = await h.db
+      .prepare("SELECT id FROM reports WHERE item_id = 'label-item'")
+      .first<{ id: string }>();
+    await h.request(`/v1/admin/reports/${report?.id}`, {
+      method: 'PATCH',
+      body: { action: 'dismiss', note: '' },
+      user: mod,
+    });
+    await h.request('/v1/admin/settings/reference-tier-list', {
+      method: 'PUT',
+      body: { id: 'label-item' },
+      user: mod,
+    });
+
+    const log = await json<{
+      actions: Array<{ action: string; target_label: string | null }>;
+    }>(await h.request('/v1/admin/actions', { user: mod }));
+    expect(
+      log.actions.find((entry) => entry.action === 'dismiss-report')
+        ?.target_label,
+    ).toBe('Label Test List');
+    expect(
+      log.actions.find((entry) => entry.action === 'set-reference')
+        ?.target_label,
+    ).toBe('Label Test List');
+  });
+});

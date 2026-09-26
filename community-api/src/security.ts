@@ -1,6 +1,7 @@
 import type { Context } from 'hono';
 import { activeSuspension, suspensionMessage } from './suspension';
 import type { Env, SessionUser } from './types';
+import { nowSeconds } from './time';
 
 const encoder = new TextEncoder();
 
@@ -31,12 +32,18 @@ export function parseCookies(
     header.split(';').flatMap((part) => {
       const index = part.indexOf('=');
       if (index < 1) return [];
-      return [
-        [
-          part.slice(0, index).trim(),
-          decodeURIComponent(part.slice(index + 1)),
-        ],
-      ];
+      try {
+        return [
+          [
+            part.slice(0, index).trim(),
+            decodeURIComponent(part.slice(index + 1)),
+          ],
+        ];
+      } catch {
+        // A malformed value (for example a stray percent sign) is skipped
+        // rather than turning every request into a server error.
+        return [];
+      }
     }),
   );
 }
@@ -59,7 +66,7 @@ export async function getSessionUser(
   const token = parseCookies(c.req.header('Cookie')).dt_session;
   if (!token) return null;
   const tokenHash = await sha256(token);
-  const now = Math.floor(Date.now() / 1000);
+  const now = nowSeconds();
   const row = await c.env.DB.prepare(
     `SELECT u.id, u.display_name, u.avatar_url, u.role, u.primary_provider, u.suspended_until,
             u.suspension_permanent, u.suspension_reason, s.csrf_token

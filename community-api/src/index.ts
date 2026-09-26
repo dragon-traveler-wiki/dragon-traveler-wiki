@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
 import { HTTPException } from 'hono/http-exception';
 import { ZodError } from 'zod';
@@ -10,6 +10,7 @@ import { registerModerationRoutes } from './routes/moderation';
 import { registerProfileRoutes } from './routes/profiles';
 import { registerSettingsRoutes } from './routes/settings';
 import type { Env } from './types';
+import { nowSeconds } from './time';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -33,19 +34,21 @@ app.use('*', async (c, next) => {
   }
 });
 
-app.use('*', async (c, next) =>
+app.use(
+  '*',
   cors({
-    origin: (origin) => {
-      const allowed = c.env.ALLOWED_ORIGINS.split(',').map((value) =>
+    origin: (origin, c) => {
+      const env = (c as Context<{ Bindings: Env }>).env;
+      const allowed = env.ALLOWED_ORIGINS.split(',').map((value) =>
         value.trim(),
       );
-      return allowed.includes(origin) ? origin : c.env.APP_ORIGIN;
+      return allowed.includes(origin) ? origin : env.APP_ORIGIN;
     },
     allowHeaders: ['Content-Type', 'X-CSRF-Token', 'X-Turnstile-Token'],
     allowMethods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
     maxAge: 86400,
-  })(c, next),
+  }),
 );
 
 app.get('/v1/health', (c) => c.json({ ok: true }));
@@ -76,6 +79,6 @@ export default {
   fetch: app.fetch,
   // Daily housekeeping (see the cron trigger in wrangler.jsonc).
   async scheduled(_controller, env, ctx) {
-    ctx.waitUntil(purgeExpired(env.DB, Math.floor(Date.now() / 1000)));
+    ctx.waitUntil(purgeExpired(env.DB, nowSeconds()));
   },
 } satisfies ExportedHandler<Env>;

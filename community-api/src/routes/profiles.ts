@@ -4,6 +4,7 @@ import type { App, ItemRow } from '../helpers';
 import { getSessionUser, isResponse, requireUser } from '../security';
 import { activeSuspension } from '../suspension';
 import type { Provider } from '../types';
+import { nowSeconds } from '../time';
 
 export function registerProfileRoutes(app: App) {
   app.get('/v1/users/:id', async (c) => {
@@ -40,7 +41,7 @@ export function registerProfileRoutes(app: App) {
         .all<{ provider: Provider; provider_user_id: string }>();
       moderation = {
         canSuspend: row.role !== 'moderator' && row.id !== viewer.id,
-        suspension: activeSuspension(row, Math.floor(Date.now() / 1000)),
+        suspension: activeSuspension(row, nowSeconds()),
         role: row.role,
         // People named in MODERATOR_IDENTITIES are re-granted at every sign-in, so
         // demoting them here would silently undo itself.
@@ -101,7 +102,7 @@ export function registerProfileRoutes(app: App) {
       .bind(user.id)
       .all();
     await c.env.DB.prepare('UPDATE users SET reports_seen_at = ? WHERE id = ?')
-      .bind(Math.floor(Date.now() / 1000), user.id)
+      .bind(nowSeconds(), user.id)
       .run();
     return c.json({ reports: result.results });
   });

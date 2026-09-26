@@ -84,6 +84,10 @@ and (moderators) `status=hidden`; the first page also returns `total`.
 
 ## Behavior notes
 
+- Editing is optimistic: an edit only applies if the item is still at the revision
+  it was read at, so overlapping edits get a `409` for the loser instead of an error.
+  Malformed JSON bodies and cookies are answered/ignored cleanly (`400` / skipped),
+  and the unauthenticated OAuth start endpoint is rate limited per IP.
 - Deletes are soft (`status = 'deleted'`); deleted items are hidden everywhere and
   can't be restored through the API.
 - Suspended or banned accounts can read and delete their own items but are refused

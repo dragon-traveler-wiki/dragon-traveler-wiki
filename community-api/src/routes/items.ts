@@ -4,6 +4,7 @@ import {
   encodeCursor,
   presentItem,
   rateLimit,
+  readJson,
   resolveOpenReports,
   routeKind,
   verifyTurnstile,
@@ -21,6 +22,7 @@ import {
   slugify,
   validateCatalogReferences,
 } from '../validation';
+import { nowSeconds } from '../time';
 
 async function listItems(c: ApiContext, kind: CommunityKind) {
   const viewer = await getSessionUser(c);
@@ -141,10 +143,10 @@ export function registerItemRoutes(app: App) {
       const challenge = await verifyTurnstile(c);
       if (challenge) return challenge;
       const kind = routeKind(collection);
-      const payload = parsePayload(kind, await c.req.json());
+      const payload = parsePayload(kind, await readJson(c));
       await validateCatalogReferences(c.env, kind, payload);
       const id = crypto.randomUUID();
-      const now = Math.floor(Date.now() / 1000);
+      const now = nowSeconds();
       const title = payload.name;
       const itemSlug = slugify(title);
       const contentType = payload.content_type;
@@ -197,9 +199,9 @@ export function registerItemRoutes(app: App) {
       if (!existing) return c.json({ error: 'Not found' }, 404);
       if (existing.owner_user_id !== user.id && user.role !== 'moderator')
         return c.json({ error: 'Forbidden' }, 403);
-      const payload = parsePayload(kind, await c.req.json());
+      const payload = parsePayload(kind, await readJson(c));
       await validateCatalogReferences(c.env, kind, payload);
-      const now = Math.floor(Date.now() / 1000);
+      const now = nowSeconds();
       const nextRevision = existing.revision + 1;
       const itemSlug = slugify(payload.name);
       const facet =
@@ -210,18 +212,16 @@ export function registerItemRoutes(app: App) {
         author: existing.owner_name,
         last_updated: now,
       };
-      await c.env.DB.batch([
+      // Both statements only act if the item is still at the revision we
+      // read, so overlapping edits can't collide: the loser matches nothing
+      // and gets a 409 instead of a primary-key error.
+      const [, updated] = await c.env.DB.batch([
         c.env.DB.prepare(
-          'INSERT INTO community_revisions (item_id, revision, editor_user_id, payload_json, created_at) VALUES (?, ?, ?, ?, ?)',
-        ).bind(
-          c.req.param('id'),
-          existing.revision,
-          user.id,
-          existing.payload_json,
-          now,
-        ),
+          `INSERT INTO community_revisions (item_id, revision, editor_user_id, payload_json, created_at)
+           SELECT id, revision, ?, payload_json, ? FROM community_items WHERE id = ? AND revision = ?`,
+        ).bind(user.id, now, c.req.param('id'), existing.revision),
         c.env.DB.prepare(
-          'UPDATE community_items SET slug = ?, title = ?, content_type = ?, facet = ?, payload_json = ?, revision = ?, updated_at = ? WHERE id = ?',
+          'UPDATE community_items SET slug = ?, title = ?, content_type = ?, facet = ?, payload_json = ?, revision = ?, updated_at = ? WHERE id = ? AND revision = ?',
         ).bind(
           itemSlug,
           payload.name,
@@ -231,8 +231,17 @@ export function registerItemRoutes(app: App) {
           nextRevision,
           now,
           c.req.param('id'),
+          existing.revision,
         ),
       ]);
+      if (updated.meta.changes === 0)
+        return c.json(
+          {
+            error:
+              'This publication was changed by someone else. Reload and try again.',
+          },
+          409,
+        );
       return c.json({ ok: true, revision: nextRevision });
     });
     app.delete(`/v1/${collection}/:id`, async (c) => {
@@ -246,7 +255,7 @@ export function registerItemRoutes(app: App) {
       if (!existing) return c.json({ error: 'Not found' }, 404);
       if (existing.owner_user_id !== user.id && user.role !== 'moderator')
         return c.json({ error: 'Forbidden' }, 403);
-      const now = Math.floor(Date.now() / 1000);
+      const now = nowSeconds();
       await c.env.DB.batch([
         c.env.DB.prepare(
           "UPDATE community_items SET status = 'deleted', deleted_at = ?, updated_at = ? WHERE id = ?",

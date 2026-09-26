@@ -1,8 +1,10 @@
+import { rateLimitByIp } from '../helpers';
 import { deleteAccount, finishOAuth, logout, startOAuth } from '../auth';
 import type { ApiContext, App } from '../helpers';
 import { getSessionUser, isResponse, requireUser } from '../security';
 import { suspensionMessage } from '../suspension';
 import type { Provider, SessionUser } from '../types';
+import { nowSeconds } from '../time';
 
 // A suspended account can't be deleted or have identities unlinked, since that
 // would free the identity to start over with a clean slate.
@@ -57,7 +59,12 @@ export function registerAuthRoutes(app: App) {
   });
 
   for (const provider of ['github', 'discord'] as const) {
-    app.get(`/v1/auth/${provider}/start`, (c) => startOAuth(c, provider));
+    app.get(`/v1/auth/${provider}/start`, async (c) => {
+      // Each start stores a row; without a limit a script could fill the table.
+      const limited = await rateLimitByIp(c, 'oauth-start');
+      if (limited) return limited;
+      return startOAuth(c, provider);
+    });
     app.get(`/v1/auth/${provider}/callback`, (c) => finishOAuth(c, provider));
   }
 
@@ -116,7 +123,7 @@ export function registerAuthRoutes(app: App) {
               remaining.provider,
               remaining.username,
               remaining.avatar_url,
-              Math.floor(Date.now() / 1000),
+              nowSeconds(),
               user.id,
             )
             .run();
@@ -147,7 +154,7 @@ export function registerAuthRoutes(app: App) {
         provider,
         identity.username,
         identity.avatar_url,
-        Math.floor(Date.now() / 1000),
+        nowSeconds(),
         user.id,
       )
       .run();

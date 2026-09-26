@@ -43,6 +43,10 @@ interface RequestOptions {
   user?: TestUser;
   /** Send the session cookie without its CSRF header. */
   omitCsrf?: boolean;
+  /** A raw request body (sent as JSON) instead of a serialized `body`. */
+  rawBody?: string;
+  /** Extra headers, e.g. a hand-written Cookie. */
+  headers?: Record<string, string>;
 }
 
 export interface Harness {
@@ -86,6 +90,10 @@ export async function createHarness(): Promise<Harness> {
     SESSION_TTL_DAYS: '30',
     MODERATOR_IDENTITIES: 'github:9001',
     TURNSTILE_SECRET: 'test-secret',
+    GITHUB_CLIENT_ID: 'gh-id',
+    GITHUB_CLIENT_SECRET: 'gh-secret',
+    DISCORD_CLIENT_ID: 'dc-id',
+    DISCORD_CLIENT_SECRET: 'dc-secret',
   };
 
   const migrationsDir = join(apiDir, 'migrations');
@@ -127,19 +135,25 @@ export async function createHarness(): Promise<Harness> {
   return {
     db: env.DB,
     env,
-    async request(path, { method = 'GET', body, user, omitCsrf } = {}) {
+    async request(
+      path,
+      { method = 'GET', body, user, omitCsrf, rawBody, headers: extra } = {},
+    ) {
       const headers: Record<string, string> = {};
       if (user) {
         headers.Cookie = user.cookie;
         if (!omitCsrf) headers['X-CSRF-Token'] = user.csrf;
       }
-      if (body !== undefined) headers['Content-Type'] = 'application/json';
+      if (body !== undefined || rawBody !== undefined)
+        headers['Content-Type'] = 'application/json';
+      Object.assign(headers, extra);
       if (method !== 'GET') headers['X-Turnstile-Token'] = 'test-token';
       return worker.fetch(
         new Request(`https://api.test${path}`, {
           method,
           headers,
-          body: body === undefined ? undefined : JSON.stringify(body),
+          body:
+            rawBody ?? (body === undefined ? undefined : JSON.stringify(body)),
         }),
         env,
         ctx,

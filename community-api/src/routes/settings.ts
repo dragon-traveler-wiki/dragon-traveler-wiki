@@ -1,7 +1,8 @@
 import { z } from 'zod';
-import { logAction, rateLimit } from '../helpers';
+import { logAction, rateLimit, readJson } from '../helpers';
 import type { App } from '../helpers';
 import { isResponse, requireUser } from '../security';
+import { nowSeconds } from '../time';
 
 const REFERENCE_TIER_LIST_KEY = 'reference_tier_list_id';
 
@@ -28,7 +29,7 @@ export function registerSettingsRoutes(app: App) {
     if (limited) return limited;
     const input = z
       .object({ id: z.string().min(1).max(64).nullable() })
-      .parse(await c.req.json());
+      .parse(await readJson(c));
     if (input.id === null) {
       await c.env.DB.batch([
         c.env.DB.prepare('DELETE FROM site_settings WHERE key = ?').bind(
@@ -41,7 +42,7 @@ export function registerSettingsRoutes(app: App) {
           'setting',
           REFERENCE_TIER_LIST_KEY,
           '',
-          Math.floor(Date.now() / 1000),
+          nowSeconds(),
         ),
       ]);
       return c.json({ ok: true });
@@ -56,7 +57,7 @@ export function registerSettingsRoutes(app: App) {
         { error: 'Only a published character tier list can be the reference' },
         400,
       );
-    const now = Math.floor(Date.now() / 1000);
+    const now = nowSeconds();
     await c.env.DB.batch([
       c.env.DB.prepare(
         `INSERT INTO site_settings (key, value, updated_at, updated_by_user_id) VALUES (?, ?, ?, ?)
