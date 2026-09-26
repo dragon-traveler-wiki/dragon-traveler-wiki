@@ -3,7 +3,6 @@ import {
   Button,
   Card,
   Group,
-  Loader,
   SegmentedControl,
   Stack,
   Text,
@@ -23,6 +22,7 @@ import type { TierList } from '@/features/tier-list/types';
 import { useGradientAccent } from '@/hooks';
 import { capitalize } from '@/features/community/report-status';
 import SuspendUserModal from '@/features/community/SuspendUserModal';
+import { CommunityCardsLoading } from '@/components/layout/PageLoadingSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
 
@@ -102,7 +102,7 @@ export default function ModeratedItemsBrowser() {
       </Group>
 
       {loading ? (
-        <Loader size="sm" color={accent.primary} />
+        <CommunityCardsLoading kind="log" cards={4} />
       ) : data.length === 0 ? (
         <Text c="dimmed">No {status} items found.</Text>
       ) : (

@@ -8,19 +8,19 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core';
-import { type KeyboardEvent, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { FACTION_WYRM_MAP } from '@/assets';
 import FactionTag from '@/components/ui/FactionTag';
 import { InteractiveSurface, StaticSurface } from '@/components/ui/Surface';
 import { FACTION_COLOR } from '@/constants/faction-colors';
 import { useCardPreviewLayout } from '@/features/community/use-card-preview-layout';
+import CardTitle from '@/features/community/CardTitle';
 import AuthorLink from '@/features/community/AuthorLink';
 import { getDisplayAuthor } from '@/features/community/display-author';
 import {
   getContentTypeColor,
   normalizeContentType,
 } from '@/constants/content-types';
-import { LINK_BLOCK_RESET_STYLE } from '@/constants/styles';
 import { useGradientAccent } from '@/hooks';
 import type { Character } from '@/features/characters/types';
 import { FACTION_SLUG_TO_NAME } from '@/types/faction';
@@ -35,7 +35,8 @@ interface TeamCardProps {
   team: Team;
   charMap: Map<string, Character>;
   characterByIdentity: Map<string, Character>;
-  onNavigate?: () => void;
+  /** Makes the whole card a link to this path (title link stretched over the card). */
+  to?: string;
   actions: ReactNode;
 }
 
@@ -43,7 +44,7 @@ export default function TeamCard({
   team,
   charMap,
   characterByIdentity,
-  onNavigate,
+  to,
   actions,
 }: TeamCardProps) {
   const { accent } = useGradientAccent();
@@ -53,28 +54,11 @@ export default function TeamCard({
 
   const displayAuthor = getDisplayAuthor(team);
 
-  const Surface = onNavigate ? InteractiveSurface : StaticSurface;
-  const surfaceProps = onNavigate
-    ? {
-        style: {
-          ...LINK_BLOCK_RESET_STYLE,
-          borderTop: borderTopStyle,
-        },
-        onClick: onNavigate,
-        role: 'link' as const,
-        tabIndex: 0,
-        onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => {
-          // Enter/Space on an inner button or link must not navigate the card.
-          if (e.target !== e.currentTarget) return;
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            onNavigate();
-          }
-        },
-      }
-    : {
-        style: { borderTop: borderTopStyle },
-      };
+  const Surface = to ? InteractiveSurface : StaticSurface;
+  const surfaceProps = {
+    className: to ? 'dt-link-card' : undefined,
+    style: { borderTop: borderTopStyle },
+  };
 
   return (
     <Surface component="div" p="md" {...surfaceProps}>
@@ -96,11 +80,14 @@ export default function TeamCard({
                 style={{ flexShrink: 0 }}
               />
             )}
-            <Text fw={700} size="md" className="dt-link-text" lineClamp={1}>
-              {team.name || 'Untitled'}
-            </Text>
+            <CardTitle to={to}>{team.name || 'Untitled'}</CardTitle>
           </Group>
-          <Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
+          <Group
+            gap={4}
+            wrap="nowrap"
+            className="dt-link-card__above"
+            style={{ flexShrink: 0 }}
+          >
             {actions}
           </Group>
         </Group>
@@ -162,6 +149,7 @@ export default function TeamCard({
                 }))}
                 preferredByName={charMap}
                 byIdentity={characterByIdentity}
+                portraitClassName="dt-link-card__above"
                 size={preview.size}
                 layout="wrap"
                 gap={preview.gap}
@@ -199,6 +187,7 @@ export default function TeamCard({
                     }))}
                     preferredByName={charMap}
                     byIdentity={characterByIdentity}
+                    portraitClassName="dt-link-card__above"
                     size={preview.subSize}
                     isSubstitute
                     layout="wrap"

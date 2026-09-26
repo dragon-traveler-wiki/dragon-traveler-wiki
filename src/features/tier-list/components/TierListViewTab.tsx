@@ -97,7 +97,7 @@ export default function TierListViewTab({
               tierList={tierList}
               charMap={charMap}
               characterByIdentity={characterByIdentity}
-              onNavigate={() => navigate(getTierListRoutePath(tierList))}
+              to={getTierListRoutePath(tierList)}
               actions={
                 tierList.community ? (
                   <CommunityActions

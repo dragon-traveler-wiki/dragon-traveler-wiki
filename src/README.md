@@ -205,6 +205,24 @@ Formatting conventions are defined in the repository `.editorconfig` and
 enforced by `npm run format:check`. Run `npm run check` before opening a pull
 request to execute formatting, lint, tests, and type checking together.
 
+## Clickable cards
+
+Community cards (`TeamCard`, `TierListCard`) use the stretched-link pattern: the
+title is a real `<a>` (`CardTitle`) whose `::after` covers the card
+(`.dt-link-card` in `styles/interactions.css`), so they're keyboard-focusable and
+open in a new tab like any link without a `role="link"` container wrapping other
+controls. Anything that must stay separately clickable inside a card (actions,
+author link, character portraits) opts in with `.dt-link-card__above`.
+
+## Loading skeletons
+
+All skeleton layouts live in `components/layout/PageLoadingSkeleton.tsx` and are
+wrapped in `LoadingRegion` (hidden from assistive tech, one announced status).
+Community-specific ones (`CommunityCardsLoading`, `CommunityBrowseLoading`,
+`ProfilePageLoading`, `AccountPageLoading`, `TierListPageLoading`) size their
+placeholders from `COMMUNITY_CARD_HEIGHT` so pages don't jump when content
+arrives; update those heights if a card's layout changes.
+
 ## Page Shells
 
 Most list pages use one of two layout shells:

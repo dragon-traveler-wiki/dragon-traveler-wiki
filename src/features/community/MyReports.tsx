@@ -4,7 +4,6 @@ import {
   Button,
   Card,
   Group,
-  Loader,
   SegmentedControl,
   Stack,
   Text,
@@ -12,6 +11,7 @@ import {
 } from '@mantine/core';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
+import { CommunityCardsLoading } from '@/components/layout/PageLoadingSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import { useGradientAccent } from '@/hooks';
 import { formatShortDate } from '@/utils/timestamps';
@@ -99,7 +99,7 @@ export default function MyReports({
             <Badge variant="light" color={accent.primary}>
               {REPORT_REASON_LABELS[report.reason] ?? report.reason}
             </Badge>
-            <Badge variant="filled" color={status.color} autoContrast>
+            <Badge variant="filled" color={status.color}>
               {status.label}
             </Badge>
             {report.item_status !== 'published' && (
@@ -135,7 +135,7 @@ export default function MyReports({
     <Stack>
       <Title order={2}>Your reports</Title>
       {loading ? (
-        <Loader size="sm" color={accent.primary} />
+        <CommunityCardsLoading kind="report" cards={2} />
       ) : reports.length === 0 ? (
         <Text c="dimmed">You have not reported anything.</Text>
       ) : (

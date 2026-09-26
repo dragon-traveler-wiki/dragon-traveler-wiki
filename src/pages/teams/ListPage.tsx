@@ -4,10 +4,7 @@ import EntityFilter from '@/components/common/EntityFilter';
 import { createFactionFilterGroup } from '@/components/common/EntityFilterGroups';
 import LastUpdated from '@/components/common/LastUpdated';
 import PageFilterHeaderControls from '@/components/layout/PageFilterHeaderControls';
-import {
-  BuilderPageLoading,
-  ViewModeLoading,
-} from '@/components/layout/PageLoadingSkeleton';
+import { CommunityBrowseLoading } from '@/components/layout/PageLoadingSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import DataFetchError from '@/components/ui/DataFetchError';
 import {
@@ -55,7 +52,6 @@ import {
   Container,
   Group,
   SegmentedControl,
-  Skeleton,
   Stack,
   Title,
 } from '@mantine/core';
@@ -334,19 +330,11 @@ export default function Teams() {
         )}
 
         {loading && (
-          <Stack gap="md">
-            <Skeleton height={36} radius="md" aria-hidden="true" />
-            {mode === 'builder' ? (
-              <BuilderPageLoading />
-            ) : (
-              <ViewModeLoading
-                viewMode={viewMode}
-                cardHeight={200}
-                showPagination
-                label="Loading teams"
-              />
-            )}
-          </Stack>
+          <CommunityBrowseLoading
+            kind="team"
+            viewMode={viewMode}
+            builder={mode === 'builder'}
+          />
         )}
 
         {!loading && error && (

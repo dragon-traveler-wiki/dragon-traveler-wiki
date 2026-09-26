@@ -7,7 +7,6 @@ import {
   Card,
   Container,
   Group,
-  Loader,
   SimpleGrid,
   Stack,
   Text,
@@ -21,6 +20,7 @@ import {
   IoPersonOutline,
 } from 'react-icons/io5';
 import { Link, useSearchParams } from 'react-router';
+import { AccountPageLoading } from '@/components/layout/PageLoadingSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import { getMyItems, getMyReports } from '@/features/community/api';
 import MyPublications from '@/features/community/MyPublications';
@@ -181,12 +181,7 @@ export default function AccountPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  if (loading)
-    return (
-      <Container py="xl">
-        <Loader color={accent.primary} />
-      </Container>
-    );
+  if (loading) return <AccountPageLoading />;
   if (!user) {
     return (
       <Container size="sm" py={{ base: 'lg', sm: 'xl' }}>

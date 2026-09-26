@@ -11,7 +11,6 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core';
-import { useNavigate } from 'react-router';
 import { FACTION_WYRM_MAP } from '@/assets';
 import EntityActionButtons from '@/components/common/EntityActionButtons';
 import FactionTag from '@/components/ui/FactionTag';
@@ -62,7 +61,6 @@ export default function TeamsSavedTab({
   onGoToBuilder,
 }: TeamsSavedTabProps) {
   const { accent } = useGradientAccent();
-  const navigate = useNavigate();
 
   if (savedTeams.length === 0) {
     return (
@@ -101,9 +99,7 @@ export default function TeamsSavedTab({
             team={team}
             charMap={charMap}
             characterByIdentity={characterByIdentity}
-            onNavigate={() =>
-              navigate(`/teams/saved/${toEntitySlug(team.name)}`)
-            }
+            to={`/teams/saved/${toEntitySlug(team.name)}`}
             actions={
               <EntityActionButtons
                 onEdit={() => onRequestEdit(team)}

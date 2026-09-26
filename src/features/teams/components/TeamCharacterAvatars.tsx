@@ -19,6 +19,7 @@ export default function TeamCharacterAvatars({
   gap = 4,
   wrap = 'wrap',
   maxVisible,
+  portraitClassName,
 }: {
   refs: Array<{ name: string; quality?: string }>;
   preferredByName: Map<string, Character>;
@@ -30,6 +31,8 @@ export default function TeamCharacterAvatars({
   gap?: number;
   wrap?: 'wrap' | 'nowrap';
   maxVisible?: number;
+  /** Extra class on every portrait (e.g. to keep them clickable above a stretched card link). */
+  portraitClassName?: string;
 }) {
   const isGrid = layout === 'grid';
   const isSingleRow = !isGrid && wrap === 'nowrap' && maxVisible !== undefined;
@@ -56,6 +59,7 @@ export default function TeamCharacterAvatars({
         assetKey={assetKey}
         routePath={char ? getCharacterRoutePath(char) : undefined}
         isSubstitute={isSubstitute}
+        className={portraitClassName}
         tooltip={isSubstitute ? `${displayName} (Sub)` : displayName}
       />
     );

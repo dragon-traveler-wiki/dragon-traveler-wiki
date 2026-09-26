@@ -1,6 +1,7 @@
-import { Badge, Loader, Stack, Tabs, Title } from '@mantine/core';
+import { Badge, Stack, Tabs, Title } from '@mantine/core';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router';
+import { CommunityCardsLoading } from '@/components/layout/PageLoadingSkeleton';
 import { useCharacterResolution } from '@/features/characters/hooks/use-character-resolution';
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import TeamCard from '@/features/teams/components/TeamCard';
@@ -55,7 +56,7 @@ export default function MyPublications({
         team={team}
         charMap={charMap}
         characterByIdentity={characterByIdentity}
-        onNavigate={() => navigate(getTeamRoutePath(team))}
+        to={getTeamRoutePath(team)}
         actions={
           <>
             {hiddenBadge(item)}
@@ -78,7 +79,7 @@ export default function MyPublications({
         tierList={tierList}
         charMap={charMap}
         characterByIdentity={characterByIdentity}
-        onNavigate={() => navigate(getTierListRoutePath(tierList))}
+        to={getTierListRoutePath(tierList)}
         actions={
           <>
             {hiddenBadge(item)}
@@ -105,7 +106,7 @@ export default function MyPublications({
     <Stack>
       <Title order={2}>Your publications</Title>
       {loading ? (
-        <Loader size="sm" color={accent.primary} />
+        <CommunityCardsLoading kind="team" cards={2} />
       ) : (
         <Tabs defaultValue="teams">
           <Tabs.List>

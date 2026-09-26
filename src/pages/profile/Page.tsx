@@ -4,7 +4,6 @@ import {
   Button,
   Container,
   Group,
-  Loader,
   Stack,
   Tabs,
   Title,
@@ -12,7 +11,10 @@ import {
 import { useEffect, useState } from 'react';
 import { IoPersonOutline } from 'react-icons/io5';
 import { useNavigate, useParams } from 'react-router';
-import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
+import {
+  CommunityCardsLoading,
+  ProfilePageLoading,
+} from '@/components/layout/PageLoadingSkeleton';
 import CollapsibleSectionCard from '@/components/ui/CollapsibleSectionCard';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import EntityNotFound from '@/components/ui/EntityNotFound';
@@ -113,7 +115,7 @@ export default function ProfilePage() {
       />
     );
   }
-  if (!profile || profile.id !== userId) return <DetailPageLoading />;
+  if (!profile || profile.id !== userId) return <ProfilePageLoading />;
 
   const countBadge = (count: number) => (
     <Badge size="xs" variant="light" color={accent.primary}>
@@ -221,7 +223,7 @@ export default function ProfilePage() {
           </Tabs.List>
           <Tabs.Panel value="teams" pt="md">
             {teams.loading ? (
-              <Loader size="sm" color={accent.primary} />
+              <CommunityCardsLoading kind="team" />
             ) : (
               <Stack gap="md">
                 <PagedGrid
@@ -232,7 +234,7 @@ export default function ProfilePage() {
                       team={team}
                       charMap={charMap}
                       characterByIdentity={characterByIdentity}
-                      onNavigate={() => navigate(getTeamRoutePath(team))}
+                      to={getTeamRoutePath(team)}
                       actions={
                         team.community ? (
                           <CommunityActions
@@ -256,7 +258,7 @@ export default function ProfilePage() {
           </Tabs.Panel>
           <Tabs.Panel value="tier-lists" pt="md">
             {tierLists.loading ? (
-              <Loader size="sm" color={accent.primary} />
+              <CommunityCardsLoading kind="tierList" />
             ) : (
               <Stack gap="md">
                 <PagedGrid
@@ -267,9 +269,7 @@ export default function ProfilePage() {
                       tierList={tierList}
                       charMap={charMap}
                       characterByIdentity={characterByIdentity}
-                      onNavigate={() =>
-                        navigate(getTierListRoutePath(tierList))
-                      }
+                      to={getTierListRoutePath(tierList)}
                       actions={
                         tierList.community ? (
                           <CommunityActions

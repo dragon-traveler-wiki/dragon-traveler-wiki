@@ -1,5 +1,6 @@
-import { Badge, Card, Group, Loader, Stack, Text } from '@mantine/core';
+import { Badge, Card, Group, Stack, Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
+import { CommunityCardsLoading } from '@/components/layout/PageLoadingSkeleton';
 import { useGradientAccent } from '@/hooks';
 import { formatExactDate } from '@/utils/timestamps';
 import { getModerationActions } from './api';
@@ -52,7 +53,7 @@ export default function ModerationLog({ userId }: { userId?: string }) {
   }, [userId]);
 
   if (failed) return <Text c="dimmed">Could not load the moderation log.</Text>;
-  if (actions === null) return <Loader size="sm" color={accent.primary} />;
+  if (actions === null) return <CommunityCardsLoading kind="log" cards={5} />;
   if (actions.length === 0) return <Text c="dimmed">No actions yet.</Text>;
 
   return (

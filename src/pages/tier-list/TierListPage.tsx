@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { IoCreate, IoDownload } from 'react-icons/io5';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
-import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
+import { TierListPageLoading } from '@/components/layout/PageLoadingSkeleton';
 import CollapsibleSectionCard from '@/components/ui/CollapsibleSectionCard';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import EntityNotFound from '@/components/ui/EntityNotFound';
@@ -72,7 +72,7 @@ export default function TierListPage() {
   }, [navigate, tierList, tierListSlug]);
 
   if (loading) {
-    return <DetailPageLoading />;
+    return <TierListPageLoading />;
   }
 
   if (!tierList) {

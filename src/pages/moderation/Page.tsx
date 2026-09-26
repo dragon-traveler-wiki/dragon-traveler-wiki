@@ -6,7 +6,6 @@ import {
   Card,
   Container,
   Group,
-  Loader,
   SegmentedControl,
   Stack,
   Tabs,
@@ -16,6 +15,10 @@ import {
 } from '@mantine/core';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router';
+import {
+  CommunityCardsLoading,
+  ListRouteLoading,
+} from '@/components/layout/PageLoadingSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import { getReports, resolveReport } from '@/features/community/api';
 import { useCommunityAuth } from '@/features/community/auth-context';
@@ -134,9 +137,9 @@ export default function ModerationPage() {
 
   if (loading)
     return (
-      <Container py="xl">
-        <Loader color={accent.primary} />
-      </Container>
+      <ListRouteLoading containerSize="lg" tabs={3} actions={false}>
+        <CommunityCardsLoading kind="report" cards={3} />
+      </ListRouteLoading>
     );
   if (user?.role !== 'moderator')
     return (
@@ -177,7 +180,7 @@ export default function ModerationPage() {
             <Badge variant="light" color={accent.primary}>
               {REPORT_REASON_LABELS[report.reason] ?? report.reason}
             </Badge>
-            <Badge variant="filled" color={status.color} autoContrast>
+            <Badge variant="filled" color={status.color}>
               {status.label}
             </Badge>
             <Badge
@@ -311,7 +314,7 @@ export default function ModerationPage() {
                 style={{ alignSelf: 'flex-start' }}
               />
               {!reportsLoaded ? (
-                <Loader color={accent.primary} />
+                <CommunityCardsLoading kind="report" cards={3} />
               ) : (
                 <PagedGrid
                   items={shown}

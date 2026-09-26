@@ -31,9 +31,8 @@ export default function AuthorLink({
       to={`/profile/${author.id}`}
       size={size}
       fw={fw}
-      className="dt-link-text"
+      className="dt-link-text dt-link-card__above"
       inherit
-      onClick={(event) => event.stopPropagation()}
       style={{ textDecoration: 'none' }}
     >
       {author.displayName}

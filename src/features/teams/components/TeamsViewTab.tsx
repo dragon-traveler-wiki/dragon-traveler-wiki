@@ -107,7 +107,7 @@ export default function TeamsViewTab({
               team={team}
               charMap={charMap}
               characterByIdentity={characterByIdentity}
-              onNavigate={() => navigate(getTeamRoutePath(team))}
+              to={getTeamRoutePath(team)}
               actions={
                 team.community ? (
                   <CommunityActions

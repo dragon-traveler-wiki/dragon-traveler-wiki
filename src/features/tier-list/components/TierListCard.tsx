@@ -1,5 +1,5 @@
 import { Badge, Group, Paper, Stack, Text } from '@mantine/core';
-import { type KeyboardEvent, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { getNoblePhantasmIcon } from '@/assets';
 import OverflowRow from '@/components/ui/OverflowRow';
 import SafeImage from '@/components/ui/SafeImage';
@@ -8,11 +8,11 @@ import {
   getContentTypeColor,
   normalizeContentType,
 } from '@/constants/content-types';
-import { LINK_BLOCK_RESET_STYLE } from '@/constants/styles';
 import { TIER_ORDER } from '@/constants/tier-colors';
 import type { Character } from '@/features/characters/types';
 import TeamCharacterAvatars from '@/features/teams/components/TeamCharacterAvatars';
 import { useCardPreviewLayout } from '@/features/community/use-card-preview-layout';
+import CardTitle from '@/features/community/CardTitle';
 import AuthorLink from '@/features/community/AuthorLink';
 import { getDisplayAuthor } from '@/features/community/display-author';
 import {
@@ -40,7 +40,8 @@ interface TierListCardProps {
   tierList: TierList;
   charMap: Map<string, Character>;
   characterByIdentity: Map<string, Character>;
-  onNavigate?: () => void;
+  /** Makes the whole card a link to this path (title link stretched over the card). */
+  to?: string;
   actions: ReactNode;
 }
 
@@ -48,7 +49,7 @@ export default function TierListCard({
   tierList,
   charMap,
   characterByIdentity,
-  onNavigate,
+  to,
   actions,
 }: TierListCardProps) {
   const { accent } = useGradientAccent();
@@ -59,45 +60,25 @@ export default function TierListCard({
   const topEntries = getTopEntries(tierList);
   const previewEntries = topEntries;
 
-  const Surface = onNavigate ? InteractiveSurface : StaticSurface;
-  const surfaceProps = onNavigate
-    ? {
-        style: {
-          ...LINK_BLOCK_RESET_STYLE,
-          borderTop: `3px solid var(--mantine-color-${contentColor}-5)`,
-        },
-        onClick: onNavigate,
-        role: 'link' as const,
-        tabIndex: 0,
-        onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => {
-          // Enter/Space on an inner button or link must not navigate the card.
-          if (e.target !== e.currentTarget) return;
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            onNavigate();
-          }
-        },
-      }
-    : {
-        style: {
-          borderTop: `3px solid var(--mantine-color-${contentColor}-5)`,
-        },
-      };
+  const Surface = to ? InteractiveSurface : StaticSurface;
+  const surfaceProps = {
+    className: to ? 'dt-link-card' : undefined,
+    style: { borderTop: `3px solid var(--mantine-color-${contentColor}-5)` },
+  };
 
   return (
     <Surface component="div" p="md" {...surfaceProps}>
       <Stack gap="sm">
         <Group justify="space-between" align="flex-start" wrap="wrap" gap="xs">
-          <Text
-            fw={700}
-            size="md"
-            className="dt-link-text"
-            lineClamp={1}
-            style={{ minWidth: 0, flex: '1 1 160px' }}
-          >
+          <CardTitle to={to} style={{ minWidth: 0, flex: '1 1 160px' }}>
             {tierList.name || 'Untitled'}
-          </Text>
-          <Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
+          </CardTitle>
+          <Group
+            gap={4}
+            wrap="nowrap"
+            className="dt-link-card__above"
+            style={{ flexShrink: 0 }}
+          >
             {actions}
           </Group>
         </Group>
@@ -178,6 +159,7 @@ export default function TierListCard({
                     }))}
                   preferredByName={charMap}
                   byIdentity={characterByIdentity}
+                  portraitClassName="dt-link-card__above"
                   size={preview.subSize}
                   wrap="nowrap"
                   gap={preview.gap}

@@ -17,6 +17,9 @@ const dark: MantineColorsTuple = [
 
 export const theme = createTheme({
   primaryColor: 'violet',
+  // Picks black or white text per filled color so light fills (yellow, lime,
+  // gray) stay readable instead of always getting white text.
+  autoContrast: true,
   defaultRadius: 'md',
   fontFamily:
     '"Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',

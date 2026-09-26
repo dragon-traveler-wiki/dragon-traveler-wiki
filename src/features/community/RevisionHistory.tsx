@@ -1,13 +1,4 @@
-import {
-  Box,
-  Divider,
-  Group,
-  Loader,
-  Paper,
-  Stack,
-  Text,
-  Title,
-} from '@mantine/core';
+import { Box, Divider, Group, Paper, Stack, Text, Title } from '@mantine/core';
 import { useEffect, useMemo, useState } from 'react';
 import { IoCalendarOutline, IoTimeOutline } from 'react-icons/io5';
 import CollapsibleSectionCard from '@/components/ui/CollapsibleSectionCard';
@@ -75,8 +66,9 @@ export default function RevisionHistory({
     `${id}:${sorted.length}`,
   );
 
-  if (revisions === null) return <Loader size="xs" />;
-  if (revisions.length === 0) return null;
+  // Nothing to show while loading or if it was never edited; a placeholder
+  // would only appear and vanish for unedited items.
+  if (revisions === null || revisions.length === 0) return null;
 
   const visible = sorted.slice(offset, offset + pageSize);
 
