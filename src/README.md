@@ -140,7 +140,9 @@ read and delete its own items but the API rejects publish, edit, vote, and repor
 deletion and unlinking, so a suspension can't be dodged by starting over. The
 active suspension comes back on `GET /v1/auth/me` (shown via `SuspensionNotice`
 on the account page) and, for moderator viewers only, on `GET /v1/users/:id`.
-Every moderator action is written to the `moderation_actions` audit table and
+Moderators are managed from a user's profile page (`POST /v1/admin/users/:id/role`,
+immediate; people named in `MODERATOR_IDENTITIES` are permanent and can't be
+demoted). Every moderator action is written to the `moderation_actions` audit table and
 shown on the moderation page's Log tab; a moderator viewing a profile also sees
 that user's own history (`GET /v1/admin/actions?user=<id>`). Open reports are closed
 automatically whenever their item is dealt with (moderated from any tab, deleted by

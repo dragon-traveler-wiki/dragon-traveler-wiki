@@ -74,6 +74,9 @@ export interface PublicProfile {
   moderation?: {
     canSuspend: boolean;
     suspension: Suspension | null;
+    role: 'user' | 'moderator';
+    /** False for yourself and for people named in the MODERATOR_IDENTITIES setting. */
+    canChangeRole: boolean;
   };
 }
 

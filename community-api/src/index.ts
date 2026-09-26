@@ -2,7 +2,13 @@ import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
 import { HTTPException } from 'hono/http-exception';
 import { ZodError, z } from 'zod';
-import { deleteAccount, finishOAuth, logout, startOAuth } from './auth';
+import {
+  deleteAccount,
+  finishOAuth,
+  isModerator,
+  logout,
+  startOAuth,
+} from './auth';
 import { statusForModerationAction } from './moderation';
 import { purgeExpired } from './retention';
 import {
@@ -77,13 +83,33 @@ app.get('/v1/users/:id', async (c) => {
   if (!row) return c.json({ error: 'Not found' }, 404);
   const viewer = await getSessionUser(c);
   // Suspension details are only visible to moderators.
-  const moderation =
-    viewer?.role === 'moderator'
-      ? {
-          canSuspend: row.role !== 'moderator' && row.id !== viewer.id,
-          suspension: activeSuspension(row, Math.floor(Date.now() / 1000)),
-        }
-      : undefined;
+  let moderation:
+    | {
+        canSuspend: boolean;
+        suspension: ReturnType<typeof activeSuspension>;
+        role: 'user' | 'moderator';
+        canChangeRole: boolean;
+      }
+    | undefined;
+  if (viewer?.role === 'moderator') {
+    const identities = await c.env.DB.prepare(
+      'SELECT provider, provider_user_id FROM oauth_identities WHERE user_id = ?',
+    )
+      .bind(row.id)
+      .all<{ provider: Provider; provider_user_id: string }>();
+    moderation = {
+      canSuspend: row.role !== 'moderator' && row.id !== viewer.id,
+      suspension: activeSuspension(row, Math.floor(Date.now() / 1000)),
+      role: row.role,
+      // People named in MODERATOR_IDENTITIES are re-granted at every sign-in, so
+      // demoting them here would silently undo itself.
+      canChangeRole:
+        row.id !== viewer.id &&
+        !identities.results.some((identity) =>
+          isModerator(c.env, identity.provider, identity.provider_user_id),
+        ),
+    };
+  }
   const stats = await c.env.DB.prepare(
     `SELECT COALESCE(SUM(kind = 'team'), 0) AS teams,
             COALESCE(SUM(kind = 'tier_list'), 0) AS tier_lists,
@@ -1060,6 +1086,66 @@ app.post('/v1/admin/users/:id/suspend', async (c) => {
     );
   }
   await c.env.DB.batch(statements);
+  return c.json({ ok: true });
+});
+
+const RoleInput = z.object({ role: z.enum(['user', 'moderator']) });
+
+// Moderators are managed in-app; MODERATOR_IDENTITIES only bootstraps the first
+// ones (and can't be demoted here). The role is read on every request, so a
+// promotion or demotion takes effect immediately.
+app.post('/v1/admin/users/:id/role', async (c) => {
+  const moderator = await requireUser(c);
+  if (isResponse(moderator)) return moderator;
+  if (moderator.role !== 'moderator')
+    return c.json({ error: 'Forbidden' }, 403);
+  const limited = await rateLimit(c, moderator, 'moderate');
+  if (limited) return limited;
+  const input = RoleInput.parse(await c.req.json());
+  const targetId = c.req.param('id');
+  if (targetId === moderator.id)
+    return c.json({ error: 'You cannot change your own role' }, 400);
+  const target = await c.env.DB.prepare(
+    'SELECT role FROM users WHERE id = ? AND deleted_at IS NULL',
+  )
+    .bind(targetId)
+    .first<{ role: 'user' | 'moderator' }>();
+  if (!target) return c.json({ error: 'Not found' }, 404);
+  if (target.role === input.role) return c.json({ ok: true });
+  if (input.role === 'user') {
+    const identities = await c.env.DB.prepare(
+      'SELECT provider, provider_user_id FROM oauth_identities WHERE user_id = ?',
+    )
+      .bind(targetId)
+      .all<{ provider: Provider; provider_user_id: string }>();
+    if (
+      identities.results.some((identity) =>
+        isModerator(c.env, identity.provider, identity.provider_user_id),
+      )
+    )
+      return c.json(
+        {
+          error:
+            'This person is listed in MODERATOR_IDENTITIES; remove them from that setting to demote them.',
+        },
+        400,
+      );
+  }
+  const now = Math.floor(Date.now() / 1000);
+  await c.env.DB.batch([
+    c.env.DB.prepare(
+      'UPDATE users SET role = ?, updated_at = ? WHERE id = ?',
+    ).bind(input.role, now, targetId),
+    logAction(
+      c.env.DB,
+      moderator.id,
+      input.role === 'moderator' ? 'promote' : 'demote',
+      'user',
+      targetId,
+      '',
+      now,
+    ),
+  ]);
   return c.json({ ok: true });
 });
 

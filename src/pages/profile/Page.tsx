@@ -20,7 +20,11 @@ import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import EntityNotFound from '@/components/ui/EntityNotFound';
 import { useCharacterResolution } from '@/features/characters/hooks/use-character-resolution';
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
-import { getPublicProfile, unsuspendUser } from '@/features/community/api';
+import {
+  getPublicProfile,
+  setUserRole,
+  unsuspendUser,
+} from '@/features/community/api';
 import { useCommunityAuth } from '@/features/community/auth-context';
 import { toBuilderDraft } from '@/features/community/builder-edit';
 import CommunityActions from '@/features/community/CommunityActions';
@@ -50,6 +54,9 @@ export default function ProfilePage() {
   const [profileVersion, setProfileVersion] = useState(0);
   const [suspendOpen, setSuspendOpen] = useState(false);
   const [confirmLiftOpen, setConfirmLiftOpen] = useState(false);
+  const [pendingRole, setPendingRole] = useState<'user' | 'moderator' | null>(
+    null,
+  );
 
   // Bumping profileVersion refetches in place (after a suspension change), so
   // the page keeps its content and scroll position instead of reloading.
@@ -84,6 +91,28 @@ export default function ProfilePage() {
     } catch (error) {
       showErrorToast({
         title: 'Could not lift suspension',
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  };
+
+  const changeRole = async () => {
+    const role = pendingRole;
+    setPendingRole(null);
+    if (!csrfToken || !userId || !role) return;
+    try {
+      await setUserRole(userId, role, csrfToken);
+      showSuccessToast({
+        title: role === 'moderator' ? 'Moderator added' : 'Moderator removed',
+        message:
+          role === 'moderator'
+            ? 'They can now moderate content.'
+            : 'They no longer have moderator access.',
+      });
+      setProfileVersion((version) => version + 1);
+    } catch (error) {
+      showErrorToast({
+        title: 'Could not change role',
         message: error instanceof Error ? error.message : String(error),
       });
     }
@@ -140,6 +169,11 @@ export default function ProfilePage() {
             <CommunityStatsBadges stats={profile.stats} />
             {profile.moderation && (
               <Group gap="xs">
+                {profile.moderation.role === 'moderator' && (
+                  <Badge color="grape" variant="light">
+                    Moderator
+                  </Badge>
+                )}
                 {profile.moderation.suspension && (
                   <Badge color="red" variant="light">
                     {profile.moderation.suspension.permanent
@@ -168,6 +202,24 @@ export default function ProfilePage() {
                     </Button>
                   )
                 )}
+                {profile.moderation.canChangeRole && (
+                  <Button
+                    size="compact-sm"
+                    variant="light"
+                    color="grape"
+                    onClick={() =>
+                      setPendingRole(
+                        profile.moderation?.role === 'moderator'
+                          ? 'user'
+                          : 'moderator',
+                      )
+                    }
+                  >
+                    {profile.moderation.role === 'moderator'
+                      ? 'Remove moderator'
+                      : 'Make moderator'}
+                  </Button>
+                )}
               </Group>
             )}
           </Stack>
@@ -183,6 +235,25 @@ export default function ProfilePage() {
             teams.refresh();
             tierLists.refresh();
           }}
+        />
+        <ConfirmActionModal
+          opened={pendingRole !== null}
+          onCancel={() => setPendingRole(null)}
+          title={
+            pendingRole === 'moderator'
+              ? `Make ${profile.displayName} a moderator?`
+              : `Remove ${profile.displayName} as moderator?`
+          }
+          message={
+            pendingRole === 'moderator'
+              ? 'They will be able to hide and delete content, handle reports, suspend users, and appoint other moderators.'
+              : 'They will immediately lose moderator access.'
+          }
+          confirmLabel={
+            pendingRole === 'moderator' ? 'Make moderator' : 'Remove'
+          }
+          confirmColor={pendingRole === 'moderator' ? undefined : 'red'}
+          onConfirm={() => void changeRole()}
         />
         <ConfirmActionModal
           opened={confirmLiftOpen}

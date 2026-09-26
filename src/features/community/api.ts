@@ -282,6 +282,18 @@ export async function suspendUser(
   });
 }
 
+export async function setUserRole(
+  userId: string,
+  role: 'user' | 'moderator',
+  csrfToken: string,
+) {
+  await request(`/v1/admin/users/${encodeURIComponent(userId)}/role`, {
+    method: 'POST',
+    headers: { 'X-CSRF-Token': csrfToken },
+    body: JSON.stringify({ role }),
+  });
+}
+
 export async function unsuspendUser(userId: string, csrfToken: string) {
   await request(`/v1/admin/users/${encodeURIComponent(userId)}/unsuspend`, {
     method: 'POST',

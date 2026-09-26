@@ -19,18 +19,21 @@ Local D1 lives in `.wrangler/state` and is separate from production. Never pass
 production; the seed script refuses it. Use `http://localhost:8787/v1/auth/<provider>/callback`
 as the local OAuth redirect URLs.
 
-`npm run check` runs the typecheck and the (pure-logic) tests.
+`npm run check` runs the typecheck and all tests. The route tests (`tests/routes.test.ts`)
+boot the real request handler against a throwaway local D1 through wrangler's platform
+proxy (`tests/helpers/harness.ts`), with Turnstile and the game catalog stubbed, so they
+run offline in about 20 seconds.
 
 ## Configuration
 
-| Name                                                            | Kind                   | Notes                                                                            |
-| --------------------------------------------------------------- | ---------------------- | -------------------------------------------------------------------------------- |
-| `APP_ORIGIN`, `ALLOWED_ORIGINS`                                 | var (`wrangler.jsonc`) | Site origin(s) allowed by CORS and used for redirects                            |
-| `CATALOG_BASE_URL`                                              | var                    | Where published data is validated against (`<site>/data`)                        |
-| `SESSION_TTL_DAYS`                                              | var                    | Session lifetime                                                                 |
-| `MODERATOR_IDENTITIES`                                          | var                    | Comma list like `github:<id>,discord:<id>`; grants the moderator role at sign-in |
-| `GITHUB_CLIENT_ID` / `_SECRET`, `DISCORD_CLIENT_ID` / `_SECRET` | secret                 | OAuth apps (`read:user`, `identify`; no email is collected)                      |
-| `TURNSTILE_SECRET`                                              | secret                 | Cloudflare Turnstile siteverify secret                                           |
+| Name                                                            | Kind                   | Notes                                                                                                                                                                          |
+| --------------------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `APP_ORIGIN`, `ALLOWED_ORIGINS`                                 | var (`wrangler.jsonc`) | Site origin(s) allowed by CORS and used for redirects                                                                                                                          |
+| `CATALOG_BASE_URL`                                              | var                    | Where published data is validated against (`<site>/data`)                                                                                                                      |
+| `SESSION_TTL_DAYS`                                              | var                    | Session lifetime                                                                                                                                                               |
+| `MODERATOR_IDENTITIES`                                          | var                    | Comma list like `github:<id>,discord:<id>`; always moderators (granted at each sign-in, can't be demoted in-app). Everyone else is promoted or demoted from their profile page |
+| `GITHUB_CLIENT_ID` / `_SECRET`, `DISCORD_CLIENT_ID` / `_SECRET` | secret                 | OAuth apps (`read:user`, `identify`; no email is collected)                                                                                                                    |
+| `TURNSTILE_SECRET`                                              | secret                 | Cloudflare Turnstile siteverify secret                                                                                                                                         |
 
 Set secrets with `npx wrangler secret put <NAME>`. Changing a var or the
 moderator list needs a redeploy.
@@ -57,14 +60,14 @@ served from the `api.dtwiki.org` custom domain.
 All under `/v1`. Writes need the session cookie plus an `X-CSRF-Token` header;
 publish and report also need an `X-Turnstile-Token`.
 
-| Area          | Endpoints                                                                                                                                                                                          |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Auth          | `GET /auth/:provider/start` / `callback`, `GET /auth/me`, `POST /auth/logout`, `DELETE /auth/me`, `DELETE /auth/:provider/unlink`, `PATCH /auth/primary`                                           |
-| Content       | `GET/POST /teams`, `/tier-lists`; `GET/PATCH/DELETE /:collection/:id`; `GET /:collection/:id/revisions`                                                                                            |
-| Interaction   | `PUT/DELETE /:collection/:id/upvote`, `POST /:collection/:id/reports`                                                                                                                              |
-| Profiles      | `GET /users/:id`, `GET /me/items`, `GET/DELETE /me/reports`                                                                                                                                        |
-| Site settings | `GET /settings` (pinned reference tier list)                                                                                                                                                       |
-| Moderation    | `POST /:collection/:id/moderate`, `GET /admin/reports`, `PATCH /admin/reports/:id`, `POST /admin/users/:id/suspend` / `unsuspend`, `GET /admin/actions`, `PUT /admin/settings/reference-tier-list` |
+| Area          | Endpoints                                                                                                                                                                                                   |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auth          | `GET /auth/:provider/start` / `callback`, `GET /auth/me`, `POST /auth/logout`, `DELETE /auth/me`, `DELETE /auth/:provider/unlink`, `PATCH /auth/primary`                                                    |
+| Content       | `GET/POST /teams`, `/tier-lists`; `GET/PATCH/DELETE /:collection/:id`; `GET /:collection/:id/revisions`                                                                                                     |
+| Interaction   | `PUT/DELETE /:collection/:id/upvote`, `POST /:collection/:id/reports`                                                                                                                                       |
+| Profiles      | `GET /users/:id`, `GET /me/items`, `GET/DELETE /me/reports`                                                                                                                                                 |
+| Site settings | `GET /settings` (pinned reference tier list)                                                                                                                                                                |
+| Moderation    | `POST /:collection/:id/moderate`, `GET /admin/reports`, `PATCH /admin/reports/:id`, `POST /admin/users/:id/suspend` / `unsuspend` / `role`, `GET /admin/actions`, `PUT /admin/settings/reference-tier-list` |
 
 List endpoints take `limit` (max 50), `cursor`, `sort` (`top`/`new`), `q`, `owner`,
 and (moderators) `status=hidden`; the first page also returns `total`.
@@ -77,6 +80,10 @@ and (moderators) `status=hidden`; the first page also returns `total`.
   on publish, edit, vote, and report (`requireActiveUser`, `403` with `code: 'suspended'`).
   They also can't delete their account or unlink identities.
 - Every moderator action is written to `moderation_actions`.
+- Moderator status is read from the database on every request, so promoting or
+  demoting someone (`POST /admin/users/:id/role`, from their profile page) takes effect
+  immediately. You can't change your own role or demote someone listed in
+  `MODERATOR_IDENTITIES`.
 - Tests cover the pure logic (validation, cursors, suspensions, retention, auth
-  helpers). Route handlers aren't covered because `@cloudflare/vitest-pool-workers`
-  doesn't support the repo's Vitest version yet.
+  helpers) and the route handlers end to end: auth, publishing, listing, votes,
+  reports, moderation, suspensions, roles, and retention.

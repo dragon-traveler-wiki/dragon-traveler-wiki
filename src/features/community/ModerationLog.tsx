@@ -12,6 +12,8 @@ const ACTION_LABELS: Record<string, string> = {
   delete: 'Deleted',
   'dismiss-report': 'Dismissed report on',
   unsuspend: 'Lifted suspension of',
+  promote: 'Made moderator',
+  demote: 'Removed moderator',
   'hide-content': 'Hid all items of',
   'suspend-1d': 'Suspended (1 day)',
   'suspend-7d': 'Suspended (7 days)',
