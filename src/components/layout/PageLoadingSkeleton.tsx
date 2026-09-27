@@ -481,14 +481,14 @@ export function EventCardsLoading({
  * Approximate rendered heights of the community cards, so their skeletons
  * reserve the same space and the page doesn't jump when content arrives.
  */
-export const COMMUNITY_CARD_HEIGHT = {
+const COMMUNITY_CARD_HEIGHT = {
   team: 300,
   tierList: 230,
   report: 150,
   log: 84,
 } as const;
 
-export type CommunityCardKind = keyof typeof COMMUNITY_CARD_HEIGHT;
+type CommunityCardKind = keyof typeof COMMUNITY_CARD_HEIGHT;
 
 const COMMUNITY_CARD_LABEL: Record<CommunityCardKind, string> = {
   team: 'Loading teams',

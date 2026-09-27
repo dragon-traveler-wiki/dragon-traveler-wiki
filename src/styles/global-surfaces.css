@@ -3,7 +3,8 @@ html {
 }
 
 body {
-  background: radial-gradient(
+  background:
+    radial-gradient(
       circle at 20% -10%,
       var(--dt-surface-glow-a) 0%,
       transparent 34%

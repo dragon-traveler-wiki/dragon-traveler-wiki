@@ -275,12 +275,7 @@ export function getPortrait(
 }
 
 export type CharacterSkinAsset =
-  | 'portrait'
-  | 'full_body'
-  | 'card'
-  | 'scene'
-  | 'birth'
-  | 'loop';
+  'portrait' | 'full_body' | 'card' | 'scene' | 'birth' | 'loop';
 
 export function getCharacterSkinAsset(
   characterSlug: string,

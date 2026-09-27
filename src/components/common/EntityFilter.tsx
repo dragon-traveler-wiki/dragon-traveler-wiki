@@ -85,19 +85,15 @@ export default function EntityFilter({
             value={selected[group.key] ?? []}
             onChange={(val) => onChange?.(group.key, val)}
             size={isMobile ? 'md' : 'xs'}
-            options={group.options.map(
-              (option): FilterChipOption => ({
-                value: option,
-                label: (
-                  <Group gap={4} wrap="nowrap" align="center">
-                    {group.icon?.(option)}
-                    <span>
-                      {group.labelFn ? group.labelFn(option) : option}
-                    </span>
-                  </Group>
-                ),
-              }),
-            )}
+            options={group.options.map((option): FilterChipOption => ({
+              value: option,
+              label: (
+                <Group gap={4} wrap="nowrap" align="center">
+                  {group.icon?.(option)}
+                  <span>{group.labelFn ? group.labelFn(option) : option}</span>
+                </Group>
+              ),
+            }))}
           />
         </FilterSection>
       ))}

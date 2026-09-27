@@ -22,8 +22,10 @@ import {
 } from 'react';
 import { IoClose, IoSearch } from 'react-icons/io5';
 
-export interface FilterSearchInputProps
-  extends Omit<TextInputProps, 'onChange'> {
+export interface FilterSearchInputProps extends Omit<
+  TextInputProps,
+  'onChange'
+> {
   iconSize?: number;
   /** Called with the search string after debounce. Use instead of onChange. */
   onSearch?: (value: string) => void;

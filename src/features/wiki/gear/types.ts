@@ -1,12 +1,7 @@
 import type { Quality } from '@/types/quality';
 
 export type GearType =
-  | 'Headgear'
-  | 'Chestplate'
-  | 'Bracers'
-  | 'Boots'
-  | 'Weapon'
-  | 'Accessory';
+  'Headgear' | 'Chestplate' | 'Bracers' | 'Boots' | 'Weapon' | 'Accessory';
 
 export interface GearSetBonus {
   quantity: number;

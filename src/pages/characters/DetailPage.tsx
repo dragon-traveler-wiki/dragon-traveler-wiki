@@ -167,14 +167,14 @@ export default function CharacterPage() {
   );
   const hasRightColumnInformation = Boolean(
     character.lore ||
-      character.summary ||
-      character.talent ||
-      character.skills.length > 0 ||
-      (character.divinity?.length ?? 0) > 0 ||
-      recommendedGearLoadouts.length > 0 ||
-      recommendedSubclassEntries.length > 0 ||
-      linkedNoblePhantasms.length > 0 ||
-      (selectedTierListName && tierLabel && tierListCharacterNote),
+    character.summary ||
+    character.talent ||
+    character.skills.length > 0 ||
+    (character.divinity?.length ?? 0) > 0 ||
+    recommendedGearLoadouts.length > 0 ||
+    recommendedSubclassEntries.length > 0 ||
+    linkedNoblePhantasms.length > 0 ||
+    (selectedTierListName && tierLabel && tierListCharacterNote),
   );
 
   return (

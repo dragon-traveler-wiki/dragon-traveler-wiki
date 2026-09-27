@@ -8,8 +8,10 @@ import {
   type VideoHTMLAttributes,
 } from 'react';
 
-export interface SafeVideoProps
-  extends Omit<VideoHTMLAttributes<HTMLVideoElement>, 'children'> {
+export interface SafeVideoProps extends Omit<
+  VideoHTMLAttributes<HTMLVideoElement>,
+  'children'
+> {
   src?: string;
 }
 

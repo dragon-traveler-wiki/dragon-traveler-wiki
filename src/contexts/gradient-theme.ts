@@ -13,14 +13,7 @@ export type GradientPalette =
 
 export interface GradientPaletteAccents {
   primary:
-    | 'violet'
-    | 'teal'
-    | 'orange'
-    | 'green'
-    | 'red'
-    | 'blue'
-    | 'pink'
-    | 'yellow';
+    'violet' | 'teal' | 'orange' | 'green' | 'red' | 'blue' | 'pink' | 'yellow';
   secondary:
     | 'grape'
     | 'cyan'

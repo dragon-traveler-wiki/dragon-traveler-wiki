@@ -25,8 +25,9 @@ interface BaseFilterGroupOptions {
   label?: string;
 }
 
-interface OrderedFilterGroupOptions<T extends string>
-  extends BaseFilterGroupOptions {
+interface OrderedFilterGroupOptions<
+  T extends string,
+> extends BaseFilterGroupOptions {
   options?: readonly T[];
 }
 

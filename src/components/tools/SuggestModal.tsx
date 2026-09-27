@@ -34,12 +34,7 @@ import {
 } from 'react-icons/io5';
 
 export type FieldType =
-  | 'text'
-  | 'textarea'
-  | 'select'
-  | 'boolean'
-  | 'number'
-  | 'url';
+  'text' | 'textarea' | 'select' | 'boolean' | 'number' | 'url';
 
 export interface SelectOption {
   value: string;
