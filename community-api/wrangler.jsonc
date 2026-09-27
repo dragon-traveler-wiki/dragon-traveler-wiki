@@ -11,8 +11,10 @@
     "ALLOWED_ORIGINS": "https://dtwiki.org",
     "CATALOG_BASE_URL": "https://dtwiki.org/data",
     "SESSION_TTL_DAYS": "30",
-    "MODERATOR_IDENTITIES": "",
+    "MODERATOR_IDENTITIES": "github:48600472,discord:166928679467745282",
   },
+  // The API is served from its own hostname on the dtwiki.org zone.
+  "routes": [{ "pattern": "api.dtwiki.org", "custom_domain": true }],
   "d1_databases": [
     {
       "binding": "DB",
