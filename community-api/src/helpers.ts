@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import type { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+import { parseCookies } from './security';
 import type { CommunityKind, Env, SessionUser } from './types';
 
 /** Types and helpers shared by the route modules. */
@@ -12,6 +13,73 @@ export type App = Hono<{ Bindings: Env }>;
 export type ApiContext = Context<{ Bindings: Env }>;
 
 export type ActionTarget = 'team' | 'tier_list' | 'user' | 'report' | 'setting';
+
+// TypeScript's DOM lib (pulled in for fetch/Request/Response typings) declares a
+// `CacheStorage` interface with no `default` property; the Workers-only default
+// cache namespace only exists in @cloudflare/workers-types, which doesn't merge
+// cleanly with lib.dom's interface of the same name. Cast through unknown to get
+// at it rather than fighting the type declarations. Looked up lazily (not at
+// module load) so importing this file outside a Workers runtime — e.g. plain
+// Node-based unit tests for the pure logic in this module — doesn't crash on
+// a `caches` global that doesn't exist there.
+function edgeCache(): Cache {
+  return (caches as unknown as { default: Cache }).default;
+}
+
+/**
+ * Serves a GET route from Cloudflare's edge cache when the request has no
+ * session cookie, so repeat anonymous requests for a public listing or
+ * detail page never reach the Worker or D1. A request that carries a session
+ * cookie (valid or not) always runs fresh and is never read from or written
+ * to the cache, so a signed-in viewer's own state (upvote/ownership, or a
+ * moderator-only field) can never leak into a cached response shared with
+ * anyone else.
+ *
+ * The cache is best-effort: if the runtime's Cache API throws or is
+ * unavailable, the handler still runs normally.
+ */
+export async function withEdgeCache(
+  c: ApiContext,
+  ttlSeconds: number,
+  handler: () => Promise<Response>,
+): Promise<Response> {
+  if (parseCookies(c.req.header('Cookie')).dt_session !== undefined) {
+    return handler();
+  }
+
+  const cacheKey = new Request(c.req.url, { method: 'GET' });
+  try {
+    const cached = await edgeCache().match(cacheKey);
+    if (cached) return cached;
+  } catch {
+    // Fall through and serve fresh.
+  }
+
+  const response = await handler();
+  if (response.ok) {
+    const body = await response.clone().text();
+    const cacheable = new Response(body, response);
+    cacheable.headers.set('Cache-Control', `public, max-age=${ttlSeconds}`);
+    try {
+      // The put() promise is chained with its own .catch() (rather than
+      // relying only on this try/catch) so a rejection doesn't surface as an
+      // unhandled rejection once handed to waitUntil; the try/catch itself
+      // covers edgeCache() throwing synchronously (e.g. no `caches` global in
+      // this runtime, such as the local test harness).
+      c.executionCtx.waitUntil(
+        edgeCache()
+          .put(cacheKey, cacheable.clone())
+          .catch(() => {
+            // Caching is an optimization; a failure here must not fail the request.
+          }),
+      );
+    } catch {
+      // Caching is an optimization; a failure here must not fail the request.
+    }
+    return cacheable;
+  }
+  return response;
+}
 
 /** Audit-log row for a moderator action; include it in the action's own batch. */
 export function logAction(

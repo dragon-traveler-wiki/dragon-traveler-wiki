@@ -1,5 +1,6 @@
 import {
   COLLECTIONS,
+  withEdgeCache,
   decodeCursor,
   encodeCursor,
   presentItem,
@@ -131,9 +132,13 @@ async function getItem(c: ApiContext, kind: CommunityKind, id: string) {
 
 export function registerItemRoutes(app: App) {
   for (const collection of COLLECTIONS) {
-    app.get(`/v1/${collection}`, (c) => listItems(c, routeKind(collection)));
+    app.get(`/v1/${collection}`, (c) =>
+      withEdgeCache(c, 30, () => listItems(c, routeKind(collection))),
+    );
     app.get(`/v1/${collection}/:id`, (c) =>
-      getItem(c, routeKind(collection), c.req.param('id')),
+      withEdgeCache(c, 30, () =>
+        getItem(c, routeKind(collection), c.req.param('id')),
+      ),
     );
     app.post(`/v1/${collection}`, async (c) => {
       const user = await requireActiveUser(c);

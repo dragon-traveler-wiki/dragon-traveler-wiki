@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { logAction, rateLimit, readJson } from '../helpers';
+import { logAction, rateLimit, readJson, withEdgeCache } from '../helpers';
 import type { App } from '../helpers';
 import { isResponse, requireUser } from '../security';
 import { nowSeconds } from '../time';
@@ -10,16 +10,18 @@ export function registerSettingsRoutes(app: App) {
   // The moderator-pinned character tier list used as the default "Tier List
   // Reference". Returns null if nothing is pinned or the pinned list is no
   // longer published, so a deleted or hidden list never lingers as the default.
-  app.get('/v1/settings', async (c) => {
-    const row = await c.env.DB.prepare(
-      `SELECT i.id FROM site_settings s
+  app.get('/v1/settings', (c) =>
+    withEdgeCache(c, 60, async () => {
+      const row = await c.env.DB.prepare(
+        `SELECT i.id FROM site_settings s
        JOIN community_items i ON i.id = s.value
       WHERE s.key = ? AND i.kind = 'tier_list' AND i.status = 'published'`,
-    )
-      .bind(REFERENCE_TIER_LIST_KEY)
-      .first<{ id: string }>();
-    return c.json({ referenceTierListId: row?.id ?? null });
-  });
+      )
+        .bind(REFERENCE_TIER_LIST_KEY)
+        .first<{ id: string }>();
+      return c.json({ referenceTierListId: row?.id ?? null });
+    }),
+  );
 
   app.put('/v1/admin/settings/reference-tier-list', async (c) => {
     const user = await requireUser(c);

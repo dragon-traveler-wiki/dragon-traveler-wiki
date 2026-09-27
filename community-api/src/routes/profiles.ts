@@ -1,5 +1,5 @@
 import { isModerator } from '../auth';
-import { presentItem } from '../helpers';
+import { presentItem, withEdgeCache } from '../helpers';
 import type { App, ItemRow } from '../helpers';
 import { getSessionUser, isResponse, requireUser } from '../security';
 import { activeSuspension } from '../suspension';
@@ -7,73 +7,75 @@ import type { Provider } from '../types';
 import { nowSeconds } from '../time';
 
 export function registerProfileRoutes(app: App) {
-  app.get('/v1/users/:id', async (c) => {
-    const row = await c.env.DB.prepare(
-      `SELECT id, display_name, avatar_url, role, suspended_until, suspension_permanent,
+  app.get('/v1/users/:id', (c) =>
+    withEdgeCache(c, 60, async () => {
+      const row = await c.env.DB.prepare(
+        `SELECT id, display_name, avatar_url, role, suspended_until, suspension_permanent,
             suspension_reason FROM users WHERE id = ? AND deleted_at IS NULL`,
-    )
-      .bind(c.req.param('id'))
-      .first<{
-        id: string;
-        display_name: string;
-        avatar_url: string | null;
-        role: 'user' | 'moderator';
-        suspended_until: number | null;
-        suspension_permanent: number;
-        suspension_reason: string;
-      }>();
-    if (!row) return c.json({ error: 'Not found' }, 404);
-    const viewer = await getSessionUser(c);
-    // Suspension details are only visible to moderators.
-    let moderation:
-      | {
-          canSuspend: boolean;
-          suspension: ReturnType<typeof activeSuspension>;
-          role: 'user' | 'moderator';
-          canChangeRole: boolean;
-        }
-      | undefined;
-    if (viewer?.role === 'moderator') {
-      const identities = await c.env.DB.prepare(
-        'SELECT provider, provider_user_id FROM oauth_identities WHERE user_id = ?',
       )
-        .bind(row.id)
-        .all<{ provider: Provider; provider_user_id: string }>();
-      moderation = {
-        canSuspend: row.role !== 'moderator' && row.id !== viewer.id,
-        suspension: activeSuspension(row, nowSeconds()),
-        role: row.role,
-        // People named in MODERATOR_IDENTITIES are re-granted at every sign-in, so
-        // demoting them here would silently undo itself.
-        canChangeRole:
-          row.id !== viewer.id &&
-          !identities.results.some((identity) =>
-            isModerator(c.env, identity.provider, identity.provider_user_id),
-          ),
-      };
-    }
-    const stats = await c.env.DB.prepare(
-      `SELECT COALESCE(SUM(kind = 'team'), 0) AS teams,
+        .bind(c.req.param('id'))
+        .first<{
+          id: string;
+          display_name: string;
+          avatar_url: string | null;
+          role: 'user' | 'moderator';
+          suspended_until: number | null;
+          suspension_permanent: number;
+          suspension_reason: string;
+        }>();
+      if (!row) return c.json({ error: 'Not found' }, 404);
+      const viewer = await getSessionUser(c);
+      // Suspension details are only visible to moderators.
+      let moderation:
+        | {
+            canSuspend: boolean;
+            suspension: ReturnType<typeof activeSuspension>;
+            role: 'user' | 'moderator';
+            canChangeRole: boolean;
+          }
+        | undefined;
+      if (viewer?.role === 'moderator') {
+        const identities = await c.env.DB.prepare(
+          'SELECT provider, provider_user_id FROM oauth_identities WHERE user_id = ?',
+        )
+          .bind(row.id)
+          .all<{ provider: Provider; provider_user_id: string }>();
+        moderation = {
+          canSuspend: row.role !== 'moderator' && row.id !== viewer.id,
+          suspension: activeSuspension(row, nowSeconds()),
+          role: row.role,
+          // People named in MODERATOR_IDENTITIES are re-granted at every sign-in, so
+          // demoting them here would silently undo itself.
+          canChangeRole:
+            row.id !== viewer.id &&
+            !identities.results.some((identity) =>
+              isModerator(c.env, identity.provider, identity.provider_user_id),
+            ),
+        };
+      }
+      const stats = await c.env.DB.prepare(
+        `SELECT COALESCE(SUM(kind = 'team'), 0) AS teams,
             COALESCE(SUM(kind = 'tier_list'), 0) AS tier_lists,
             COALESCE(SUM(score), 0) AS upvotes
        FROM community_items WHERE owner_user_id = ? AND status = 'published'`,
-    )
-      .bind(row.id)
-      .first<{ teams: number; tier_lists: number; upvotes: number }>();
-    return c.json({
-      user: {
-        id: row.id,
-        displayName: row.display_name,
-        avatarUrl: row.avatar_url,
-        stats: {
-          teams: stats?.teams ?? 0,
-          tierLists: stats?.tier_lists ?? 0,
-          upvotes: stats?.upvotes ?? 0,
+      )
+        .bind(row.id)
+        .first<{ teams: number; tier_lists: number; upvotes: number }>();
+      return c.json({
+        user: {
+          id: row.id,
+          displayName: row.display_name,
+          avatarUrl: row.avatar_url,
+          stats: {
+            teams: stats?.teams ?? 0,
+            tierLists: stats?.tier_lists ?? 0,
+            upvotes: stats?.upvotes ?? 0,
+          },
+          moderation,
         },
-        moderation,
-      },
-    });
-  });
+      });
+    }),
+  );
 
   app.get('/v1/me/items', async (c) => {
     const user = await getSessionUser(c);
