@@ -13,6 +13,7 @@ import {
   Text,
 } from '@mantine/core';
 import { useState } from 'react';
+import { Link } from 'react-router';
 import {
   IoBulb,
   IoChevronDown,
@@ -140,6 +141,27 @@ export default function Footer() {
                   GameKee Wiki
                 </Anchor>
               </Text>
+              <Group gap={4} justify="center">
+                <Anchor
+                  component={Link}
+                  to="/community-guidelines"
+                  size="xs"
+                  c={accentColor}
+                >
+                  Community Guidelines
+                </Anchor>
+                <Text size="xs" c="dimmed">
+                  •
+                </Text>
+                <Anchor
+                  component={Link}
+                  to="/privacy"
+                  size="xs"
+                  c={accentColor}
+                >
+                  Privacy Policy
+                </Anchor>
+              </Group>
             </Stack>
           </Collapse>
         </Stack>

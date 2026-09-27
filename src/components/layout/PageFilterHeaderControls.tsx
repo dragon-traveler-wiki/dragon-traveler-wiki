@@ -14,6 +14,8 @@ interface PageFilterHeaderControlsProps {
   buttonLabel?: string;
   children?: ReactNode;
   sticky?: boolean;
+  /** Extra controls rendered before the view toggle, e.g. a sort select. */
+  extraControls?: ReactNode;
 }
 
 export default function PageFilterHeaderControls({
@@ -25,6 +27,7 @@ export default function PageFilterHeaderControls({
   buttonLabel = 'Filters',
   children,
   sticky = false,
+  extraControls,
 }: PageFilterHeaderControlsProps) {
   return (
     <Box
@@ -43,6 +46,7 @@ export default function PageFilterHeaderControls({
       }
     >
       <Group gap="xs" justify={sticky ? 'flex-end' : undefined}>
+        {extraControls}
         <ViewToggle viewMode={viewMode} onChange={onViewModeChange} />
         <FilterPopoverButton
           filterCount={filterCount}

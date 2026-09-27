@@ -104,3 +104,38 @@
     box-shadow: none;
   }
 }
+
+/* Stretched-link cards: the title is a real link whose ::after covers the whole
+   card, so the card is clickable without a role="link" container holding other
+   interactive elements. Anything that must stay clickable inside the card
+   (actions, author link, portraits) opts in with .dt-link-card__above. */
+.dt-link-card {
+  position: relative;
+}
+
+.dt-link-card__link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.dt-link-card__link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: 0;
+}
+
+.dt-link-card__link:focus-visible {
+  outline: none;
+}
+
+.dt-link-card:has(.dt-link-card__link:focus-visible) {
+  outline: 2px solid var(--mantine-primary-color-filled);
+  outline-offset: 2px;
+}
+
+.dt-link-card__above {
+  position: relative;
+  z-index: 1;
+}

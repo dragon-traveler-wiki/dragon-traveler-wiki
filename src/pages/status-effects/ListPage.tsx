@@ -19,7 +19,7 @@ import ListPageHeader from '@/components/layout/ListPageHeader';
 import ListPageShell from '@/components/layout/ListPageShell';
 import { ViewModeLoading } from '@/components/layout/PageLoadingSkeleton';
 import ExportButton from '@/components/tools/ExportButton';
-import SuggestModal, { type FieldDef } from '@/components/tools/SuggestModal';
+import DataCorrectionButton from '@/components/tools/DataCorrectionButton';
 import { STATE_COLOR, STATE_ORDER } from '@/constants/status-effect-colors';
 import { getMinWidthStyle } from '@/constants/styles';
 import { StaticSurface } from '@/components/ui/Surface';
@@ -33,42 +33,6 @@ import {
 import { useFilteredPageData, useSearchParamFilter } from '@/hooks';
 import type { StatusEffectType } from '@/features/wiki/status-effects/types';
 import { getLatestTimestamp } from '@/utils';
-
-const STATUS_EFFECT_FIELDS: FieldDef[] = [
-  {
-    name: 'name',
-    label: 'Name',
-    type: 'text',
-    required: true,
-    placeholder: 'Status effect name',
-  },
-  {
-    name: 'type',
-    label: 'Type',
-    type: 'select',
-    required: true,
-    options: [...STATE_ORDER],
-  },
-  {
-    name: 'effect',
-    label: 'Effect',
-    type: 'textarea',
-    required: true,
-    placeholder: 'Describe the effect',
-  },
-  {
-    name: 'remark',
-    label: 'Remark (optional)',
-    type: 'textarea',
-    placeholder: 'Additional notes',
-  },
-  {
-    name: 'icon',
-    label: 'Has Icon',
-    type: 'boolean',
-    description: 'Check if this status effect has a dedicated icon file',
-  },
-];
 
 export default function StatusEffects() {
   const { data: effects, loading, error, retry } = useStatusEffects();
@@ -125,12 +89,7 @@ export default function StatusEffects() {
         <ListPageHeader title="Status Effects" timestamp={mostRecentUpdate}>
           <Group gap="xs">
             <ExportButton data={effects} filename="status-effects.json" />
-            <SuggestModal
-              buttonLabel="Suggest"
-              modalTitle="Suggest a New Status Effect"
-              issueTitle="[Status Effect] New status effect suggestion"
-              fields={STATUS_EFFECT_FIELDS}
-            />
+            <DataCorrectionButton entityType="status effect" />
           </Group>
         </ListPageHeader>
 
@@ -191,7 +150,7 @@ export default function StatusEffects() {
                       ? getStatusEffectIcon(effect.slug, effect.type)
                       : undefined;
                   return (
-                    <StaticSurface key={effect.name} p="sm">
+                    <StaticSurface key={effect.slug} p="sm">
                       <Stack gap="xs">
                         <Group gap="sm" wrap="nowrap">
                           <SafeImage
@@ -261,7 +220,7 @@ export default function StatusEffects() {
                           ? getStatusEffectIcon(effect.slug, effect.type)
                           : undefined;
                       return (
-                        <Table.Tr key={effect.name}>
+                        <Table.Tr key={effect.slug}>
                           <Table.Td>
                             <SafeImage
                               src={iconSrc}

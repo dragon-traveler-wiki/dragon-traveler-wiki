@@ -1,10 +1,13 @@
 ﻿import SafeImage from '@/components/ui/SafeImage';
+import type { ReactNode } from 'react';
 import { getArtifactIcon } from '@/assets';
 import { FACTION_WYRM_MAP } from '@/assets';
 import LastUpdated from '@/components/common/LastUpdated';
 import Breadcrumbs from '@/components/layout/Breadcrumbs';
 import RichText from '@/components/common/RichText';
 import { FACTION_COLOR } from '@/constants/faction-colors';
+import AuthorLink from '@/features/community/AuthorLink';
+import { getDisplayAuthor } from '@/features/community/display-author';
 import {
   getContentTypeColor,
   normalizeContentType,
@@ -42,7 +45,7 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core';
-import { IoCreate, IoTrash } from 'react-icons/io5';
+import { IoCreate, IoDownload, IoTrash } from 'react-icons/io5';
 import { Link } from 'react-router';
 
 export function TeamHeroSection({
@@ -53,7 +56,11 @@ export function TeamHeroSection({
   isDark,
   tooltipProps,
   onRequestEdit,
+  onExportAsImage,
+  exporting = false,
   onRequestDelete,
+  bylineActions,
+  ownerActions,
 }: {
   team: Team;
   factionInfo: Faction | null;
@@ -62,10 +69,17 @@ export function TeamHeroSection({
   isDark: boolean;
   tooltipProps: ReturnType<typeof useMobileTooltip>;
   onRequestEdit: () => void;
+  onExportAsImage: () => void;
+  exporting?: boolean;
   onRequestDelete?: () => void;
+  /** Upvote/report controls shown beside the byline on public detail pages. */
+  bylineActions?: ReactNode;
+  /** Extra owner-only actions (e.g. delete) shown next to Edit. */
+  ownerActions?: ReactNode;
 }) {
   const { accent } = useGradientAccent();
   const factionColor = FACTION_COLOR[team.faction];
+  const displayAuthor = getDisplayAuthor(team);
 
   return (
     <Box style={DETAIL_HERO_WRAPPER_STYLES}>
@@ -88,8 +102,19 @@ export function TeamHeroSection({
                 leftSection={<IoCreate size={14} />}
                 onClick={onRequestEdit}
               >
-                Edit Team
+                {team.community && !team.community.viewerOwns
+                  ? 'Remix Team'
+                  : 'Edit Team'}
               </Button>
+              <Button
+                variant="light"
+                leftSection={<IoDownload size={14} />}
+                loading={exporting}
+                onClick={onExportAsImage}
+              >
+                Export Image
+              </Button>
+              {ownerActions}
               {onRequestDelete && (
                 <Button
                   variant="light"
@@ -124,13 +149,17 @@ export function TeamHeroSection({
                 {team.name}
               </Title>
               <Group gap="sm" align="center">
-                <Text size="sm" c="dimmed">
-                  by{' '}
-                  <Text span className="dt-link-text" inherit>
-                    {team.author}
+                {displayAuthor && (
+                  <Text size="sm" c="dimmed">
+                    by{' '}
+                    <AuthorLink
+                      author={team.community?.author}
+                      fallback={team.author}
+                    />
                   </Text>
-                </Text>
+                )}
                 <LastUpdated timestamp={team.last_updated} />
+                {bylineActions}
               </Group>
               <Group gap="sm" mt={4}>
                 <FactionTag faction={team.faction} size="lg" />

@@ -1,19 +1,20 @@
-import type { ChangesFile } from '@/types/changes';
 import type { TierList } from '@/features/tier-list/types';
-import { useLocalePath, useLocaleChangesPath } from '@/hooks/use-locale-path';
-import { useDataFetch } from '@/hooks/use-data-fetch';
-import { parseObjectArray, parseObjectRecord } from '@/utils/data-validation';
+import {
+  useCommunityItem,
+  useCommunityItems,
+  useCommunityItemsFull,
+  type CommunityItemsOptions,
+} from '@/features/community/hooks';
 
-export function useTierLists() {
-  const path = useLocalePath('tier-lists.json');
-  return useDataFetch<TierList[]>(path, [], parseObjectArray<TierList>);
+export function useTierLists(options: CommunityItemsOptions = {}) {
+  return useCommunityItems<TierList>('tier_list', options);
 }
 
-export function useTierListChanges() {
-  const path = useLocaleChangesPath('tier-lists.json');
-  return useDataFetch<ChangesFile>(
-    path,
-    {},
-    parseObjectRecord<ChangesFile[string]>,
-  );
+/** For callers needing the whole catalog in memory (e.g. quick search), not a browse page. */
+export function useTierListsFull() {
+  return useCommunityItemsFull<TierList>('tier_list');
+}
+
+export function useTierList(id: string | null) {
+  return useCommunityItem<TierList>('tier_list', id);
 }

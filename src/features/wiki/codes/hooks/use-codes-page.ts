@@ -126,7 +126,6 @@ export function useCodesPage(codes: Code[]) {
     pageSize,
     JSON.stringify({ search, view, tab }),
   );
-  useEffect(() => setPage(1), [pageSize, setPage]);
   const unclaimedRewards = useMemo(
     () =>
       aggregateCodeRewards(tabCodes.filter(({ code }) => !redeemed.has(code))),

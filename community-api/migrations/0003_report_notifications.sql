@@ -1,0 +1,1 @@
+ALTER TABLE users ADD COLUMN reports_seen_at INTEGER NOT NULL DEFAULT 0;

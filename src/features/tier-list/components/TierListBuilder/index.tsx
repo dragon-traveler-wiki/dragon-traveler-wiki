@@ -19,6 +19,7 @@ import {
   saveTierList,
 } from '@/features/tier-list/saved-tier-lists';
 import type { TierList, TierListEntityType } from '@/features/tier-list/types';
+import PublishModal from '@/features/community/PublishModal';
 import NoblePhantasmFilter from '@/features/wiki/noble-phantasms/components/NoblePhantasmFilter';
 import {
   EMPTY_NOBLE_PHANTASM_FILTERS,
@@ -37,8 +38,6 @@ import {
   DARK_BACKGROUND,
   LIGHT_BACKGROUND,
 } from '@/utils/export-image';
-import { buildSuggestionIssueUrls } from '@/utils/github-issues';
-import { showWarningToast } from '@/utils/toast';
 import {
   DndContext,
   DragOverlay,
@@ -84,6 +83,7 @@ export default function TierListBuilder({
   const { accent } = useGradientAccent();
   const [pasteModalOpened, { open: openPasteModal, close: closePasteModal }] =
     useDisclosure(false);
+  const [publishOpened, setPublishOpened] = useState(false);
   const [
     clearConfirmOpened,
     { open: openClearConfirm, close: closeClearConfirm },
@@ -141,7 +141,7 @@ export default function TierListBuilder({
     confirmOverwrite,
     cancelOverwrite,
   } = useSavedBuilderItem({
-    item: tierListData,
+    item: { ...tierListData, community: initialData?.community },
     entityLabel: 'tier list',
     collectionLabel: 'My Saved Tier Lists',
     hasSavedItem: hasSavedTierList,
@@ -175,32 +175,6 @@ export default function TierListBuilder({
     [characterBySlug, noblePhantasmFilters, unrankedEntities],
   );
   const noblePhantasmFilterCount = countActiveFilters(noblePhantasmFilters);
-
-  const { issueUrl: tierListIssueUrl, emptyIssueUrl: tierListEmptyIssueUrl } =
-    useMemo(
-      () =>
-        buildSuggestionIssueUrls({
-          title: '[Tier List] New tier list suggestion',
-          json,
-          entityType: 'tier list',
-        }),
-      [json],
-    );
-
-  function handleSubmitSuggestion() {
-    if (!tierListIssueUrl) {
-      window.open(tierListEmptyIssueUrl, '_blank', 'noopener,noreferrer');
-      showWarningToast({
-        title: 'Tier list JSON is too large',
-        message:
-          'Please copy the JSON using the Copy JSON button and paste it into the GitHub issue body.',
-        autoClose: 8000,
-      });
-      return;
-    }
-
-    window.open(tierListIssueUrl, '_blank', 'noopener,noreferrer');
-  }
 
   useEffect(() => {
     if (!isCapturing) return;
@@ -262,7 +236,7 @@ export default function TierListBuilder({
             onSave={requestSave}
             onSort={handleSort}
             onExport={() => setIsCapturing(true)}
-            onSubmit={handleSubmitSuggestion}
+            onSubmit={() => setPublishOpened(true)}
             onClear={openClearConfirm}
           />
 
@@ -524,6 +498,14 @@ export default function TierListBuilder({
           </Box>
         </Box>
       )}
+      <PublishModal
+        opened={publishOpened}
+        onClose={() => setPublishOpened(false)}
+        kind="tier_list"
+        payload={tierListData}
+        publicationId={initialData?.community?.id}
+        onPublished={() => window.location.assign('/tier-list')}
+      />
     </>
   );
 }

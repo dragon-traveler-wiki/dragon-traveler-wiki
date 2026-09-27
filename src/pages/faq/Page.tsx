@@ -16,12 +16,16 @@ import {
 } from '@mantine/core';
 import type { IconType } from 'react-icons';
 import {
+  IoFlagOutline,
   IoHelpCircleOutline,
   IoInformationCircleOutline,
   IoLinkOutline,
   IoOpenOutline,
   IoPeople,
+  IoPersonOutline,
   IoSearch,
+  IoShieldCheckmarkOutline,
+  IoThumbsUpOutline,
   IoTicketOutline,
   IoTrophyOutline,
 } from 'react-icons/io5';
@@ -246,11 +250,10 @@ const FAQ_SECTIONS: FAQSection[] = [
         question: 'Can I suggest edits or report incorrect data?',
         answer: (
           <>
-            Yes. Visit{' '}
-            <Anchor component={Link} to="/toolbox/useful-links">
-              Useful Links
-            </Anchor>{' '}
-            for project/community channels to submit corrections and additions.
+            Use the Report issue button on mined catalog pages for corrections.
+            Codes and useful links still accept suggestions. For publishing your
+            own teams and tier lists, see the Community Publishing section
+            below.
           </>
         ),
         icon: IoLinkOutline,
@@ -291,6 +294,113 @@ const FAQ_SECTIONS: FAQSection[] = [
         ),
         icon: IoLinkOutline,
         color: 'indigo',
+      },
+    ],
+  },
+  {
+    title: 'Community Publishing',
+    description: 'Publishing, voting, reporting, and managing your account.',
+    items: [
+      {
+        question: 'How do I publish a team or tier list?',
+        answer: (
+          <>
+            Build it in the{' '}
+            <Anchor component={Link} to="/teams">
+              Teams
+            </Anchor>{' '}
+            or{' '}
+            <Anchor component={Link} to="/tier-list">
+              Tier List
+            </Anchor>{' '}
+            builder, then hit Publish. You'll need to sign in with Discord or
+            GitHub first — publishing is immediate, and you can edit or delete
+            it later. See the{' '}
+            <Anchor component={Link} to="/community-guidelines">
+              Community Guidelines
+            </Anchor>{' '}
+            for what's expected.
+          </>
+        ),
+        icon: IoPeople,
+        color: 'blue',
+      },
+      {
+        question: 'How does voting and reporting work?',
+        answer: (
+          <>
+            Any published team or tier list can be upvoted once per account (you
+            can't vote on your own). Use Report on anything that breaks the
+            Community Guidelines — spam, broken data, or abusive content — and a
+            moderator will review it.
+          </>
+        ),
+        icon: IoThumbsUpOutline,
+        color: 'teal',
+      },
+      {
+        question: 'What happens to something I report?',
+        answer: (
+          <>
+            A moderator reviews it and may dismiss it, hide it, or remove it.
+            You can check the status and any moderator notes on your{' '}
+            <Anchor component={Link} to="/account">
+              account page
+            </Anchor>
+            , which also shows an unread badge when one of your reports gets
+            resolved.
+          </>
+        ),
+        icon: IoFlagOutline,
+        color: 'red',
+      },
+      {
+        question: 'Can I link both Discord and GitHub to one account?',
+        answer: (
+          <>
+            Yes — link both from your{' '}
+            <Anchor component={Link} to="/account">
+              account page
+            </Anchor>
+            , and choose which one is your primary identity (its name and avatar
+            are what's shown publicly). You can unlink either one as long as the
+            other stays linked, or delete your account entirely.
+          </>
+        ),
+        icon: IoPersonOutline,
+        color: 'grape',
+      },
+      {
+        question:
+          "What's the difference between a local draft and a published item?",
+        answer: (
+          <>
+            Saved drafts (My Saved tab) live only in your browser and are never
+            public. Publishing makes it visible to everyone, tied to your real
+            signed-in identity, and eligible for voting and reports.
+          </>
+        ),
+        icon: IoInformationCircleOutline,
+        color: 'grape',
+      },
+      {
+        question: 'Who moderates published content, and how?',
+        answer: (
+          <>
+            Moderators review reported content and can also browse
+            published/hidden items directly from the{' '}
+            <Anchor component={Link} to="/moderation">
+              Moderation
+            </Anchor>{' '}
+            page. See the{' '}
+            <Anchor component={Link} to="/privacy">
+              Privacy Policy
+            </Anchor>{' '}
+            for what account data is collected and how to control it.
+          </>
+        ),
+        icon: IoShieldCheckmarkOutline,
+        color: 'orange',
       },
     ],
   },

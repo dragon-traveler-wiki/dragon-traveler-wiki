@@ -476,3 +476,177 @@ export function EventCardsLoading({
     </LoadingRegion>
   );
 }
+
+/**
+ * Approximate rendered heights of the community cards, so their skeletons
+ * reserve the same space and the page doesn't jump when content arrives.
+ */
+export const COMMUNITY_CARD_HEIGHT = {
+  team: 300,
+  tierList: 230,
+  report: 150,
+  log: 84,
+} as const;
+
+export type CommunityCardKind = keyof typeof COMMUNITY_CARD_HEIGHT;
+
+const COMMUNITY_CARD_LABEL: Record<CommunityCardKind, string> = {
+  team: 'Loading teams',
+  tierList: 'Loading tier lists',
+  report: 'Loading reports',
+  log: 'Loading moderation log',
+};
+
+/** Team and tier list cards sit two-up on wider screens; reports and log rows stack. */
+function communityCardCols(kind: CommunityCardKind): SimpleGridProps['cols'] {
+  return kind === 'team' || kind === 'tierList'
+    ? { base: 1, sm: 2 }
+    : { base: 1 };
+}
+
+/** A page of community cards (or report/log rows) inside a tab, list, or section. */
+export function CommunityCardsLoading({
+  kind,
+  cards = 4,
+}: {
+  kind: CommunityCardKind;
+  cards?: number;
+}) {
+  return (
+    <ViewModeLoading
+      viewMode="grid"
+      cards={cards}
+      cardHeight={COMMUNITY_CARD_HEIGHT[kind]}
+      gridCols={communityCardCols(kind)}
+      label={COMMUNITY_CARD_LABEL[kind]}
+    />
+  );
+}
+
+/** The teams / tier-list browse pages while their data loads (search bar + results or builder). */
+export function CommunityBrowseLoading({
+  kind,
+  viewMode,
+  builder = false,
+}: {
+  kind: 'team' | 'tierList';
+  viewMode: ViewMode;
+  builder?: boolean;
+}) {
+  return (
+    <Stack gap="md">
+      <Skeleton height={36} radius="md" aria-hidden="true" />
+      {builder ? (
+        <BuilderPageLoading />
+      ) : (
+        <ViewModeLoading
+          viewMode={viewMode}
+          listType="table"
+          cardHeight={COMMUNITY_CARD_HEIGHT[kind]}
+          showPagination
+          label={COMMUNITY_CARD_LABEL[kind]}
+        />
+      )}
+    </Stack>
+  );
+}
+
+/** Avatar, name and badges row shared by the profile and account headers. */
+function ProfileHeaderSkeleton() {
+  return (
+    <Group>
+      <Skeleton height={64} width={64} circle />
+      <Stack gap={8}>
+        <Skeleton height={34} width={220} radius="sm" />
+        <Group gap="xs">
+          {[84, 96, 128].map((width) => (
+            <Skeleton key={width} height={22} width={width} radius="xl" />
+          ))}
+        </Group>
+      </Stack>
+    </Group>
+  );
+}
+
+function TabsSkeleton({ tabs }: { tabs: number }) {
+  return (
+    <Group gap="xs">
+      {Array.from({ length: tabs }, (_, index) => (
+        <Skeleton key={index} height={34} width={110} radius="md" />
+      ))}
+    </Group>
+  );
+}
+
+export function ProfilePageLoading() {
+  return (
+    <LoadingRegion label="Loading profile">
+      <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+        <Stack gap="xl">
+          <ProfileHeaderSkeleton />
+          <TabsSkeleton tabs={2} />
+          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+            {Array.from({ length: 4 }, (_, index) => (
+              <Skeleton
+                key={index}
+                height={COMMUNITY_CARD_HEIGHT.team}
+                radius="md"
+              />
+            ))}
+          </SimpleGrid>
+        </Stack>
+      </Container>
+    </LoadingRegion>
+  );
+}
+
+export function AccountPageLoading() {
+  return (
+    <LoadingRegion label="Loading account">
+      <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+        <Stack gap="lg">
+          <ProfileHeaderSkeleton />
+          <Skeleton height={180} radius="md" />
+          <TabsSkeleton tabs={2} />
+          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+            {Array.from({ length: 2 }, (_, index) => (
+              <Skeleton
+                key={index}
+                height={COMMUNITY_CARD_HEIGHT.team}
+                radius="md"
+              />
+            ))}
+          </SimpleGrid>
+        </Stack>
+      </Container>
+    </LoadingRegion>
+  );
+}
+
+/** A public tier list page: breadcrumbs, title, byline and tag rows, then tier sections. */
+export function TierListPageLoading() {
+  return (
+    <LoadingRegion label="Loading tier list">
+      <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+        <Stack gap="md">
+          <Group justify="space-between" wrap="wrap">
+            <Skeleton height={16} width={200} radius="sm" />
+            <Group gap="xs">
+              <Skeleton height={36} width={96} radius="md" />
+              <Skeleton height={36} width={132} radius="md" />
+            </Group>
+          </Group>
+          <Skeleton height={36} width="40%" radius="md" />
+          <Skeleton height={16} width={260} radius="sm" />
+          <Group gap="sm">
+            <Skeleton height={26} width={72} radius="xl" />
+            <Skeleton height={26} width={104} radius="xl" />
+          </Group>
+          {Array.from({ length: 3 }, (_, index) => (
+            <Skeleton key={index} height={180} radius="md" />
+          ))}
+        </Stack>
+      </Container>
+    </LoadingRegion>
+  );
+}

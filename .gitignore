@@ -17,6 +17,8 @@ lerna-debug.log*
 # Environment & local config
 *.local
 .env
+.dev.vars
+.wrangler/
 .claude/
 
 # Python (legacy)

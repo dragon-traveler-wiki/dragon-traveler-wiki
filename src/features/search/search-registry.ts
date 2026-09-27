@@ -19,6 +19,9 @@ import {
 import { FACTION_SLUG_TO_NAME } from '@/types/faction';
 import { isCodeActive } from '@/utils';
 import { toEntitySlug } from '@/utils/entity-slug';
+import { getTeamRoutePath } from '@/features/teams/utils/team-route';
+import { getDisplayAuthor } from '@/features/community/display-author';
+import { getTierListRoutePath } from '@/features/tier-list/utils/tier-list-route';
 import { isGameEventActive } from '@/utils/event-utils';
 import Fuse, { type IFuseOptions } from 'fuse.js';
 import type { IconType } from 'react-icons';
@@ -256,7 +259,7 @@ export function buildSearchRegistry(
         type: 'team',
         title: team.name,
         subtitle: `${team.members.length} characters`,
-        path: `/teams/${toEntitySlug(team.name)}`,
+        path: getTeamRoutePath(team),
         icon: IoPeopleOutline,
         color: 'green',
       }),
@@ -360,21 +363,15 @@ export function buildSearchRegistry(
     createSearchAdapter(
       data.tierLists,
       {
-        keys: [
-          'name',
-          'author',
-          'content_type',
-          'description',
-          'entries.character_slug',
-        ],
+        keys: ['name', 'content_type', 'description', 'entries.character_slug'],
         threshold: 0.3,
       },
       3,
       (tierList) => ({
         type: 'tier-list',
         title: tierList.name,
-        subtitle: `${normalizeContentType(tierList.content_type, 'All')} • ${tierList.author}`,
-        path: searchPath('/tier-list', tierList.name),
+        subtitle: `${normalizeContentType(tierList.content_type, 'All')} • ${getDisplayAuthor(tierList) ?? 'Anonymous'}`,
+        path: getTierListRoutePath(tierList),
         icon: IoDocumentTextOutline,
         color: 'pink',
       }),

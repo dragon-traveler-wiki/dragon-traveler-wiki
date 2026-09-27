@@ -276,6 +276,16 @@ export const ROUTE_CATALOG = [
     },
   },
   {
+    id: 'tierListDetail',
+    pattern: '/tier-list/:tierListId/:tierListSlug',
+    kind: 'detail',
+    meta: {
+      title: 'Tier List Details',
+      description:
+        'Detailed published tier list covering ranked entries, content type, and author context.',
+    },
+  },
+  {
     id: 'teams',
     pattern: '/teams',
     fallback: 'team-list',
@@ -287,8 +297,18 @@ export const ROUTE_CATALOG = [
     },
   },
   {
+    id: 'savedTeam',
+    pattern: '/teams/saved/:teamSlug',
+    kind: 'detail',
+    meta: {
+      title: 'Saved Team',
+      description:
+        'View a saved custom team with member roles, substitutes, and faction context.',
+    },
+  },
+  {
     id: 'teamDetail',
-    pattern: '/teams/:teamName',
+    pattern: '/teams/:teamId/:teamSlug',
     kind: 'detail',
     meta: {
       title: 'Team Details',
@@ -297,13 +317,46 @@ export const ROUTE_CATALOG = [
     },
   },
   {
-    id: 'savedTeam',
-    pattern: '/teams/saved/:teamSlug',
+    id: 'account',
+    pattern: '/account',
+    meta: {
+      title: 'Account',
+      description: 'Manage linked identities and community publications.',
+    },
+  },
+  {
+    id: 'profile',
+    pattern: '/profile/:userId',
     kind: 'detail',
     meta: {
-      title: 'Saved Team',
+      title: 'Community Profile',
+      description: "A community member's published teams and tier lists.",
+    },
+  },
+  {
+    id: 'moderation',
+    pattern: '/moderation',
+    meta: {
+      title: 'Moderation',
+      description: 'Review reported community teams and tier lists.',
+    },
+  },
+  {
+    id: 'communityGuidelines',
+    pattern: '/community-guidelines',
+    meta: {
+      title: 'Community Guidelines',
       description:
-        'View a saved custom team with member roles, substitutes, and faction context.',
+        'What can be published, what is not allowed, and how reporting and moderation work.',
+    },
+  },
+  {
+    id: 'privacy',
+    pattern: '/privacy',
+    meta: {
+      title: 'Privacy Policy',
+      description:
+        'What community account data is collected, how it is used, and how to control or delete it.',
     },
   },
   {

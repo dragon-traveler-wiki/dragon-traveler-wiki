@@ -1,0 +1,40 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dragon-traveler-community-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-20",
+  "observability": {
+    "enabled": true,
+  },
+  "vars": {
+    "APP_ORIGIN": "https://dtwiki.org",
+    "ALLOWED_ORIGINS": "https://dtwiki.org",
+    "CATALOG_BASE_URL": "https://dtwiki.org/data",
+    "SESSION_TTL_DAYS": "30",
+    "MODERATOR_IDENTITIES": "github:48600472,discord:166928679467745282",
+  },
+  // The API is served from its own hostname on the dtwiki.org zone.
+  "routes": [{ "pattern": "api.dtwiki.org", "custom_domain": true }],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "dragon-traveler-community",
+      "database_id": "dd1bb225-ef35-4aca-bf84-5d8f2cf1ca99",
+      "migrations_dir": "migrations",
+    },
+  ],
+  "triggers": {
+    // Daily housekeeping: purge old handled reports and expired sessions.
+    "crons": ["17 3 * * *"],
+  },
+  "ratelimits": [
+    {
+      "name": "WRITE_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": {
+        "limit": 60,
+        "period": 60,
+      },
+    },
+  ],
+}

@@ -1,6 +1,8 @@
 import LastUpdated from '@/components/common/LastUpdated';
 import CharacterTag from '@/features/characters/components/CharacterTag';
 import ClassTag from '@/components/ui/ClassTag';
+import AuthorLink from '@/features/community/AuthorLink';
+import { getDisplayAuthor } from '@/features/community/display-author';
 import CollapsibleSectionCard from '@/components/ui/CollapsibleSectionCard';
 import FactionTag from '@/components/ui/FactionTag';
 import QualityIcon from '@/components/ui/QualityIcon';
@@ -8,11 +10,14 @@ import {
   getContentTypeColor,
   normalizeContentType,
 } from '@/constants/content-types';
+import { StaticSurface } from '@/components/ui/Surface';
+import { useGradientAccent } from '@/hooks';
 import { getTierColor, TIER_ORDER } from '@/constants/tier-colors';
 import { CHARACTER_GRID_SPACING, IMAGE_SIZE } from '@/constants/ui';
 import TierListEntityCard from '@/features/tier-list/components/TierListEntityCard';
 import {
   getTierEntrySlug,
+  getTierListEntityType,
   type TierListRankableEntity,
   type TierList as TierListType,
 } from '@/features/tier-list/types';
@@ -33,7 +38,10 @@ interface TierListContentProps {
     entry: TierListType['entries'][number],
   ) => TierListRankableEntity | undefined;
   viewMode: string;
-  headerActions: ReactNode;
+  /** Rendered under the tags; detail pages omit it and show actions by the breadcrumbs. */
+  headerActions?: ReactNode;
+  /** Upvote/report controls shown beside the byline on public detail pages. */
+  bylineActions?: ReactNode;
   exportRefCallback?: (node: HTMLDivElement | null) => void;
   entityFilter?: (entity: TierListRankableEntity) => boolean;
   disableNameClamp?: boolean;
@@ -44,10 +52,13 @@ export default function TierListContent({
   resolveTierEntryEntity,
   viewMode,
   headerActions,
+  bylineActions,
   exportRefCallback,
   entityFilter,
   disableNameClamp = false,
 }: TierListContentProps) {
+  const { accent } = useGradientAccent();
+  const displayAuthor = getDisplayAuthor(tierList);
   const tierOrder = tierList.tiers?.map((tier) => tier.name) ?? TIER_ORDER;
   const definedTierSet = new Set(tierOrder);
   const extraTiers = [
@@ -71,33 +82,47 @@ export default function TierListContent({
   return (
     <Stack gap="md">
       <Stack gap={6}>
-        <Group gap="xs" wrap="wrap" mb={2} align="center">
+        <Group gap="sm" align="center" wrap="wrap">
+          {displayAuthor && (
+            <Text size="sm" c="dimmed">
+              by{' '}
+              <AuthorLink
+                author={tierList.community?.author}
+                fallback={tierList.author}
+              />
+            </Text>
+          )}
+          <LastUpdated timestamp={tierList.last_updated} />
+          {bylineActions}
+        </Group>
+        <Group gap="sm" mt={4}>
           <Badge
-            variant="light"
+            size="lg"
+            variant="outline"
             color={getContentTypeColor(tierList.content_type, 'All')}
-            size="sm"
           >
             {normalizeContentType(tierList.content_type, 'All')}
           </Badge>
-          {tierList.author && (
-            <Text size="sm" c="dimmed">
-              by{' '}
-              <Text span className="dt-link-text" inherit fw={600}>
-                {tierList.author}
-              </Text>
-            </Text>
-          )}
-          {tierList.description && (
-            <Text size="sm" c="dimmed">
-              • {tierList.description}
-            </Text>
-          )}
+          <Badge size="lg" variant="outline" color={accent.primary}>
+            {getTierListEntityType(tierList) === 'noble_phantasm'
+              ? 'Noble Phantasms'
+              : 'Characters'}
+          </Badge>
         </Group>
-        <Group gap="xs" wrap="wrap">
-          <LastUpdated timestamp={tierList.last_updated} />
-          {headerActions}
-        </Group>
+        {headerActions && (
+          <Group gap="xs" wrap="wrap" mt={4}>
+            {headerActions}
+          </Group>
+        )}
       </Stack>
+
+      {tierList.description && (
+        <StaticSurface p="md">
+          <Text size="sm" lh={1.6}>
+            {tierList.description}
+          </Text>
+        </StaticSurface>
+      )}
 
       <div ref={exportRefCallback}>
         <Stack gap="md">

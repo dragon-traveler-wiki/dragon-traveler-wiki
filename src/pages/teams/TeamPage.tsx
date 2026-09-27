@@ -1,16 +1,14 @@
-import ChangeHistory from '@/components/common/ChangeHistory';
-import DetailPageNavigation from '@/components/common/DetailPageNavigation';
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import EntityNotFound from '@/components/ui/EntityNotFound';
 import { STORAGE_KEY } from '@/constants/ui';
+import { toBuilderDraft } from '@/features/community/builder-edit';
+import CommunityActions from '@/features/community/CommunityActions';
+import RevisionHistory from '@/features/community/RevisionHistory';
 import TeamDetailContent from '@/features/teams/components/TeamDetailContent';
 import { TeamHeroSection } from '@/features/teams/components/TeamHeroSection';
 import { useTeamDetailData } from '@/features/teams/hooks/use-team-detail-data';
-import {
-  useTeamChanges,
-  useTeams,
-} from '@/features/teams/hooks/use-teams-data';
+import { useTeam } from '@/features/teams/hooks/use-teams-data';
 import { useCharacterResolution } from '@/features/characters/hooks/use-character-resolution';
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import {
@@ -28,18 +26,17 @@ import {
   useGradientAccent,
   useMobileTooltip,
 } from '@/hooks';
-import {
-  findEntityByParam,
-  shouldRedirectToEntitySlug,
-  toEntitySlug,
-} from '@/utils/entity-slug';
-import { Box, Container } from '@mantine/core';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { getTeamRoutePath } from '@/features/teams/utils/team-route';
+import { Box, Container, Stack } from '@mantine/core';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
 export default function TeamPage() {
   const tooltipProps = useMobileTooltip();
-  const { teamName } = useParams<{ teamName: string }>();
+  const { teamId, teamSlug } = useParams<{
+    teamId: string;
+    teamSlug: string;
+  }>();
   const isDark = useDarkMode();
   const { accent } = useGradientAccent();
   const navigate = useNavigate();
@@ -47,47 +44,28 @@ export default function TeamPage() {
   const [exporting, setExporting] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
 
-  const { data: teams, loading: loadingTeams } = useTeams();
+  const { data: team, loading: loadingTeam } = useTeam(teamId ?? null);
   const { data: characters, loading: loadingChars } = useCharacters();
   const { data: wyrmspells, loading: loadingSpells } = useWyrmspells();
   const { data: factions, loading: loadingFactions } = useFactions();
   const { data: artifacts, loading: loadingArtifacts } = useArtifacts();
   const { data: statusEffects, loading: loadingStatusEffects } =
     useStatusEffects();
-  const { data: changesData } = useTeamChanges();
 
   const loading =
-    loadingTeams ||
+    loadingTeam ||
     loadingChars ||
     loadingSpells ||
     loadingFactions ||
     loadingArtifacts ||
     loadingStatusEffects;
 
-  const team = useMemo(() => {
-    return findEntityByParam(teams, teamName, (t) => t.name);
-  }, [teams, teamName]);
-
   useEffect(() => {
-    if (!team || !teamName) return;
-    if (!shouldRedirectToEntitySlug(teamName, team.name)) return;
-    navigate(`/teams/${toEntitySlug(team.name)}`, { replace: true });
-  }, [navigate, team, teamName]);
-
-  const orderedTeams = useMemo(() => [...teams], [teams]);
-
-  const teamIndex = useMemo(() => {
-    if (!team) return -1;
-    return orderedTeams.findIndex(
-      (entry) => entry.name.toLowerCase() === team.name.toLowerCase(),
-    );
-  }, [orderedTeams, team]);
-
-  const previousTeam = teamIndex > 0 ? orderedTeams[teamIndex - 1] : null;
-  const nextTeam =
-    teamIndex >= 0 && teamIndex < orderedTeams.length - 1
-      ? orderedTeams[teamIndex + 1]
-      : null;
+    if (!team || !teamSlug) return;
+    const canonicalPath = getTeamRoutePath(team);
+    if (canonicalPath.endsWith(`/${teamSlug}`)) return;
+    navigate(canonicalPath, { replace: true });
+  }, [navigate, team, teamSlug]);
 
   const { preferredByName: charMap, byIdentity: characterByIdentity } =
     useCharacterResolution(characters);
@@ -110,7 +88,7 @@ export default function TeamPage() {
     return (
       <EntityNotFound
         entityType="Team"
-        name={teamName}
+        name={teamSlug}
         backLabel="Back to Teams"
         backPath="/teams"
       />
@@ -118,7 +96,9 @@ export default function TeamPage() {
   }
 
   const openEditInBuilder = () => {
-    navigate('/teams', { state: { editTeam: team } });
+    navigate('/teams', {
+      state: { editTeam: toBuilderDraft(team) },
+    });
   };
 
   const requestEdit = () => {
@@ -141,6 +121,8 @@ export default function TeamPage() {
   return (
     <Box>
       <TeamHeroSection
+        onExportAsImage={exportAsImage}
+        exporting={exporting}
         team={team}
         factionInfo={factionInfo}
         artifactMap={artifactMap}
@@ -148,6 +130,24 @@ export default function TeamPage() {
         isDark={isDark}
         tooltipProps={tooltipProps}
         onRequestEdit={requestEdit}
+        bylineActions={
+          team.community && (
+            <CommunityActions
+              community={team.community}
+              show={{ reactions: true }}
+            />
+          )
+        }
+        ownerActions={
+          team.community && (
+            <CommunityActions
+              community={team.community}
+              show={{ delete: true }}
+              size="md"
+              onDeleted={() => navigate('/teams')}
+            />
+          )
+        }
       />
 
       <ConfirmActionModal
@@ -163,41 +163,28 @@ export default function TeamPage() {
       />
 
       <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
-        <TeamDetailContent
-          team={team}
-          charMap={charMap}
-          characterByIdentity={characterByIdentity}
-          getCharacterPath={getCharacterPath}
-          factionColor={factionColor}
-          accentPrimary={accent.primary}
-          isDark={isDark}
-          tooltipProps={tooltipProps}
-          wyrmspells={wyrmspells}
-          exportRef={exportRef}
-          exporting={exporting}
-          onExportAsImage={exportAsImage}
-        />
-
-        <ChangeHistory history={changesData[team.name]} />
-
-        <DetailPageNavigation
-          previousItem={
-            previousTeam
-              ? {
-                  label: previousTeam.name,
-                  path: `/teams/${toEntitySlug(previousTeam.name)}`,
-                }
-              : null
-          }
-          nextItem={
-            nextTeam
-              ? {
-                  label: nextTeam.name,
-                  path: `/teams/${toEntitySlug(nextTeam.name)}`,
-                }
-              : null
-          }
-        />
+        <Stack gap="md">
+          <TeamDetailContent
+            team={team}
+            charMap={charMap}
+            characterByIdentity={characterByIdentity}
+            getCharacterPath={getCharacterPath}
+            factionColor={factionColor}
+            accentPrimary={accent.primary}
+            isDark={isDark}
+            tooltipProps={tooltipProps}
+            wyrmspells={wyrmspells}
+            exportRef={exportRef}
+            exporting={exporting}
+          />
+          {team.community && (
+            <RevisionHistory
+              kind="team"
+              id={team.community.id}
+              publishedAt={team.community.createdAt}
+            />
+          )}
+        </Stack>
       </Container>
     </Box>
   );

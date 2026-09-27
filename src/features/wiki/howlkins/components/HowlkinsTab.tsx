@@ -224,7 +224,7 @@ export default function HowlkinsTab({
                 );
                 return allianceSlug ? (
                   <InteractiveSurface
-                    key={howlkin.name}
+                    key={howlkin.slug}
                     component={Link}
                     to={`/howlkins/${allianceSlug}`}
                     p="md"
@@ -233,7 +233,7 @@ export default function HowlkinsTab({
                     {cardContent}
                   </InteractiveSurface>
                 ) : (
-                  <StaticSurface key={howlkin.name} p="md">
+                  <StaticSurface key={howlkin.slug} p="md">
                     {cardContent}
                   </StaticSurface>
                 );
@@ -274,7 +274,7 @@ export default function HowlkinsTab({
                     );
                     const allianceSlug = howlkinToAlliance.get(howlkin.slug);
                     return (
-                      <Table.Tr key={howlkin.name}>
+                      <Table.Tr key={howlkin.slug}>
                         <Table.Td>
                           {iconSrc && (
                             <SafeImage

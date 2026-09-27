@@ -13,9 +13,11 @@ import {
 } from '@mantine/core';
 import { Link, useNavigate } from 'react-router';
 import { FACTION_WYRM_MAP } from '@/assets';
-import EntityActionButtons from '@/components/common/EntityActionButtons';
+import AuthorLink from '@/features/community/AuthorLink';
+import CommunityActions from '@/features/community/CommunityActions';
 import FactionTag from '@/components/ui/FactionTag';
 import NoResultsSuggestions from '@/components/ui/NoResultsSuggestions';
+import CommunityLoadMore from '@/features/community/CommunityLoadMore';
 import PaginationControl from '@/components/ui/PaginationControl';
 import {
   getContentTypeColor,
@@ -25,7 +27,7 @@ import { CURSOR_POINTER_STYLE, getMinWidthStyle } from '@/constants/styles';
 import type { Character } from '@/features/characters/types';
 import { FACTION_SLUG_TO_NAME } from '@/types/faction';
 import type { Team } from '@/features/teams/types';
-import { toEntitySlug } from '@/utils/entity-slug';
+import { getTeamRoutePath } from '@/features/teams/utils/team-route';
 import {
   getTeamBenchEntryName,
   getTeamBenchEntryQuality,
@@ -50,6 +52,11 @@ interface TeamsViewTabProps {
   pageSizeOptions: readonly number[];
   onPageSizeChange: (pageSize: number) => void;
   onRequestEdit: (team: Team) => void;
+  hasMore: boolean;
+  loadedCount: number;
+  paginationTotal: number;
+  loadingMore: boolean;
+  onLoadMore: () => void;
 }
 
 export default function TeamsViewTab({
@@ -68,6 +75,11 @@ export default function TeamsViewTab({
   pageSizeOptions,
   onPageSizeChange,
   onRequestEdit,
+  hasMore,
+  loadedCount,
+  paginationTotal,
+  loadingMore,
+  onLoadMore,
 }: TeamsViewTabProps) {
   const { accent } = useGradientAccent();
   const navigate = useNavigate();
@@ -91,18 +103,19 @@ export default function TeamsViewTab({
         <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
           {paginatedTeams.map((team) => (
             <TeamCard
-              key={team.name}
+              key={team.community?.id ?? team.name}
               team={team}
               charMap={charMap}
               characterByIdentity={characterByIdentity}
-              onNavigate={() => navigate(`/teams/${toEntitySlug(team.name)}`)}
+              to={getTeamRoutePath(team)}
               actions={
-                <EntityActionButtons
-                  onEdit={() => onRequestEdit(team)}
-                  size="compact-xs"
-                  variant="subtle"
-                  stopPropagation
-                />
+                team.community ? (
+                  <CommunityActions
+                    community={team.community}
+                    onEdit={() => onRequestEdit(team)}
+                    onDeleted={() => window.location.reload()}
+                  />
+                ) : null
               }
             />
           ))}
@@ -124,11 +137,9 @@ export default function TeamsViewTab({
               {paginatedTeams.map((team) => {
                 return (
                   <Table.Tr
-                    key={team.name}
+                    key={team.community?.id ?? team.name}
                     style={CURSOR_POINTER_STYLE}
-                    onClick={() =>
-                      navigate(`/teams/${toEntitySlug(team.name)}`)
-                    }
+                    onClick={() => navigate(getTeamRoutePath(team))}
                   >
                     <Table.Td>
                       <Group gap="sm" wrap="nowrap">
@@ -141,7 +152,7 @@ export default function TeamsViewTab({
                         />
                         <Text
                           component={Link}
-                          to={`/teams/${toEntitySlug(team.name)}`}
+                          to={getTeamRoutePath(team)}
                           size="sm"
                           fw={500}
                           className="dt-link-text"
@@ -235,18 +246,22 @@ export default function TeamsViewTab({
                       </Badge>
                     </Table.Td>
                     <Table.Td>
-                      <Text size="sm" className="dt-link-text">
-                        {team.author}
-                      </Text>
+                      <AuthorLink
+                        author={team.community?.author}
+                        fallback={team.author}
+                        size="sm"
+                        fw={400}
+                      />
                     </Table.Td>
                     <Table.Td>
                       <Group gap={4} wrap="nowrap">
-                        <EntityActionButtons
-                          onEdit={() => onRequestEdit(team)}
-                          size="compact-xs"
-                          variant="subtle"
-                          stopPropagation
-                        />
+                        {team.community && (
+                          <CommunityActions
+                            community={team.community}
+                            onEdit={() => onRequestEdit(team)}
+                            onDeleted={() => window.location.reload()}
+                          />
+                        )}
                       </Group>
                     </Table.Td>
                   </Table.Tr>
@@ -261,10 +276,18 @@ export default function TeamsViewTab({
         currentPage={page}
         totalPages={totalPages}
         onChange={onPageChange}
-        totalItems={filteredTeams.length}
+        totalItems={paginationTotal}
         pageSize={pageSize}
         pageSizeOptions={pageSizeOptions}
         onPageSizeChange={onPageSizeChange}
+      />
+
+      <CommunityLoadMore
+        hasMore={hasMore}
+        loadingMore={loadingMore}
+        onLoadMore={onLoadMore}
+        atLastPage={page * pageSize >= filteredTeams.length}
+        loadedCount={loadedCount}
       />
     </>
   );

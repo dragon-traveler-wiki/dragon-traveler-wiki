@@ -44,6 +44,8 @@ export const LEGACY_ROUTE_ALIASES = new Map([
 export function normalizeTypeKey(value) {
   return String(value ?? '')
     .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
     .replace(/['’]/g, '')
     .replace(/[^a-z0-9]+/g, '_')
     .replace(/^_+|_+$/g, '');
@@ -426,14 +428,6 @@ export function writeRoutePages() {
           `${owner ? `${owner}'s Noble Phantasm. ` : 'Noble Phantasm. '}${effect || fallback}`,
         );
       },
-    },
-    {
-      pattern: ROUTE_PATH.teamDetail,
-      file: 'global/teams.json',
-      getDescription: (item, fallback) =>
-        truncateText(
-          `${item.content_type ? `${item.content_type} team. ` : ''}${item.description || fallback}`,
-        ),
     },
     {
       pattern: ROUTE_PATH.gearSetDetail,

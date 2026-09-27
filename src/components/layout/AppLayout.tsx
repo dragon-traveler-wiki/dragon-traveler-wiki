@@ -35,6 +35,7 @@ import Navigation from './Navigation';
 import PageTransition from './PageTransition';
 import ScrollToTop from './ScrollToTop';
 import LazySettingsPanel from './LazySettingsPanel';
+import AccountMenu from '@/features/community/AccountMenu';
 
 export default function AppLayout() {
   const [mobileOpened, { toggle: toggleMobile, close: closeMobile }] =
@@ -156,6 +157,7 @@ export default function AppLayout() {
           )}
 
           <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
+            <AccountMenu />
             <LazySearchModal />
             <LazySettingsPanel />
           </Group>

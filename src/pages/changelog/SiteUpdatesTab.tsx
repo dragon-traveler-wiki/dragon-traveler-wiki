@@ -10,6 +10,7 @@ import {
 } from '@mantine/core';
 import { IoCheckmarkCircle } from 'react-icons/io5';
 import { ViewModeLoading } from '@/components/layout/PageLoadingSkeleton';
+import { formatIsoDate } from '@/utils/timestamps';
 import PaginationControl from '@/components/ui/PaginationControl';
 import { IMAGE_SIZE } from '@/constants/ui';
 import type { GradientPaletteAccents } from '@/contexts';
@@ -21,14 +22,6 @@ const CHANGE_TYPE_COLORS: Record<string, string> = {
   fixed: 'orange',
   removed: 'red',
 };
-
-function formatShortDate(date: Date): string {
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
 
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
@@ -100,7 +93,8 @@ export default function SiteUpdatesTab({
 
               return (
                 <Timeline.Item
-                  key={entry.date}
+                  // Dates aren't unique (two releases can ship the same day).
+                  key={`${entry.date}-${entry.version ?? entryId}`}
                   color={accent.primary}
                   bullet={<IoCheckmarkCircle size={IMAGE_SIZE.ICON_LG} />}
                   title={
@@ -112,7 +106,7 @@ export default function SiteUpdatesTab({
                     >
                       <Group gap="xs" wrap="wrap" align="center">
                         <Text fw={600} size="sm">
-                          {formatShortDate(new Date(entry.date))}
+                          {formatIsoDate(entry.date)}
                         </Text>
                         {entry.version && (
                           <Badge
@@ -160,9 +154,10 @@ export default function SiteUpdatesTab({
                               </Badge>
                             </Group>
                             <Stack gap={4}>
-                              {changes.map((change) => (
+                              {changes.map((change, changeIndex) => (
                                 <Group
-                                  key={`${change.type}-${change.description}`}
+                                  // The changelog can repeat an identical line within a release.
+                                  key={`${change.type}-${changeIndex}-${change.description}`}
                                   gap="xs"
                                   wrap="nowrap"
                                   align="flex-start"

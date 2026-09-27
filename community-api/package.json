@@ -1,0 +1,25 @@
+{
+  "name": "dragon-traveler-community-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "seed": "node scripts/seed-dev.mjs",
+    "seed:reset": "node scripts/seed-dev.mjs --reset",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "npm run typecheck && npm run test"
+  },
+  "dependencies": {
+    "hono": "^4.9.8",
+    "zod": "^4.1.11"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260921.1",
+    "@types/node": "^24.19.0",
+    "typescript": "~5.9.3",
+    "vitest": "^5.0.1",
+    "wrangler": "4.136.1"
+  }
+}

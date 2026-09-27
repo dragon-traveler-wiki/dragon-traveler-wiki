@@ -40,9 +40,17 @@ const WyrmspellPage = lazy(() => import('@/pages/wyrmspells/DetailPage'));
 const WyrmsListPage = lazy(() => import('@/pages/wyrms/ListPage'));
 const WyrmPage = lazy(() => import('@/pages/wyrms/DetailPage'));
 const TierList = lazy(() => import('@/pages/tier-list/Page'));
+const TierListPage = lazy(() => import('@/pages/tier-list/TierListPage'));
 const Teams = lazy(() => import('@/pages/teams/ListPage'));
 const TeamPage = lazy(() => import('@/pages/teams/TeamPage'));
 const SavedTeamPage = lazy(() => import('@/pages/teams/SavedTeamPage'));
+const AccountPage = lazy(() => import('@/pages/account/Page'));
+const ModerationPage = lazy(() => import('@/pages/moderation/Page'));
+const ProfilePage = lazy(() => import('@/pages/profile/Page'));
+const CommunityGuidelinesPage = lazy(
+  () => import('@/pages/community-guidelines/Page'),
+);
+const PrivacyPage = lazy(() => import('@/pages/privacy/Page'));
 const Codes = lazy(() => import('@/pages/codes/Page'));
 const Events = lazy(() => import('@/pages/events/Page'));
 const UsefulLinks = lazy(() => import('@/pages/useful-links/Page'));
@@ -401,9 +409,18 @@ export default function AppRoutes() {
         <Route path={ROUTE_PATH.wyrms} element={<WyrmsListPage />} />
         <Route path={ROUTE_PATH.wyrmDetail} element={<WyrmPage />} />
         <Route path={ROUTE_PATH.tierList} element={<TierList />} />
+        <Route path={ROUTE_PATH.tierListDetail} element={<TierListPage />} />
         <Route path={ROUTE_PATH.teams} element={<Teams />} />
         <Route path={ROUTE_PATH.savedTeam} element={<SavedTeamPage />} />
         <Route path={ROUTE_PATH.teamDetail} element={<TeamPage />} />
+        <Route path={ROUTE_PATH.account} element={<AccountPage />} />
+        <Route path={ROUTE_PATH.moderation} element={<ModerationPage />} />
+        <Route path={ROUTE_PATH.profile} element={<ProfilePage />} />
+        <Route
+          path={ROUTE_PATH.communityGuidelines}
+          element={<CommunityGuidelinesPage />}
+        />
+        <Route path={ROUTE_PATH.privacy} element={<PrivacyPage />} />
         <Route path={ROUTE_PATH.codes} element={<Codes />} />
         <Route path={ROUTE_PATH.events} element={<Events />} />
         <Route path={ROUTE_PATH.usefulLinks} element={<UsefulLinks />} />

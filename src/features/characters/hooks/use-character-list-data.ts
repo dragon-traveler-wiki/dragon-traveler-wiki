@@ -1,5 +1,5 @@
 import { useMediaQuery } from '@mantine/hooks';
-import { useCallback, useContext, useEffect, useMemo } from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 import { BREAKPOINTS, STORAGE_KEY } from '@/constants/ui';
 import {
   CharacterOwnershipContext,
@@ -73,9 +73,8 @@ export interface CharacterListData {
 export function useCharacterListData(
   characters: Character[],
 ): CharacterListData {
-  const { tierLists, selectedTierListName } = useContext(
-    TierListReferenceContext,
-  );
+  const { selectedTierList } = useContext(TierListReferenceContext);
+  const selectedTierListName = selectedTierList?.name ?? null;
   const { ownedCharacters, showCharacterTiers } = useContext(
     CharacterOwnershipContext,
   );
@@ -160,8 +159,7 @@ export function useCharacterListData(
   );
 
   const tierOptions = useMemo(() => {
-    if (!selectedTierListName) return [];
-    const list = tierLists.find((l) => l.name === selectedTierListName);
+    const list = selectedTierList;
     if (!list) return [];
     const seen = new Set<string>();
     const tiers: string[] = [];
@@ -179,7 +177,7 @@ export function useCharacterListData(
     }
     tiers.push('N/A');
     return tiers;
-  }, [tierLists, selectedTierListName]);
+  }, [selectedTierList]);
 
   const tierRank = useMemo(() => {
     const rank = new Map<string, number>();
@@ -189,8 +187,7 @@ export function useCharacterListData(
 
   const tierLookup = useMemo(() => {
     const map = new Map<string, string>();
-    if (!selectedTierListName) return map;
-    const list = tierLists.find((l) => l.name === selectedTierListName);
+    const list = selectedTierList;
     if (!list || getTierListEntityType(list) !== 'character') return map;
     for (const entry of list.entries) {
       if (!isCharacterTierEntry(entry)) continue;
@@ -205,12 +202,7 @@ export function useCharacterListData(
       }
     }
     return map;
-  }, [
-    tierLists,
-    selectedTierListName,
-    preferredCharacterByName,
-    characterByIdentity,
-  ]);
+  }, [selectedTierList, preferredCharacterByName, characterByIdentity]);
 
   const getTierLabel = useCallback(
     (character: Character) => {
@@ -272,10 +264,6 @@ export function useCharacterListData(
     pageSize,
     JSON.stringify(filters),
   );
-
-  useEffect(() => {
-    setPage(1);
-  }, [pageSize, setPage]);
 
   const pageItems = filteredAndSorted.slice(offset, offset + pageSize);
 

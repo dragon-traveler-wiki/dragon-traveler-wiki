@@ -1,0 +1,282 @@
+import {
+  Anchor,
+  Button,
+  Group,
+  Modal,
+  Select,
+  Stack,
+  Text,
+  Textarea,
+} from '@mantine/core';
+import { useCallback, useState, type ReactNode } from 'react';
+import { IoFlagOutline, IoThumbsUpOutline, IoTrash } from 'react-icons/io5';
+import { Link } from 'react-router';
+import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
+import { useGradientAccent } from '@/hooks';
+import { deleteCommunityItem, reportCommunityItem, setUpvote } from './api';
+import { useCommunityAuth } from './auth-context';
+import type { CommunityMeta } from './types';
+import { REPORT_REASON_LABELS } from './report-status';
+import { runAction } from './run-action';
+import TurnstileWidget from './TurnstileWidget';
+
+type ActionGroup = 'reactions' | 'edit' | 'delete';
+
+export default function CommunityActions({
+  community,
+  onEdit,
+  onDeleted,
+  show,
+  size = 'compact-sm',
+  trailing,
+}: {
+  community: CommunityMeta;
+  onEdit?: () => void;
+  onDeleted?: () => void;
+  /**
+   * Which groups to render (all when omitted; when given, only those set
+   * to true): `reactions` is upvote + report,
+   * `edit` and `delete` are owner-only. Detail pages render reactions beside
+   * the byline and only the owner actions they don't already provide elsewhere.
+   */
+  show?: Partial<Record<ActionGroup, boolean>>;
+  /** Detail pages pass a regular button size to match their other actions. */
+  size?: 'compact-sm' | 'md';
+  /** Extra controls rendered inside the button group, right after the actions. */
+  trailing?: ReactNode;
+}) {
+  // Without `show` everything renders; with it, only the groups named.
+  const showReactions = show ? Boolean(show.reactions) : true;
+  const showEdit = show ? Boolean(show.edit) : true;
+  const showDelete = show ? Boolean(show.delete) : true;
+  const compact = size === 'compact-sm';
+  const { user, csrfToken, login } = useCommunityAuth();
+  const { accent } = useGradientAccent();
+  const [score, setScore] = useState(community.score);
+  const [upvoted, setUpvoted] = useState(community.viewerHasUpvoted);
+  const [working, setWorking] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reason, setReason] = useState<string | null>('broken');
+  const [note, setNote] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [challengeVersion, setChallengeVersion] = useState(0);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const handleToken = useCallback(
+    (token: string | null) => setTurnstileToken(token),
+    [],
+  );
+
+  const vote = async () => {
+    if (!user) {
+      login('discord');
+      return;
+    }
+    if (!csrfToken || community.viewerOwns) return;
+    setWorking(true);
+    const result = await runAction(
+      () => setUpvote(community.kind, community.id, !upvoted, csrfToken),
+      { errorTitle: 'Could not update vote' },
+    );
+    if (result.ok) {
+      setScore(result.value.score);
+      setUpvoted(result.value.viewerHasUpvoted);
+    }
+    setWorking(false);
+  };
+
+  const report = async () => {
+    if (!csrfToken || !reason || !turnstileToken) return;
+    setWorking(true);
+    const result = await runAction(
+      () =>
+        reportCommunityItem(
+          community.kind,
+          community.id,
+          reason,
+          note,
+          csrfToken,
+          turnstileToken,
+        ),
+      {
+        errorTitle: 'Could not submit report',
+        success: {
+          title: 'Report received',
+          message: 'A moderator can now review this publication.',
+        },
+      },
+    );
+    if (result.ok) setReportOpen(false);
+    // A Turnstile token is single-use, so always ask for a fresh one.
+    setTurnstileToken(null);
+    setChallengeVersion((value) => value + 1);
+    setWorking(false);
+  };
+
+  const closeReport = () => {
+    setReportOpen(false);
+    setTurnstileToken(null);
+    setChallengeVersion((value) => value + 1);
+  };
+
+  const remove = async () => {
+    if (!csrfToken) return;
+    setConfirmDeleteOpen(false);
+    setWorking(true);
+    const result = await runAction(
+      () => deleteCommunityItem(community.kind, community.id, csrfToken),
+      {
+        errorTitle: 'Could not delete',
+        success: {
+          title: 'Deleted',
+          message: 'The publication is no longer public.',
+        },
+      },
+    );
+    if (result.ok) onDeleted?.();
+    setWorking(false);
+  };
+
+  return (
+    <>
+      <Group gap={4} wrap="nowrap">
+        {showReactions && (
+          <>
+            <Button
+              size={size}
+              variant={upvoted ? 'filled' : 'subtle'}
+              color={accent.primary}
+              leftSection={<IoThumbsUpOutline size={12} />}
+              loading={working}
+              disabled={community.viewerOwns}
+              onClick={(event) => {
+                event.stopPropagation();
+                void vote();
+              }}
+            >
+              {score}
+            </Button>
+            {!community.viewerOwns && (
+              <Button
+                size={size}
+                variant="subtle"
+                color="gray"
+                leftSection={<IoFlagOutline size={12} />}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (!user) login('discord');
+                  else setReportOpen(true);
+                }}
+              >
+                Report
+              </Button>
+            )}
+          </>
+        )}
+        {showEdit && community.viewerOwns && onEdit && (
+          <Button
+            size={size}
+            variant={compact ? 'subtle' : 'light'}
+            color={accent.primary}
+            onClick={(event) => {
+              event.stopPropagation();
+              onEdit();
+            }}
+          >
+            Edit
+          </Button>
+        )}
+        {showDelete && community.viewerOwns && (
+          <Button
+            size={size}
+            variant={compact ? 'subtle' : 'light'}
+            color="red"
+            leftSection={compact ? undefined : <IoTrash size={14} />}
+            loading={working}
+            onClick={(event) => {
+              event.stopPropagation();
+              setConfirmDeleteOpen(true);
+            }}
+          >
+            Delete
+          </Button>
+        )}
+        {trailing}
+      </Group>
+      {/* Modals portal out of the DOM but React events still bubble through the
+          component tree, so without this a click or Enter/Space keypress inside
+          them would trigger the enclosing card's navigate handler. */}
+      <div
+        // Renders no box of its own, so it can't add a gap in flex parents.
+        style={{ display: 'contents' }}
+        onClick={(event) => event.stopPropagation()}
+        onKeyDown={(event) => event.stopPropagation()}
+      >
+        <ConfirmActionModal
+          opened={confirmDeleteOpen}
+          onCancel={() => setConfirmDeleteOpen(false)}
+          title="Delete this publication?"
+          message="This can't be undone."
+          confirmLabel="Delete"
+          confirmColor="red"
+          onConfirm={() => void remove()}
+        />
+        <Modal
+          opened={reportOpen}
+          onClose={closeReport}
+          title="Report publication"
+          centered
+        >
+          <Stack>
+            <Text size="sm" c="dimmed">
+              See the{' '}
+              <Anchor
+                component={Link}
+                to="/community-guidelines"
+                target="_blank"
+                size="sm"
+              >
+                Community Guidelines
+              </Anchor>{' '}
+              for what's reportable.
+            </Text>
+            <Select
+              label="Reason"
+              value={reason}
+              onChange={setReason}
+              data={Object.entries(REPORT_REASON_LABELS).map(
+                ([value, label]) => ({ value, label }),
+              )}
+              allowDeselect={false}
+            />
+            <Textarea
+              label="Details"
+              value={note}
+              onChange={(event) => setNote(event.currentTarget.value)}
+              maxLength={1000}
+              autosize
+              minRows={3}
+            />
+            <TurnstileWidget key={challengeVersion} onToken={handleToken} />
+            <Group justify="flex-end">
+              <Button
+                variant="outline"
+                color={accent.primary}
+                onClick={closeReport}
+              >
+                Cancel
+              </Button>
+              <Button
+                color={accent.primary}
+                onClick={() => void report()}
+                disabled={!turnstileToken || !reason}
+                loading={working}
+              >
+                Submit report
+              </Button>
+            </Group>
+          </Stack>
+        </Modal>
+      </div>
+    </>
+  );
+}

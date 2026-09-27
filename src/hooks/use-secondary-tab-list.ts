@@ -78,10 +78,6 @@ export function useSecondaryTabList<T>(
     paginationKey,
   );
 
-  useEffect(() => {
-    setPage(1);
-  }, [activePageSize, setPage]);
-
   const pageItems = filtered.slice(offset, offset + activePageSize);
 
   return {

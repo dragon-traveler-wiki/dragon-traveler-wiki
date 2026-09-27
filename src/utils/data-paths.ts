@@ -18,8 +18,6 @@ const GLOBAL_FILE_SET = new Set([
   'codes.json',
   'events.json',
   'star-levels.json',
-  'teams.json',
-  'tier-lists.json',
   'useful-links.json',
 ]);
 

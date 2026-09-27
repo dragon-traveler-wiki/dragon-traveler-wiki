@@ -14,6 +14,7 @@ A community-driven English wiki for the Chinese mobile game **Dragon Traveler** 
 - Resources and useful links directories
 - Game events tracker and redemption codes tracker
 - Tier list viewer/builder and team builder
+- Community accounts (Discord/GitHub sign-in): publish, vote on, and report public teams and tier lists, with moderation tools
 - Fuzzy global search and keyboard shortcuts
 - Dark/light theme toggle
 
@@ -22,7 +23,7 @@ A community-driven English wiki for the Chinese mobile game **Dragon Traveler** 
 - **Framework**: React 19, TypeScript, Vite 7, Mantine v8
 - **Routing**: React Router 8
 - **Drag-and-drop**: @dnd-kit/core
-- **Hosting**: GitHub Pages with automated deployment and custom domain (`dtwiki.org`)
+- **Hosting**: GitHub Pages for the SPA, plus Cloudflare Workers and D1 for community content
 
 ## Getting Started
 
@@ -60,6 +61,25 @@ npm run format
 
 CI runs `npm run format:check` as part of the complete quality suite.
 
+### Community API
+
+Public teams and tier lists are served by the Worker in `community-api/`, which
+has its own [README](community-api/README.md) covering setup, configuration,
+endpoints, deployment, and operations. To work on publishing, accounts, or
+moderation locally:
+
+```bash
+cd community-api
+npm install
+npx wrangler d1 migrations apply dragon-traveler-community --local
+npm run dev        # http://localhost:8787
+npm run seed       # optional: dummy content for manual testing
+```
+
+The frontend reads `VITE_API_BASE_URL` and `VITE_TURNSTILE_SITE_KEY` from
+`.env.local` (`.env.example` has local defaults, including Cloudflare's published
+Turnstile test key).
+
 ### Build for Production
 
 ```bash
@@ -72,9 +92,12 @@ Output is written to `dist/`. In CI, data is fetched from the private [dragon-tr
 
 ```
 dragon-traveler-wiki/
-├── src/             # React source — see src/README.md for details
-├── public/          # Static assets copied as-is to dist
+├── src/             # React app — see src/README.md
+├── community-api/   # Cloudflare Worker + D1 for community content — see its README
+├── tests/           # Frontend tests — see tests/README.md
 ├── scripts/         # Build-time scripts
+├── docs/            # Cross-cutting conventions (import policy)
+├── public/          # Static assets copied as-is to dist
 └── .github/         # CI/CD workflows
 ```
 
@@ -82,33 +105,36 @@ See [`src/README.md`](src/README.md) for a full breakdown of the source architec
 
 ## Routing
 
-| Route                                                    | Page                                                  |
-| -------------------------------------------------------- | ----------------------------------------------------- |
-| `/`                                                      | Home                                                  |
-| `/artifacts` / `/artifacts/:name`                        | Artifact list / detail                                |
-| `/characters` / `/characters/:name`                      | Character list / detail                               |
-| `/gear` / `/gear-sets/:setName`                          | Gear list / gear set detail                           |
-| `/relics` / `/oracle-scrolls/:scrollName`                | Relic list / oracle scroll detail                     |
-| `/howlkins` / `/howlkins/:allianceSlug`                  | Howlkin list / golden alliance detail                 |
-| `/noble-phantasms` / `/noble-phantasms/:name`            | Noble phantasm list / detail                          |
-| `/wyrms` / `/wyrms/:name`                                | Wyrm list / detail                                    |
-| `/wyrmspells` / `/wyrmspells/:name`                      | Wyrmspell list / detail                               |
-| `/subclasses`                                            | Subclass list                                         |
-| `/status-effects`                                        | Status effects list                                   |
-| `/resources`                                             | Resources directory                                   |
-| `/toolbox/useful-links`                                  | Community links directory                             |
-| `/tier-list`                                             | Character and Noble Phantasm tier list viewer/builder |
-| `/teams` / `/teams/:teamName` / `/teams/saved/:teamSlug` | Team list / detail / saved team                       |
-| `/codes`                                                 | Redemption codes tracker                              |
-| `/events`                                                | Game events tracker                                   |
-| `/changelog`                                             | Changelog                                             |
-| `/toolbox/beginner-qa`                                   | Beginner Q&A                                          |
-| `/toolbox/faq`                                           | FAQ                                                   |
-| `/toolbox/star-upgrade-calculator`                       | Star upgrade calculator                               |
-| `/toolbox/mythic-summon-calculator`                      | Mythic summon calculator                              |
-| `/toolbox/diamond-calculator`                            | Diamond calculator                                    |
-| `/toolbox/shovel-event`                                  | Shovel event guide                                    |
-| `/toolbox/dtdle`                                         | Daily character guessing game                         |
+| Route                                                            | Page                                     |
+| ---------------------------------------------------------------- | ---------------------------------------- |
+| `/`                                                              | Home                                     |
+| `/artifacts` / `/artifacts/:name`                                | Artifact list / detail                   |
+| `/characters` / `/characters/:name`                              | Character list / detail                  |
+| `/gear` / `/gear-sets/:setName`                                  | Gear list / gear set detail              |
+| `/relics` / `/oracle-scrolls/:scrollName`                        | Relic list / oracle scroll detail        |
+| `/howlkins` / `/howlkins/:allianceSlug`                          | Howlkin list / golden alliance detail    |
+| `/noble-phantasms` / `/noble-phantasms/:name`                    | Noble phantasm list / detail             |
+| `/wyrms` / `/wyrms/:name`                                        | Wyrm list / detail                       |
+| `/wyrmspells` / `/wyrmspells/:name`                              | Wyrmspell list / detail                  |
+| `/subclasses`                                                    | Subclass list                            |
+| `/status-effects`                                                | Status effects list                      |
+| `/resources`                                                     | Resources directory                      |
+| `/toolbox/useful-links`                                          | Community links directory                |
+| `/tier-list` / `/tier-list/:tierListId/:tierListSlug`            | Tier list viewer/builder / public detail |
+| `/teams` / `/teams/:teamId/:teamSlug` / `/teams/saved/:teamSlug` | Team list / public detail / saved team   |
+| `/account` / `/moderation`                                       | Community account / moderator queue      |
+| `/profile/:userId`                                               | Public community profile                 |
+| `/community-guidelines` / `/privacy`                             | Community guidelines / privacy policy    |
+| `/codes`                                                         | Redemption codes tracker                 |
+| `/events`                                                        | Game events tracker                      |
+| `/changelog`                                                     | Changelog                                |
+| `/toolbox/beginner-qa`                                           | Beginner Q&A                             |
+| `/toolbox/faq`                                                   | FAQ                                      |
+| `/toolbox/star-upgrade-calculator`                               | Star upgrade calculator                  |
+| `/toolbox/mythic-summon-calculator`                              | Mythic summon calculator                 |
+| `/toolbox/diamond-calculator`                                    | Diamond calculator                       |
+| `/toolbox/shovel-event`                                          | Shovel event guide                       |
+| `/toolbox/dtdle`                                                 | Daily character guessing game            |
 
 ## Contributing
 

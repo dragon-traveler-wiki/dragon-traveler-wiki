@@ -10,10 +10,11 @@ src/
 │   ├── layout/      # Page-level shells (AppLayout, ListPageShell, FilteredListShell, etc.)
 │   ├── tools/       # Floating tools (SearchModal, ExportButton, SuggestModal, etc.)
 │   └── ui/          # Low-level UI primitives (ClassTag, SafeImage, etc.)
-├── constants/       # App-wide constants (colors, styles, ui, accents, glass)
+├── constants/       # App-wide constants (colors, styles, ui, glass, route-meta, nav-items, ...)
 ├── contexts/        # React contexts (SearchDataContext, gradient theme, UI opacity, etc.)
 ├── features/        # Feature modules — each is self-contained
 │   ├── characters/
+│   ├── community/   # Community accounts, publishing, and moderation client (has its own README)
 │   ├── teams/
 │   ├── tier-list/
 │   └── wiki/        # All wiki database features (artifacts, gear, relics, wyrms, etc.)
@@ -64,6 +65,17 @@ Fetched entity collections are checked at runtime for their expected top-level
 shape before being exposed to components. The data pipeline remains responsible
 for full schema validation.
 
+## Community-Published Content
+
+Teams and tier lists are **not** static data-layer content — they're published by
+signed-in users through the Cloudflare Worker in [`community-api/`](../community-api/README.md).
+The client lives in `features/community/`, and its architecture (data hooks,
+pagination, cards, moderation tools, the site-wide tier list reference) is
+documented in [`features/community/README.md`](features/community/README.md).
+`features/teams/hooks/use-teams-data.ts` and
+`features/tier-list/hooks/use-tier-list-data.ts` wrap its hooks; follow that
+pattern for any future community content type.
+
 ## Adding a New Database Page
 
 Checklist for adding a new dataset (e.g. "Mounts"):
@@ -78,15 +90,15 @@ Checklist for adding a new dataset (e.g. "Mounts"):
 
 ## Key Shared Hooks
 
-| Hook                  | Purpose                                         |
-| --------------------- | ----------------------------------------------- |
-| `useDataFetch`        | Fetch + cache a JSON file                       |
-| `useFilteredPageData` | Filter, sort, paginate a dataset for list pages |
-| `useFilters`          | Filter state with localStorage persistence      |
-| `usePagination`       | Page/offset state                               |
-| `useSort`             | Sort column/direction state                     |
-| `useDarkMode`         | Current color scheme                            |
-| `useIsMobile`         | Responsive breakpoint                           |
+| Hook                  | Purpose                                            |
+| --------------------- | -------------------------------------------------- |
+| `useDataFetch`        | Fetch + cache a JSON file                          |
+| `useFilteredPageData` | Filter, sort, paginate a dataset for list pages    |
+| `useFilters`          | Filter state with localStorage persistence         |
+| `usePagination`       | Page/offset state; resets on filter or size change |
+| `useSort`             | Sort column/direction state                        |
+| `useDarkMode`         | Current color scheme                               |
+| `useIsMobile`         | Responsive breakpoint                              |
 
 ## Styling Conventions
 
@@ -101,9 +113,49 @@ Checklist for adding a new dataset (e.g. "Mounts"):
 - Quality-tier border colors: `QUALITY_BORDER_COLOR[quality]` from `constants/colors`
 - Row/position colors: red = Front, orange = Middle, blue = Back
 
+Import and barrel rules are in [`docs/import-policy.md`](../docs/import-policy.md).
 Formatting conventions are defined in the repository `.editorconfig` and
 enforced by `npm run format:check`. Run `npm run check` before opening a pull
 request to execute formatting, lint, tests, and type checking together.
+
+## Clickable cards
+
+Community cards (`TeamCard`, `TierListCard`) use the stretched-link pattern: the
+title is a real `<a>` (`CardTitle`) whose `::after` covers the card
+(`.dt-link-card` in `styles/interactions.css`), so they're keyboard-focusable and
+open in a new tab like any link without a `role="link"` container wrapping other
+controls. Anything that must stay separately clickable inside a card (actions,
+author link, character portraits) opts in with `.dt-link-card__above`.
+
+## Buttons
+
+Button styles carry a fixed meaning, so pick by emphasis rather than looks:
+
+- **Primary** — `filled`, accent color: the one main action of a dialog or form
+  (Publish, Submit report).
+- **Secondary** — `light`, accent color: page-level actions (Edit, Remix, Export Image).
+- **Tertiary** — `subtle`: quiet inline actions that repeat (Report, Unlink,
+  Withdraw, Expand). These intentionally have no background at rest, only a hover
+  fill, so a row of them doesn't compete with the content.
+- **Cancel** — `outline`, accent color.
+- **Destructive** — `red`; a confirmation's confirm button is `filled`, an inline
+  Delete is `light` (`subtle` on compact cards), and moderator "Suspend" is
+  `outline`. Reversible moderator actions are softer: Hide is `light` orange,
+  Restore `light` teal, Dismiss `light` gray.
+- **Toggle groups** (view mode, layout) — `filled` for the selected option,
+  `default` for the rest, with `aria-pressed`.
+
+Icon-only buttons (`ActionIcon`) always need an `aria-label`.
+
+## Loading skeletons
+
+All skeleton layouts live in `components/layout/PageLoadingSkeleton.tsx` and are
+wrapped in `LoadingRegion` (hidden from assistive tech, one announced status).
+Community-specific ones (`CommunityCardsLoading`, `CommunityBrowseLoading`,
+`ProfilePageLoading`, `AccountPageLoading`, `TierListPageLoading`) size their
+placeholders from `COMMUNITY_CARD_HEIGHT` so pages don't jump when content
+arrives; update those heights if a card's layout changes. Wrap any custom
+placeholder in `LoadingRegion` too.
 
 ## Page Shells
 
@@ -112,8 +164,8 @@ Most list pages use one of two layout shells:
 - **`ListPageShell`** — handles loading, errors, and empty data; callers provide a page-appropriate `loadingFallback`
 - **`FilteredListShell`** — list with sidebar filter panel, search, sort, and pagination built in; powered by `useFilteredPageData`
 
-Detail pages use `DetailPageHero` + `DetailPageNavigation` for the top section.
-Reusable route, list, detail, builder, and home skeletons live in
-`components/layout/PageLoadingSkeleton.tsx`. Wrap custom placeholders in
-`LoadingRegion` so decorative skeletons are hidden from assistive technology and
-the loading state is announced once.
+Detail pages for static wiki content use `DetailPageHero` + `DetailPageNavigation`
+for the top section. Community-published detail pages (`TeamPage`, `TierListPage`)
+don't — they use their own header (`TeamHeroSection`, or a plain title for tier
+lists) and skip prev/next navigation, since an open-ended, popularity-sorted
+public catalog doesn't have a stable "next item" the way a fixed wiki dataset does.

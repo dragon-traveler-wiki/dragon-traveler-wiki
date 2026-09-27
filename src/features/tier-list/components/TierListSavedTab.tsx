@@ -1,8 +1,8 @@
-import { Button, Paper, ScrollArea, Stack, Tabs, Text } from '@mantine/core';
-import { IoCreate } from 'react-icons/io5';
+import { ScrollArea, Tabs } from '@mantine/core';
 import EntityActionButtons from '@/components/common/EntityActionButtons';
 import NoResultsSuggestions from '@/components/ui/NoResultsSuggestions';
-import { useEntityTabParam, useGradientAccent, useIsMobile } from '@/hooks';
+import NoSavedItemsState from '@/components/ui/NoSavedItemsState';
+import { useEntityTabParam, useIsMobile } from '@/hooks';
 import type { TierList as TierListType } from '@/features/tier-list/types';
 import TierListContent from '@/features/tier-list/components/TierListContent';
 import type { TierListRankableEntity } from '@/features/tier-list/types';
@@ -45,7 +45,6 @@ export default function TierListSavedTab({
   hasEntityFilters,
 }: TierListSavedTabProps) {
   const isMobile = useIsMobile();
-  const { accent } = useGradientAccent();
   const [activeValue, handleSelectTierList] = useEntityTabParam(
     'saved-list',
     visibleSavedTierLists,
@@ -53,24 +52,12 @@ export default function TierListSavedTab({
 
   if (savedTierLists.length === 0) {
     return (
-      <Paper p="xl" radius="md" withBorder>
-        <Stack align="center" gap="sm">
-          <Text c="dimmed">No saved tier lists yet.</Text>
-          <Text size="xs" c="dimmed">
-            Use the &ldquo;Create Your Own&rdquo; tab to build and save a tier
-            list.
-          </Text>
-          <Button
-            variant="light"
-            color={accent.primary}
-            size="sm"
-            leftSection={<IoCreate size={16} />}
-            onClick={onGoToBuilder}
-          >
-            Go to Builder
-          </Button>
-        </Stack>
-      </Paper>
+      <NoSavedItemsState
+        title="No saved tier lists yet"
+        description={`Use the "Create Your Own" tab to build and save a tier list.`}
+        actionLabel="Go to Builder"
+        onAction={onGoToBuilder}
+      />
     );
   }
 

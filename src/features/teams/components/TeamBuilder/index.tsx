@@ -13,6 +13,7 @@ import { BenchSection } from '@/features/teams/components/BenchSection';
 import { useTeamBuilderState } from '@/features/teams/hooks/use-team-builder-state';
 import { hasSavedTeam, saveTeam } from '@/features/teams/saved-teams';
 import type { Team } from '@/features/teams/types';
+import PublishModal from '@/features/community/PublishModal';
 import type { Wyrmspell } from '@/features/wiki/wyrmspells/types';
 import { useDarkMode, useIsMobile, useMobileTooltip } from '@/hooks';
 import { useSavedBuilderItem } from '@/hooks/use-saved-builder-item';
@@ -22,8 +23,6 @@ import {
   DARK_BACKGROUND,
   LIGHT_BACKGROUND,
 } from '@/utils/export-image';
-import { buildSuggestionIssueUrls } from '@/utils/github-issues';
-import { showWarningToast } from '@/utils/toast';
 import {
   DndContext,
   DragOverlay,
@@ -35,7 +34,7 @@ import {
 } from '@dnd-kit/core';
 import { Box, Flex, Stack, Text } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   AvailablePool,
@@ -76,6 +75,7 @@ export default function TeamBuilder({
     { open: openClearConfirm, close: closeClearConfirm },
   ] = useDisclosure(false);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [publishOpened, setPublishOpened] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
   const isDark = useDarkMode();
   const tooltipProps = useMobileTooltip();
@@ -127,7 +127,7 @@ export default function TeamBuilder({
     confirmOverwrite,
     cancelOverwrite,
   } = useSavedBuilderItem({
-    item: teamData,
+    item: { ...teamData, community: initialData?.community },
     entityLabel: 'team',
     collectionLabel: 'My Saved Teams',
     hasSavedItem: hasSavedTeam,
@@ -166,30 +166,6 @@ export default function TeamBuilder({
     run();
   }, [isCapturing, isDark, teamData.name]);
 
-  const { issueUrl: teamIssueUrl, emptyIssueUrl: teamEmptyIssueUrl } = useMemo(
-    () =>
-      buildSuggestionIssueUrls({
-        title: '[Team] New team suggestion',
-        json,
-        entityType: 'team',
-      }),
-    [json],
-  );
-
-  function handleSubmitSuggestion() {
-    if (!teamIssueUrl) {
-      window.open(teamEmptyIssueUrl, '_blank', 'noopener,noreferrer');
-      showWarningToast({
-        title: 'Team JSON is too large',
-        message:
-          'Please copy the JSON using the Copy JSON button and paste it into the GitHub issue body.',
-        autoClose: 8000,
-      });
-      return;
-    }
-    window.open(teamIssueUrl, '_blank', 'noopener,noreferrer');
-  }
-
   return (
     <>
       <DndContext
@@ -219,7 +195,7 @@ export default function TeamBuilder({
             onPasteOpen={openPasteModal}
             onSave={requestSave}
             onExport={() => setIsCapturing(true)}
-            onSubmit={handleSubmitSuggestion}
+            onSubmit={() => setPublishOpened(true)}
             onClear={openClearConfirm}
           />
 
@@ -413,6 +389,14 @@ export default function TeamBuilder({
           </Box>
         </Box>
       )}
+      <PublishModal
+        opened={publishOpened}
+        onClose={() => setPublishOpened(false)}
+        kind="team"
+        payload={teamData}
+        publicationId={initialData?.community?.id}
+        onPublished={() => window.location.assign('/teams')}
+      />
     </>
   );
 }

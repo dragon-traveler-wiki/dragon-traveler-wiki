@@ -1,195 +1,206 @@
-import ChangeHistory from '@/components/common/ChangeHistory';
-import EntityActionButtons from '@/components/common/EntityActionButtons';
-import CollapsibleSectionCard from '@/components/ui/CollapsibleSectionCard';
-import NoResultsSuggestions from '@/components/ui/NoResultsSuggestions';
-import { CHARACTER_GRID_SPACING } from '@/constants/ui';
-import type { Character } from '@/features/characters/types';
-import { getCharacterIdentityKey } from '@/features/characters/utils/character-route';
-import TierListContent from '@/features/tier-list/components/TierListContent';
-import TierListEntityCard from '@/features/tier-list/components/TierListEntityCard';
-import {
-  getTierListEntityType,
-  type TierListRankableEntity,
-  type TierList as TierListType,
-} from '@/features/tier-list/types';
-import type { NoblePhantasm } from '@/features/wiki/noble-phantasms/types';
-import { useEntityTabParam, useIsMobile } from '@/hooks';
-import type { ChangesFile } from '@/types/changes';
 import {
   Badge,
+  Group,
   ScrollArea,
   SimpleGrid,
-  Stack,
   Table,
-  Tabs,
+  Text,
 } from '@mantine/core';
+import { Link, useNavigate } from 'react-router';
+import AuthorLink from '@/features/community/AuthorLink';
+import CommunityActions from '@/features/community/CommunityActions';
+import NoResultsSuggestions from '@/components/ui/NoResultsSuggestions';
+import CommunityLoadMore from '@/features/community/CommunityLoadMore';
+import PaginationControl from '@/components/ui/PaginationControl';
+import {
+  getContentTypeColor,
+  normalizeContentType,
+} from '@/constants/content-types';
+import { CURSOR_POINTER_STYLE, getMinWidthStyle } from '@/constants/styles';
+import type { Character } from '@/features/characters/types';
+import TierListCard from '@/features/tier-list/components/TierListCard';
+import {
+  getTierListEntityType,
+  type TierList as TierListType,
+} from '@/features/tier-list/types';
+import { getTierListRoutePath } from '@/features/tier-list/utils/tier-list-route';
+import { useGradientAccent } from '@/hooks';
 
 interface TierListViewTabProps {
+  paginatedTierLists: TierListType[];
   visibleTierLists: TierListType[];
-  characters: Character[];
-  noblePhantasms: NoblePhantasm[];
-  resolveTierEntryEntity: (
-    entry: TierListType['entries'][number],
-  ) => TierListRankableEntity | undefined;
+  charMap: Map<string, Character>;
+  characterByIdentity: Map<string, Character>;
   viewMode: string;
+  search: string;
   onClearFilters: () => void;
   onOpenFilters: () => void;
-  tierListChanges: ChangesFile;
   onRequestEdit: (tierList: TierListType) => void;
-  onRequestExport: (name: string) => void;
-  isExporting: string | null;
-  exportRefCallback: (name: string, node: HTMLDivElement | null) => void;
-  entityFilter: (entity: TierListRankableEntity) => boolean;
-  hasEntityFilters: boolean;
+  page: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+  pageSize: number;
+  pageSizeOptions: readonly number[];
+  onPageSizeChange: (pageSize: number) => void;
+  hasMore: boolean;
+  loadedCount: number;
+  paginationTotal: number;
+  loadingMore: boolean;
+  onLoadMore: () => void;
 }
 
 export default function TierListViewTab({
+  paginatedTierLists,
   visibleTierLists,
-  characters,
-  noblePhantasms,
-  resolveTierEntryEntity,
+  charMap,
+  characterByIdentity,
   viewMode,
+  search,
   onClearFilters,
   onOpenFilters,
-  tierListChanges,
   onRequestEdit,
-  onRequestExport,
-  isExporting,
-  exportRefCallback,
-  entityFilter,
-  hasEntityFilters,
+  page,
+  totalPages,
+  onPageChange,
+  pageSize,
+  pageSizeOptions,
+  onPageSizeChange,
+  hasMore,
+  loadedCount,
+  paginationTotal,
+  loadingMore,
+  onLoadMore,
 }: TierListViewTabProps) {
-  const isMobile = useIsMobile();
-  const [activeTierListName, handleSelectTierList] = useEntityTabParam(
-    'list',
-    visibleTierLists,
-  );
-
-  if (visibleTierLists.length === 0) {
-    return (
-      <NoResultsSuggestions
-        title="No tier lists found"
-        message="No tier lists match the current filters."
-        onReset={onClearFilters}
-        onOpenFilters={onOpenFilters}
-      />
-    );
-  }
+  const { accent } = useGradientAccent();
+  const navigate = useNavigate();
 
   return (
-    <Tabs value={activeTierListName} onChange={handleSelectTierList}>
-      <ScrollArea type="auto" scrollbarSize={5} offsetScrollbars>
-        <Tabs.List style={{ flexWrap: 'nowrap', minWidth: 'max-content' }}>
-          {visibleTierLists.map((tierList) => (
-            <Tabs.Tab
-              key={tierList.name}
-              value={tierList.name}
-              style={{ minHeight: 40 }}
-            >
-              {tierList.name}
-            </Tabs.Tab>
+    <>
+      {visibleTierLists.length === 0 && (
+        <NoResultsSuggestions
+          title={search ? 'No tier lists found' : 'No matching tier lists'}
+          message={
+            search
+              ? 'No tier lists match your search.'
+              : 'No tier lists match the current filters.'
+          }
+          onReset={onClearFilters}
+          onOpenFilters={onOpenFilters}
+        />
+      )}
+
+      {viewMode === 'grid' ? (
+        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+          {paginatedTierLists.map((tierList) => (
+            <TierListCard
+              key={tierList.community?.id ?? tierList.name}
+              tierList={tierList}
+              charMap={charMap}
+              characterByIdentity={characterByIdentity}
+              to={getTierListRoutePath(tierList)}
+              actions={
+                tierList.community ? (
+                  <CommunityActions
+                    community={tierList.community}
+                    onEdit={() => onRequestEdit(tierList)}
+                    onDeleted={() => window.location.reload()}
+                  />
+                ) : null
+              }
+            />
           ))}
-        </Tabs.List>
-      </ScrollArea>
-
-      {visibleTierLists.map((tierList) => {
-        const entityType = getTierListEntityType(tierList);
-        const rankedKeys = new Set(
-          tierList.entries.flatMap((entry) => {
-            const entity = resolveTierEntryEntity(entry);
-            return entity ? [entity.key] : [];
-          }),
-        );
-        const availableEntities: TierListRankableEntity[] =
-          entityType === 'noble_phantasm'
-            ? noblePhantasms.map((noblePhantasm) => ({
-                key: noblePhantasm.slug,
-                entityType: 'noble_phantasm',
-                noblePhantasm,
-              }))
-            : characters.map((character) => ({
-                key: getCharacterIdentityKey(character),
-                entityType: 'character',
-                character,
-              }));
-        const unranked = availableEntities.filter(
-          (entity) =>
-            !rankedKeys.has(entity.key) &&
-            (!hasEntityFilters || entityFilter(entity)),
-        );
-        const headerActions = (
-          <EntityActionButtons
-            onEdit={() => onRequestEdit(tierList)}
-            onExport={() => onRequestExport(tierList.name)}
-            isExporting={isExporting === tierList.name}
-            size={isMobile ? 'xs' : 'compact-xs'}
-            variant="light"
-          />
-        );
-
-        return (
-          <Tabs.Panel key={tierList.name} value={tierList.name} pt="md">
-            <Stack gap="md">
-              <TierListContent
-                tierList={tierList}
-                resolveTierEntryEntity={resolveTierEntryEntity}
-                viewMode={viewMode}
-                headerActions={headerActions}
-                disableNameClamp={isExporting === tierList.name}
-                exportRefCallback={(node) =>
-                  exportRefCallback(tierList.name, node)
-                }
-                entityFilter={hasEntityFilters ? entityFilter : undefined}
-              />
-
-              {unranked.length > 0 && (
-                <CollapsibleSectionCard
-                  defaultExpanded
-                  color="gray"
-                  header={
-                    <Badge variant="filled" color="gray" size="lg" radius="sm">
-                      N/A ({unranked.length})
-                    </Badge>
-                  }
+        </SimpleGrid>
+      ) : (
+        <ScrollArea type="auto" scrollbarSize={6} offsetScrollbars>
+          <Table striped highlightOnHover style={getMinWidthStyle(560)}>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>Name</Table.Th>
+                <Table.Th>Content Type</Table.Th>
+                <Table.Th>Ranks</Table.Th>
+                <Table.Th>Author</Table.Th>
+                <Table.Th>Actions</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {paginatedTierLists.map((tierList) => (
+                <Table.Tr
+                  key={tierList.community?.id ?? tierList.name}
+                  style={CURSOR_POINTER_STYLE}
+                  onClick={() => navigate(getTierListRoutePath(tierList))}
                 >
-                  {viewMode === 'grid' ? (
-                    <SimpleGrid
-                      cols={{ base: 2, xs: 3, sm: 4, md: 6 }}
-                      spacing={CHARACTER_GRID_SPACING}
+                  <Table.Td>
+                    <Text
+                      component={Link}
+                      to={getTierListRoutePath(tierList)}
+                      size="sm"
+                      fw={500}
+                      className="dt-link-text"
+                      style={{ textDecoration: 'none' }}
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      {unranked.map((entity) => (
-                        <TierListEntityCard
-                          key={entity.key}
-                          entity={entity}
-                          fallbackName={entity.key}
+                      {tierList.name || 'Untitled'}
+                    </Text>
+                  </Table.Td>
+                  <Table.Td>
+                    <Badge
+                      variant="light"
+                      size="sm"
+                      color={getContentTypeColor(tierList.content_type, 'All')}
+                    >
+                      {normalizeContentType(tierList.content_type, 'All')}
+                    </Badge>
+                  </Table.Td>
+                  <Table.Td>
+                    <Badge variant="outline" size="sm" color={accent.primary}>
+                      {getTierListEntityType(tierList) === 'noble_phantasm'
+                        ? 'Noble Phantasms'
+                        : 'Characters'}
+                    </Badge>
+                  </Table.Td>
+                  <Table.Td>
+                    <AuthorLink
+                      author={tierList.community?.author}
+                      fallback={tierList.author}
+                      size="sm"
+                      fw={400}
+                    />
+                  </Table.Td>
+                  <Table.Td>
+                    <Group gap={4} wrap="nowrap">
+                      {tierList.community && (
+                        <CommunityActions
+                          community={tierList.community}
+                          onEdit={() => onRequestEdit(tierList)}
+                          onDeleted={() => window.location.reload()}
                         />
-                      ))}
-                    </SimpleGrid>
-                  ) : (
-                    <Table striped highlightOnHover>
-                      <Table.Tbody>
-                        {unranked.map((entity) => (
-                          <Table.Tr key={entity.key}>
-                            <Table.Td>
-                              <TierListEntityCard
-                                entity={entity}
-                                fallbackName={entity.key}
-                                size={40}
-                              />
-                            </Table.Td>
-                          </Table.Tr>
-                        ))}
-                      </Table.Tbody>
-                    </Table>
-                  )}
-                </CollapsibleSectionCard>
-              )}
+                      )}
+                    </Group>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </ScrollArea>
+      )}
 
-              <ChangeHistory history={tierListChanges[tierList.name]} />
-            </Stack>
-          </Tabs.Panel>
-        );
-      })}
-    </Tabs>
+      <PaginationControl
+        currentPage={page}
+        totalPages={totalPages}
+        onChange={onPageChange}
+        totalItems={paginationTotal}
+        pageSize={pageSize}
+        pageSizeOptions={pageSizeOptions}
+        onPageSizeChange={onPageSizeChange}
+      />
+
+      <CommunityLoadMore
+        hasMore={hasMore}
+        loadingMore={loadingMore}
+        onLoadMore={onLoadMore}
+        atLastPage={page * pageSize >= visibleTierLists.length}
+        loadedCount={loadedCount}
+      />
+    </>
   );
 }

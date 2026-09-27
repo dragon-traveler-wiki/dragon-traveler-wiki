@@ -80,7 +80,7 @@ export default function GearSetsTab({
             const bonusDescription = setBonus?.description ?? '';
             return (
               <InteractiveSurface
-                key={set.name}
+                key={set.slug}
                 component={Link}
                 to={`/gear-sets/${set.slug}`}
                 p="md"

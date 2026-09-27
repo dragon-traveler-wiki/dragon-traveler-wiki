@@ -58,9 +58,8 @@ export default function FilterableCharacterPool({
   canToggleLayout = false,
   children,
 }: FilterableCharacterPoolProps) {
-  const { tierLists, selectedTierListName } = useContext(
-    TierListReferenceContext,
-  );
+  const { selectedTierList } = useContext(TierListReferenceContext);
+  const selectedTierListName = selectedTierList?.name ?? null;
   const { data: statusEffects } = useStatusEffects();
   const [filters, setFilters] = useState<CharacterFilters>(
     EMPTY_CHARACTER_FILTERS,
@@ -109,8 +108,7 @@ export default function FilterableCharacterPool({
   );
 
   const tierOptions = useMemo(() => {
-    if (!selectedTierListName) return [];
-    const list = tierLists.find((l) => l.name === selectedTierListName);
+    const list = selectedTierList;
     if (!list) return [];
     const seen = new Set<string>();
     const tiers: string[] = [];
@@ -130,7 +128,7 @@ export default function FilterableCharacterPool({
     }
     tiers.push('N/A');
     return tiers;
-  }, [tierLists, selectedTierListName]);
+  }, [selectedTierList]);
 
   // Clear tier filters that no longer exist in the newly selected tier list
   useEffect(() => {
@@ -146,8 +144,7 @@ export default function FilterableCharacterPool({
 
   const tierLookup = useMemo(() => {
     const map = new Map<string, string>();
-    if (!selectedTierListName) return map;
-    const list = tierLists.find((l) => l.name === selectedTierListName);
+    const list = selectedTierList;
     if (!list || getTierListEntityType(list) !== 'character') return map;
     for (const entry of list.entries) {
       if (!isCharacterTierEntry(entry)) continue;
@@ -162,12 +159,7 @@ export default function FilterableCharacterPool({
       }
     }
     return map;
-  }, [
-    tierLists,
-    selectedTierListName,
-    preferredCharacterByName,
-    characterByIdentity,
-  ]);
+  }, [selectedTierList, preferredCharacterByName, characterByIdentity]);
 
   const filtered = useMemo(() => {
     const filteredChars = filterCharacters(
@@ -188,10 +180,6 @@ export default function FilterableCharacterPool({
     totalPages,
     offset,
   } = usePagination(filtered.length, pageSize, filterKey);
-
-  useEffect(() => {
-    setPage(1);
-  }, [pageSize, setPage]);
 
   const paginated = filtered.slice(offset, offset + pageSize);
 

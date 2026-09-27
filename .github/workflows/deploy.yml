@@ -72,9 +72,14 @@ jobs:
       - name: Validate production configuration
         env:
           R2_PUBLIC_URL: ${{ vars.R2_PUBLIC_URL }}
+          API_BASE_URL: ${{ vars.API_BASE_URL }}
+          TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
         run: |
           test -n "$R2_PUBLIC_URL"
+          test -n "$API_BASE_URL"
+          test -n "$TURNSTILE_SITE_KEY"
           case "$R2_PUBLIC_URL" in https://*) ;; *) exit 1 ;; esac
+          case "$API_BASE_URL" in https://*) ;; *) exit 1 ;; esac
 
       - name: Build
         run: npm run build --ignore-scripts
@@ -83,6 +88,8 @@ jobs:
           ASSETS_DIR: private-data/assets
           VITE_APP_BASE: /
           VITE_ASSETS_BASE: ${{ vars.R2_PUBLIC_URL }}
+          VITE_API_BASE_URL: ${{ vars.API_BASE_URL }}
+          VITE_TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
           VITE_BUILD_ID: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Copy data into dist

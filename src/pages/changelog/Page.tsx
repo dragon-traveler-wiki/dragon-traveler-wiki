@@ -2,7 +2,6 @@ import { useChangelog } from '@/features/wiki/hooks/use-wiki-data';
 import { useGradientAccent, usePageSize, useTabParam } from '@/hooks';
 import { getPageSizeStorageKey, usePagination } from '@/hooks/use-pagination';
 import { Container, Stack, Tabs, Text, Title } from '@mantine/core';
-import { useEffect } from 'react';
 import SiteUpdatesTab from './SiteUpdatesTab';
 import DataHistoryTab from './DataHistoryTab';
 import { useToggleSet } from './use-toggle-set';
@@ -36,9 +35,6 @@ export default function Changelog() {
     pageSize,
     String(changelog.length),
   );
-  useEffect(() => {
-    setPage(1);
-  }, [pageSize, setPage]);
   const paginatedChangelog = changelog.slice(offset, offset + pageSize);
 
   return (

@@ -223,9 +223,6 @@ export default function DataHistoryTab() {
     pageSize,
     filterKey,
   );
-  useEffect(() => {
-    setPage(1);
-  }, [pageSize, setPage]);
   const pageItems = filtered.slice(offset, offset + pageSize);
 
   const categoryChipOptions = DATA_FILES.filter(({ file }) =>

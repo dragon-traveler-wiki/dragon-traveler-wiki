@@ -114,9 +114,10 @@ export function useCharacterPageData(
   name: string | undefined,
 ): CharacterPageData {
   const navigate = useNavigate();
-  const { tierLists, selectedTierListName } = useContext(
+  const { selectedTierList: referenceTierList } = useContext(
     TierListReferenceContext,
   );
+  const selectedTierListName = referenceTierList?.name ?? null;
   const { showCharacterTiers } = useContext(CharacterOwnershipContext);
 
   const { data: characters, loading } = useCharacters();
@@ -168,14 +169,14 @@ export function useCharacterPageData(
     sameNameVariants.length,
   ]);
 
-  const selectedTierList = useMemo(() => {
-    if (!selectedTierListName) return null;
-    const tierList =
-      tierLists.find((list) => list.name === selectedTierListName) ?? null;
-    return tierList && getTierListEntityType(tierList) === 'character'
-      ? tierList
-      : null;
-  }, [tierLists, selectedTierListName]);
+  const selectedTierList = useMemo(
+    () =>
+      referenceTierList &&
+      getTierListEntityType(referenceTierList) === 'character'
+        ? referenceTierList
+        : null,
+    [referenceTierList],
+  );
 
   const isPreferredCharacterForNameReferences = useMemo(() => {
     if (!character) return false;

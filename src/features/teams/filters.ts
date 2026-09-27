@@ -1,4 +1,5 @@
 import { matchesContentTypeFilters } from '@/constants/content-types';
+import { getDisplayAuthor } from '@/features/community/display-author';
 import type { FactionSlug } from '@/types/faction';
 import type { Team } from './types';
 
@@ -19,8 +20,13 @@ export function matchesTeamFilters(
   filters: TeamFilters,
 ): boolean {
   const query = search.trim().toLocaleLowerCase();
+  const matchesQuery =
+    !query ||
+    team.name.toLocaleLowerCase().includes(query) ||
+    (team.description ?? '').toLocaleLowerCase().includes(query) ||
+    (getDisplayAuthor(team) ?? '').toLocaleLowerCase().includes(query);
   return (
-    (!query || team.name.toLocaleLowerCase().includes(query)) &&
+    matchesQuery &&
     (filters.factions.length === 0 ||
       filters.factions.includes(team.faction)) &&
     matchesContentTypeFilters(team.content_type, filters.contentTypes)
