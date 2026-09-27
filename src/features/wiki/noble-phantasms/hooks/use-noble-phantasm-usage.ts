@@ -83,7 +83,7 @@ export function useNoblePhantasmUsage(
       linkedCharacterSlugs.length === 0 ||
       Boolean(
         item.character_slug &&
-          linkedCharacterSlugs.includes(item.character_slug),
+        linkedCharacterSlugs.includes(item.character_slug),
       ),
     [linkedCharacterSlugs],
   );

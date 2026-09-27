@@ -4,11 +4,7 @@ import { IoCreate, IoDownload, IoTrash } from 'react-icons/io5';
 import { useGradientAccent } from '@/hooks';
 
 type CompactSize =
-  | 'compact-xs'
-  | 'compact-sm'
-  | 'compact-md'
-  | 'compact-lg'
-  | 'compact-xl';
+  'compact-xs' | 'compact-sm' | 'compact-md' | 'compact-lg' | 'compact-xl';
 
 interface EntityActionButtonsProps {
   onEdit?: () => void;

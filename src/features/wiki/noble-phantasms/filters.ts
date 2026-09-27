@@ -24,7 +24,7 @@ export function hasValidCharacterLink(
 ): boolean {
   return Boolean(
     noblePhantasm.character_slug &&
-      characterBySlug.has(noblePhantasm.character_slug),
+    characterBySlug.has(noblePhantasm.character_slug),
   );
 }
 

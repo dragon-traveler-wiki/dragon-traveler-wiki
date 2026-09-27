@@ -124,12 +124,9 @@ function extractFieldDiffDetails(
   const added = diff.added as string[] | undefined;
   const removed = diff.removed as string[] | undefined;
   const modified = diff.modified as
-    | string[]
-    | Record<string, unknown>
-    | undefined;
+    string[] | Record<string, unknown> | undefined;
   const changed = diff.changed as
-    | Record<string, { old: unknown; new: unknown }>
-    | undefined;
+    Record<string, { old: unknown; new: unknown }> | undefined;
 
   if (added?.length) details.push(`Added: ${added.join(', ')}`);
   if (removed?.length) details.push(`Removed: ${removed.join(', ')}`);

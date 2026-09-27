@@ -3,12 +3,7 @@ import type { GearSetBonus, GearType } from '@/features/wiki/gear/types';
 import type { Quality } from '@/types/quality';
 
 export type CharacterClass =
-  | 'guardian'
-  | 'priest'
-  | 'assassin'
-  | 'warrior'
-  | 'archer'
-  | 'mage';
+  'guardian' | 'priest' | 'assassin' | 'warrior' | 'archer' | 'mage';
 
 export type CharacterAttackRange = 'melee' | 'ranged';
 
@@ -52,12 +47,7 @@ export interface Talent {
 }
 
 export type RecommendedGearSlot =
-  | 'headgear'
-  | 'chestplate'
-  | 'bracers'
-  | 'boots'
-  | 'weapon'
-  | 'accessory';
+  'headgear' | 'chestplate' | 'bracers' | 'boots' | 'weapon' | 'accessory';
 
 export interface RecommendedGearSlots {
   headgear?: string | null;
