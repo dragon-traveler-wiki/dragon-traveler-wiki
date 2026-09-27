@@ -112,6 +112,16 @@ and (moderators) `status=hidden`; the first page also returns `total`.
 - Suspended or banned accounts can read and delete their own items but are refused
   on publish, edit, vote, and report (`requireActiveUser`, `403` with `code: 'suspended'`).
   They also can't delete their account or unlink identities.
+- The public read routes — `GET /teams`, `/tier-lists` (list and single item), `GET
+/users/:id`, and `GET /settings` — are served from Cloudflare's edge cache
+  (`withEdgeCache` in `helpers.ts`, 30-60s TTL) whenever the request has no session
+  cookie, so repeat anonymous requests don't reach the Worker or D1 at all. Any
+  request carrying a session cookie always runs fresh and is never read from or
+  written to the cache, so a signed-in viewer's own upvote/ownership state (or a
+  moderator-only field on a profile) can never leak into a response shared with
+  anyone else. Caching is best-effort: `caches.default` isn't available in every
+  runtime (e.g. the local test harness), and any failure there just falls back to
+  serving fresh.
 - Every moderator action is written to `moderation_actions`.
 - Moderator status is read from the database on every request, so promoting or
   demoting someone (`POST /admin/users/:id/role`, from their profile page) takes effect
