@@ -817,13 +817,13 @@ describe('review follow-ups', () => {
     const log = await json<{
       actions: Array<{ action: string; target_label: string | null }>;
     }>(await h.request('/v1/admin/actions', { user: mod }));
-    expect(
-      log.actions.find((entry) => entry.action === 'dismiss-report')
-        ?.target_label,
-    ).toBe('Label Test List');
-    expect(
-      log.actions.find((entry) => entry.action === 'set-reference')
-        ?.target_label,
-    ).toBe('Label Test List');
+    // Other tests write the same kinds of entries in the same second, so check
+    // that the entry exists rather than which one the log happens to list first.
+    const labelsFor = (action: string) =>
+      log.actions
+        .filter((entry) => entry.action === action)
+        .map((entry) => entry.target_label);
+    expect(labelsFor('dismiss-report')).toContain('Label Test List');
+    expect(labelsFor('set-reference')).toContain('Label Test List');
   });
 });
