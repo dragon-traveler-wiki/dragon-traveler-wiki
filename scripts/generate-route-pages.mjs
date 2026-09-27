@@ -44,6 +44,8 @@ export const LEGACY_ROUTE_ALIASES = new Map([
 export function normalizeTypeKey(value) {
   return String(value ?? '')
     .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
     .replace(/['’]/g, '')
     .replace(/[^a-z0-9]+/g, '_')
     .replace(/^_+|_+$/g, '');
