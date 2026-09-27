@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Apply labels and check for duplicates
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const title = context.payload.issue.title;
