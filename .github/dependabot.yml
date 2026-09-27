@@ -5,8 +5,13 @@ updates:
     schedule:
       interval: monthly
     groups:
+      # Safe to batch and merge together. Majors are deliberately excluded so
+      # they surface as their own individual PR instead of riding along in
+      # this bundle, where one incompatible package (e.g. a peer-dependency
+      # conflict) would otherwise block every update in the group.
       npm-dependencies:
         patterns: ['*']
+        update-types: ['minor', 'patch']
 
   - package-ecosystem: npm
     directory: /community-api
@@ -15,6 +20,7 @@ updates:
     groups:
       community-api-dependencies:
         patterns: ['*']
+        update-types: ['minor', 'patch']
 
   - package-ecosystem: github-actions
     directory: /
