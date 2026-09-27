@@ -65,6 +65,25 @@ served from the `api.dtwiki.org` custom domain.
 - **After the first deploy** a moderator must pin a reference tier list (star icon
   on a character tier list's page) or the home featured characters stay hidden.
 
+## Infrastructure
+
+Only the Worker is defined in code (`wrangler.jsonc`: domain, variables, D1 binding,
+rate limit, cron). Everything else was created once by hand or with commands and
+lives in the Cloudflare account and the GitHub repo, so this is how to recreate it:
+
+| Resource                | What it is                                                                                                                          | How it was made                                                                        |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| D1 database             | `dragon-traveler-community` (id in `wrangler.jsonc`)                                                                                | `wrangler d1 create`; schema comes from `migrations/`, applied by CI                   |
+| Worker + domain         | `dragon-traveler-community-api` on `api.dtwiki.org`                                                                                 | first `wrangler deploy` (the zone `dtwiki.org` must be on the same Cloudflare account) |
+| `workers.dev` subdomain | Cloudflare needs one on the account before it accepts the cron trigger                                                              | open Workers & Pages in the dashboard once                                             |
+| Turnstile widget        | "Dragon Traveler Wiki" for `dtwiki.org` (site key is public, secret stays in the Worker)                                            | dashboard, or the Cloudflare `challenges/widgets` API                                  |
+| Worker secrets          | `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, `TURNSTILE_SECRET`                        | `wrangler secret put <NAME>`                                                           |
+| OAuth apps              | a GitHub OAuth app and a Discord app, each listing the local and `https://api.dtwiki.org/v1/auth/<provider>/callback` redirect URLs | GitHub and Discord developer portals                                                   |
+| Cloudflare API token    | scoped to Workers Scripts, D1, and the `dtwiki.org` zone (Workers Routes, DNS) for CI                                               | Cloudflare dashboard, API tokens                                                       |
+| GitHub secrets          | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `PAT` (reads the private data repo)                                                | `gh secret set`                                                                        |
+| GitHub variables        | `API_BASE_URL`, `TURNSTILE_SITE_KEY`, `R2_PUBLIC_URL`                                                                               | `gh variable set`                                                                      |
+| Branch protection       | `main` requires the `quality` check and blocks force pushes and deletion                                                            | repo settings (or `gh api`)                                                            |
+
 ## Endpoints
 
 All under `/v1`. Writes need the session cookie plus an `X-CSRF-Token` header;
