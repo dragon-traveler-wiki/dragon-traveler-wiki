@@ -23,7 +23,7 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/utilities": "^3.2.2",
     "@mantine/core": "^8.3.14",
-    "@mantine/dates": "^8.3.14",
+    "@mantine/dates": "^9.6.2",
     "@mantine/hooks": "^8.3.14",
     "@mantine/notifications": "^8.3.14",
     "@react-three/drei": "^10.7.8",
