@@ -330,7 +330,7 @@ export function DetailPageLoading() {
         </Container>
       </Box>
       <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
-        <Grid gutter="lg">
+        <Grid gap="lg">
           <Grid.Col span={{ base: 12, md: 7 }}>
             <Skeleton height={260} radius="md" />
           </Grid.Col>
@@ -351,7 +351,7 @@ export function CharacterDetailPageLoading() {
     <LoadingRegion label="Loading character details">
       <Skeleton height={CHARACTER_HERO.MIN_HEIGHT} radius={0} />
       <Container size="xl" py={{ base: 'lg', sm: 'xl' }}>
-        <Grid gutter="xl">
+        <Grid gap="xl">
           <Grid.Col span={{ base: 12, md: 4 }}>
             <Skeleton height={390} radius="md" />
           </Grid.Col>
@@ -370,7 +370,7 @@ export function CharacterDetailPageLoading() {
 export function BuilderPageLoading() {
   return (
     <LoadingRegion label="Loading builder">
-      <Grid gutter="lg">
+      <Grid gap="lg">
         <Grid.Col span={{ base: 12, md: 8 }}>
           <StaticSurface p="md" data-no-hover>
             <Stack gap="md">

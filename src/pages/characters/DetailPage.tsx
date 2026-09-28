@@ -198,7 +198,7 @@ export default function CharacterPage() {
 
       {/* Main Content */}
       <Container size="xl" py={{ base: 'lg', sm: 'xl' }}>
-        <Grid gutter="xl">
+        <Grid gap="xl">
           {/* Left Column - Illustration */}
           <Grid.Col span={{ base: 12, md: 4 }}>
             <Stack

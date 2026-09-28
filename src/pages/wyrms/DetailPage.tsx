@@ -195,7 +195,7 @@ export default function WyrmPage() {
       </DetailPageHero>
 
       <Container size="xl" py={{ base: 'lg', sm: 'xl' }}>
-        <Grid gutter="xl">
+        <Grid gap="xl">
           {/* Left column — portrait + star upgrades */}
           <Grid.Col span={{ base: 12, md: 4 }}>
             <Stack

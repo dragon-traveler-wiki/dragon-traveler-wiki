@@ -72,7 +72,7 @@ export default function CollapsibleSectionCard({
         </Group>
       </UnstyledButton>
 
-      <Collapse in={opened}>
+      <Collapse expanded={opened}>
         <Box pt="md">{children}</Box>
       </Collapse>
     </StaticSurface>

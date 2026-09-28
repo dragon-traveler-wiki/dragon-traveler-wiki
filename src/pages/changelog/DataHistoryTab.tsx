@@ -341,7 +341,7 @@ export default function DataHistoryTab() {
                   }
                 >
                   {hasFields && (
-                    <Collapse in={isExpanded}>
+                    <Collapse expanded={isExpanded}>
                       <Box mt="xs">
                         <ChangeRecordCard
                           record={{
