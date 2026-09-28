@@ -124,7 +124,7 @@ export default function Footer() {
             </Anchor>
           </Group>
 
-          <Collapse in={showLegal} id="footer-legal">
+          <Collapse expanded={showLegal} id="footer-legal">
             <Stack gap="xs" align="center" pt="xs">
               <Text size="xs" c="dimmed" ta="center" maw={600}>
                 {LEGAL_DISCLAIMER}

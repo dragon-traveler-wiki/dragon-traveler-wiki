@@ -682,7 +682,7 @@ export default function StarLevelBubbleChart({
           </Group>
 
           {/* Settings panel */}
-          <Collapse in={settingsOpen}>
+          <Collapse expanded={settingsOpen}>
             <Stack
               gap="xs"
               p="sm"

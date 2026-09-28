@@ -54,7 +54,7 @@ export default function StarUpgradeReferenceTable({
           </Group>
         </UnstyledButton>
         <Collapse
-          in={opened}
+          expanded={opened}
           transitionDuration={parseInt(TRANSITION.NORMAL, 10)}
         >
           <Table.ScrollContainer minWidth={480}>

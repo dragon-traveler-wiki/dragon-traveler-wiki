@@ -133,7 +133,7 @@ export default function SiteUpdatesTab({
                     </Group>
                   }
                 >
-                  <Collapse in={isExpanded}>
+                  <Collapse expanded={isExpanded}>
                     <Paper p="sm" withBorder radius="md" mt="xs">
                       <Stack gap={6}>
                         {byCategory.map(({ category, changes }) => (

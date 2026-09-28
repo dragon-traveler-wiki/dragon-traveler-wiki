@@ -112,7 +112,7 @@ export default function CodeRewardSummary({
           {opened ? <IoChevronUp size={16} /> : <IoChevronDown size={16} />}
         </Group>
       </UnstyledButton>
-      <Collapse id="code-reward-summary" in={opened}>
+      <Collapse id="code-reward-summary" expanded={opened}>
         <Divider mt="sm" mb="md" />
         <Group align="flex-start" gap={0} wrap="wrap">
           {view !== 'redeemed' ? (

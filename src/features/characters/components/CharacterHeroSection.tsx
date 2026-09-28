@@ -139,7 +139,7 @@ export default function CharacterPageHeroSection({
         py={{ base: 'xl', sm: 50 }}
       >
         <Grid
-          gutter={{ base: 'md', sm: 'xl' }}
+          gap={{ base: 'md', sm: 'xl' }}
           align="center"
           style={{ position: 'relative', zIndex: 1 }}
         >

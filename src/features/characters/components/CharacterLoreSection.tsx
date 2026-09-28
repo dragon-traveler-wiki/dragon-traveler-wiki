@@ -140,7 +140,7 @@ function LoreBlock({
           </Box>
           {hasMore && (
             <>
-              <Collapse in={expanded}>
+              <Collapse expanded={expanded}>
                 <Stack gap="lg" pt="xs">
                   {remaining.map((entry, i) => (
                     <RichText key={i} text={entry} {...richTextProps} />
