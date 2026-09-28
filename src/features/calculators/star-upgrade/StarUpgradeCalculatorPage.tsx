@@ -1,10 +1,11 @@
 ﻿import SafeImage from '@/components/ui/SafeImage';
+import DataFetchError from '@/components/ui/DataFetchError';
 import { QUALITY_ICON_MAP } from '@/assets';
 import { parseNumberInput } from '@/utils';
 import StatCard from '@/components/ui/StatCard';
 import { StaticSurface } from '@/components/ui/Surface';
 import { useStarLevels } from '@/features/wiki/hooks/use-wiki-data';
-import { useGradientAccent } from '@/hooks';
+import { useGradientAccent, useNullableNumber } from '@/hooks';
 import { buildStarLevels } from '@/features/wiki/star-levels/star-levels';
 import {
   getHeartTrialShardsPerDay,
@@ -23,6 +24,7 @@ import {
   SegmentedControl,
   Select,
   SimpleGrid,
+  Skeleton,
   Stack,
   Switch,
   Text,
@@ -45,7 +47,12 @@ import HeartTrialRateTable from '@/features/calculators/star-upgrade/components/
 
 export default function StarUpgradeCalculatorPage() {
   const { accent } = useGradientAccent();
-  const { data: rawStarLevels } = useStarLevels();
+  const {
+    data: rawStarLevels,
+    loading: starLevelsLoading,
+    error: starLevelsError,
+    retry: retryStarLevels,
+  } = useStarLevels();
   const starLevels = useMemo(
     () => buildStarLevels(rawStarLevels),
     [rawStarLevels],
@@ -55,7 +62,8 @@ export default function StarUpgradeCalculatorPage() {
   const [targetValue, setTargetValue] = useState<string>('');
   const [quality, setQuality] = useState<HeartTrialQuality>('SSR');
   const [affectionLevel20, setAffectionLevel20] = useState<boolean>(false);
-  const [currentCopies, setCurrentCopies] = useState<number | null>(0);
+  const [currentCopies, safeCurrentCopies, setCurrentCopies] =
+    useNullableNumber(0);
   const [currentShards, setCurrentShards] = useState<number | null>(0);
 
   // Fall back to first/last level when data loads or user hasn't selected yet
@@ -92,7 +100,6 @@ export default function StarUpgradeCalculatorPage() {
   const effectiveCopiesNeeded =
     quality === 'SR' ? copiesNeeded * 2 : copiesNeeded;
   const totalShardsNeeded = effectiveCopiesNeeded * SHARDS_PER_DUPE;
-  const safeCurrentCopies = currentCopies ?? 0;
   const safeCurrentShards = currentShards ?? 0;
   const ownedShards = Math.max(
     0,
@@ -150,6 +157,14 @@ export default function StarUpgradeCalculatorPage() {
           </Alert>
         </GuideHeroCard>
 
+        {starLevelsError && (
+          <DataFetchError
+            title="Could not load star levels"
+            message={starLevelsError.message}
+            onRetry={retryStarLevels}
+          />
+        )}
+
         <StaticSurface p="lg">
           <Stack gap="md">
             <Title order={2} size="h3">
@@ -160,31 +175,40 @@ export default function StarUpgradeCalculatorPage() {
             </Title>
 
             <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-              <Select
-                label="Current Star Level"
-                data={levelOptions}
-                value={effectiveCurrentValue}
-                onChange={(value) =>
-                  setCurrentValue(value ?? starLevels[0]?.value ?? '')
-                }
-                searchable
-                nothingFoundMessage="No level found"
-              />
-              <Select
-                label="Target Star Level"
-                data={levelOptions}
-                value={effectiveTargetValue}
-                onChange={(value) =>
-                  setTargetValue(
-                    value ?? starLevels[starLevels.length - 1]?.value ?? '',
-                  )
-                }
-                searchable
-                nothingFoundMessage="No level found"
-              />
+              {starLevelsLoading ? (
+                <>
+                  <Skeleton height={62} radius="sm" />
+                  <Skeleton height={62} radius="sm" />
+                </>
+              ) : (
+                <>
+                  <Select
+                    label="Current Star Level"
+                    data={levelOptions}
+                    value={effectiveCurrentValue}
+                    onChange={(value) =>
+                      setCurrentValue(value ?? starLevels[0]?.value ?? '')
+                    }
+                    searchable
+                    nothingFoundMessage="No level found"
+                  />
+                  <Select
+                    label="Target Star Level"
+                    data={levelOptions}
+                    value={effectiveTargetValue}
+                    onChange={(value) =>
+                      setTargetValue(
+                        value ?? starLevels[starLevels.length - 1]?.value ?? '',
+                      )
+                    }
+                    searchable
+                    nothingFoundMessage="No level found"
+                  />
+                </>
+              )}
             </SimpleGrid>
 
-            {!isValidSelection ? (
+            {!starLevelsLoading && !isValidSelection ? (
               <Alert color="red" variant="light" title="Invalid selection">
                 Target star level must be higher than current star level.
               </Alert>
