@@ -12,6 +12,12 @@ updates:
       npm-dependencies:
         patterns: ['*']
         update-types: ['minor', 'patch']
+    ignore:
+      # typescript-eslint (even its canary channel) still requires
+      # typescript <6.1.0, so a TS major update can't install right now.
+      # Remove this once typescript-eslint supports newer TypeScript.
+      - dependency-name: 'typescript'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: npm
     directory: /community-api
