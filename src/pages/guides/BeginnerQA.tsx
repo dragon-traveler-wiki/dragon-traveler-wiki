@@ -16,7 +16,6 @@ import {
   Title,
 } from '@mantine/core';
 import { IoInformationCircleOutline } from 'react-icons/io5';
-import GuideHeroCard from '@/features/guides/components/GuideHeroCard';
 
 const FACTION_GIFTS: {
   faction: string;
@@ -192,30 +191,31 @@ export default function BeginnerQA() {
   return (
     <Container size="xl" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
-        <GuideHeroCard
-          icon={<IoInformationCircleOutline size={20} />}
-          iconColor="cyan"
-          title="Beginner Q&A"
-          subtitle="Fast answers for early progression, spending priorities, and event planning."
+        <Stack gap={2}>
+          <Title order={1}>Beginner Q&amp;A</Title>
+          <Text size="sm" c="dimmed">
+            Fast answers for early progression, spending priorities, and event
+            planning.
+          </Text>
+        </Stack>
+
+        <Alert
+          variant="light"
+          color="yellow"
+          title="Translation note"
+          icon={<IoInformationCircleOutline />}
         >
-          <Alert
-            variant="light"
-            color="yellow"
-            title="Translation note"
-            icon={<IoInformationCircleOutline />}
+          This section is translated and adapted from a Chinese community guide
+          on GameKee:{' '}
+          <Anchor
+            href="https://www.gamekee.com/lhlr/670682.html"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            This section is translated and adapted from a Chinese community
-            guide on GameKee:{' '}
-            <Anchor
-              href="https://www.gamekee.com/lhlr/670682.html"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              萌新Q&A / Beginner Q&A
-            </Anchor>
-            . Source terms may contain typos or naming differences.
-          </Alert>
-        </GuideHeroCard>
+            萌新Q&A / Beginner Q&A
+          </Anchor>
+          . Source terms may contain typos or naming differences.
+        </Alert>
 
         <StaticSurface p="lg">
           <Stack gap="sm">

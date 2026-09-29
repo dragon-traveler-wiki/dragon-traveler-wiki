@@ -1,11 +1,9 @@
-import { Card, Container, Stack, Tabs } from '@mantine/core';
-import { IoGameControllerOutline } from 'react-icons/io5';
+import { Card, Container, Stack, Tabs, Text, Title } from '@mantine/core';
 import AbilityMode from '@/features/dtdle/components/AbilityMode';
 import ClassicMode from '@/features/dtdle/components/ClassicMode';
 import IllustrationMode from '@/features/dtdle/components/IllustrationMode';
 import QuoteMode from '@/features/dtdle/components/QuoteMode';
 import { useTabParam } from '@/hooks';
-import GuideHeroCard from '@/features/guides/components/GuideHeroCard';
 
 const VALID_MODES = ['classic', 'quote', 'ability', 'illustration'];
 
@@ -19,11 +17,13 @@ export default function Dtdle() {
   return (
     <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
-        <GuideHeroCard
-          icon={<IoGameControllerOutline size={24} />}
-          title="DTdle"
-          subtitle="Guess today's mystery character. One character a day, unlimited guesses."
-        />
+        <Stack gap={2}>
+          <Title order={1}>DTdle</Title>
+          <Text size="sm" c="dimmed">
+            Guess today&apos;s mystery character. One character a day, unlimited
+            guesses.
+          </Text>
+        </Stack>
 
         <Tabs value={activeMode} onChange={setActiveMode}>
           <Tabs.List>

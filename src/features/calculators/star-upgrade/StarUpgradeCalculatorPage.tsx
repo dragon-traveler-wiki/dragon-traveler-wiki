@@ -41,7 +41,6 @@ import {
   IoStar,
   IoTime,
 } from 'react-icons/io5';
-import GuideHeroCard from '@/features/guides/components/GuideHeroCard';
 import StarUpgradeReferenceTable from '@/features/calculators/star-upgrade/components/StarUpgradeReferenceTable';
 import HeartTrialRateTable from '@/features/calculators/star-upgrade/components/HeartTrialRateTable';
 
@@ -140,22 +139,24 @@ export default function StarUpgradeCalculatorPage() {
   return (
     <Container size="xl" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
-        <GuideHeroCard
-          icon={<IoStar size={20} />}
-          title="Star Upgrade Calculator"
-          subtitle="Plan your upgrade path, shard farming timeline, and required resources."
+        <Stack gap={2}>
+          <Title order={1}>Star Upgrade Calculator</Title>
+          <Text size="sm" c="dimmed">
+            Plan your upgrade path, shard farming timeline, and required
+            resources.
+          </Text>
+        </Stack>
+
+        <Alert
+          variant="light"
+          color={accent.primary}
+          icon={<IoInformationCircleOutline />}
+          title="How to use"
         >
-          <Alert
-            variant="light"
-            color={accent.primary}
-            icon={<IoInformationCircleOutline />}
-            title="How to use"
-          >
-            Pick your current and target star levels first. The calculator shows
-            cumulative requirements, then estimates farming time based on your
-            selected quality and current shard stock.
-          </Alert>
-        </GuideHeroCard>
+          Pick your current and target star levels first. The calculator shows
+          cumulative requirements, then estimates farming time based on your
+          selected quality and current shard stock.
+        </Alert>
 
         {starLevelsError && (
           <DataFetchError

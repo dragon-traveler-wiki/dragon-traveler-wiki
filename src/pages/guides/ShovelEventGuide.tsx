@@ -1,4 +1,3 @@
-import GuideHeroCard from '@/features/guides/components/GuideHeroCard';
 import { StaticSurface } from '@/components/ui/Surface';
 import { getMinWidthStyle } from '@/constants/styles';
 import ResourceBadge from '@/components/ui/ResourceBadge';
@@ -62,30 +61,31 @@ export default function ShovelEventGuide() {
   return (
     <Container size="xl" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
-        <GuideHeroCard
-          icon={<IoInformationCircleOutline size={20} />}
-          iconColor="yellow"
-          title="Shovel Event Guide"
-          subtitle="Practical strategy for weekly shovel events: spend timing, efficiency checks, and stop points."
+        <Stack gap={2}>
+          <Title order={1}>Shovel Event Guide</Title>
+          <Text size="sm" c="dimmed">
+            Practical strategy for weekly shovel events: spend timing,
+            efficiency checks, and stop points.
+          </Text>
+        </Stack>
+
+        <Alert
+          variant="light"
+          color="yellow"
+          title="Translation note"
+          icon={<IoInformationCircleOutline />}
         >
-          <Alert
-            variant="light"
-            color="yellow"
-            title="Translation note"
-            icon={<IoInformationCircleOutline />}
+          This section is translated and adapted from a Chinese community guide
+          on GameKee:{' '}
+          <Anchor
+            href="https://www.gamekee.com/lhlr/671116.html"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            This section is translated and adapted from a Chinese community
-            guide on GameKee:{' '}
-            <Anchor
-              href="https://www.gamekee.com/lhlr/671116.html"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              铲子活动
-            </Anchor>
-            . Source terms may contain typos or naming differences.
-          </Alert>
-        </GuideHeroCard>
+            铲子活动
+          </Anchor>
+          . Source terms may contain typos or naming differences.
+        </Alert>
 
         <StaticSurface p="lg">
           <Stack gap="sm">

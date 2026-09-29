@@ -17,17 +17,16 @@ import {
   SimpleGrid,
   Stack,
   Switch,
+  Text,
   Title,
 } from '@mantine/core';
 import { DateInput, type DateValue } from '@mantine/dates';
 import { useDeferredValue, useMemo, useState } from 'react';
 import {
   IoCalendar,
-  IoDiamond,
   IoInformationCircleOutline,
   IoWallet,
 } from 'react-icons/io5';
-import GuideHeroCard from '@/features/guides/components/GuideHeroCard';
 import DiamondSourceTable from '@/features/calculators/diamond/components/DiamondSourceTable';
 import DiamondResults from '@/features/calculators/diamond/components/DiamondResults';
 import type {
@@ -253,22 +252,23 @@ export default function DiamondCalculatorPage() {
   return (
     <Container size="xl" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
-        <GuideHeroCard
-          icon={<IoDiamond size={20} />}
-          title="Diamond Calculator"
-          subtitle="Estimate average gain, spend, runway, and projected balance by date."
+        <Stack gap={2}>
+          <Title order={1}>Diamond Calculator</Title>
+          <Text size="sm" c="dimmed">
+            Estimate average gain, spend, runway, and projected balance by date.
+          </Text>
+        </Stack>
+
+        <Alert
+          variant="light"
+          color={accent.primary}
+          title="How to use"
+          icon={<IoInformationCircleOutline />}
         >
-          <Alert
-            variant="light"
-            color={accent.primary}
-            title="How to use"
-            icon={<IoInformationCircleOutline />}
-          >
-            This is an average-value planner based on recurring income and
-            spending from your reference list. Set your current bank and cadence
-            values, then use the date field for rough balance projection.
-          </Alert>
-        </GuideHeroCard>
+          This is an average-value planner based on recurring income and
+          spending from your reference list. Set your current bank and cadence
+          values, then use the date field for rough balance projection.
+        </Alert>
 
         <StaticSurface p="lg">
           <Stack gap="md">
