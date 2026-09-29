@@ -1,7 +1,7 @@
 import type { TeamBenchMember } from '@/features/teams/types';
-import { normalizeOptionalNote } from '@/utils/normalize-note';
-import { toQuality } from '@/utils/quality';
-import { toEntitySlug } from '@/utils/entity-slug';
+import { normalizeOptionalNote } from '../../../utils/normalize-note.ts';
+import { toQuality } from '../../../utils/quality.ts';
+import { toEntitySlug } from '../../../utils/entity-slug.ts';
 
 export function isTeamBenchMember(value: unknown): value is TeamBenchMember {
   if (typeof value !== 'object' || value === null) return false;

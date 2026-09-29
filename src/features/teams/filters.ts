@@ -1,5 +1,5 @@
-import { matchesContentTypeFilters } from '@/constants/content-types';
-import { getDisplayAuthor } from '@/features/community/display-author';
+import { matchesContentTypeFilters } from '../../constants/content-types.ts';
+import { getDisplayAuthor } from '../community/display-author.ts';
 import type { FactionSlug } from '@/types/faction';
 import type { Team } from './types';
 

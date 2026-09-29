@@ -1,18 +1,18 @@
-import { normalizeContentType } from '@/constants/content-types';
+import { normalizeContentType } from '../../../constants/content-types.ts';
 import type { CharacterClass } from '@/features/characters/types';
-import { FACTION_NAME_TO_SLUG, FACTION_SLUGS } from '@/types/faction';
+import { FACTION_NAME_TO_SLUG, FACTION_SLUGS } from '../../../types/faction.ts';
 import type { FactionName, FactionSlug } from '@/types/faction';
-import { toEntitySlug } from '@/utils/entity-slug';
+import { toEntitySlug } from '../../../utils/entity-slug.ts';
 import type { Team, TeamBenchMember, TeamMember } from '@/features/teams/types';
-import { normalizeOptionalNote } from '@/utils/normalize-note';
-import { toQuality } from '@/utils/quality';
-import { isRecord } from '@/utils/type-guards';
-import { resolvePastedPatch } from '@/utils/pasted-json';
+import { normalizeOptionalNote } from '../../../utils/normalize-note.ts';
+import { toQuality } from '../../../utils/quality.ts';
+import { isRecord } from '../../../utils/type-guards.ts';
+import { resolvePastedPatch } from '../../../utils/pasted-json.ts';
 import {
   getTeamBenchEntryName,
   getTeamBenchEntryNote,
   normalizeTeamBenchEntry,
-} from '@/features/teams/utils/team-bench';
+} from './team-bench.ts';
 
 interface LegacyTeamMember {
   character_slug?: string;
