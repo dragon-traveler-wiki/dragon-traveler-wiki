@@ -33,4 +33,9 @@ describe('isModerator', () => {
     const env = envWith('');
     expect(isModerator(env, 'github', '123')).toBe(false);
   });
+
+  it('returns false rather than throwing when the binding is missing', () => {
+    const env = { MODERATOR_IDENTITIES: undefined } as unknown as Env;
+    expect(isModerator(env, 'github', '123')).toBe(false);
+  });
 });

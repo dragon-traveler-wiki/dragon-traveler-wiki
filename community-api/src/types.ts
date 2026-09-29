@@ -10,7 +10,8 @@ export interface Env {
   ALLOWED_ORIGINS: string;
   CATALOG_BASE_URL: string;
   SESSION_TTL_DAYS: string;
-  MODERATOR_IDENTITIES: string;
+  /** Absent momentarily during the var→secret cutover deploy; treat as empty. */
+  MODERATOR_IDENTITIES?: string;
   GITHUB_CLIENT_ID: string;
   GITHUB_CLIENT_SECRET: string;
   DISCORD_CLIENT_ID: string;

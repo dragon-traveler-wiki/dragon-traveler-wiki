@@ -172,7 +172,12 @@ export function isModerator(
   provider: Provider,
   providerUserId: string,
 ): boolean {
-  return env.MODERATOR_IDENTITIES.split(',')
+  // Cloudflare won't let a secret and a var share a binding name, so moving
+  // MODERATOR_IDENTITIES from a var to a secret means a brief window during
+  // cutover where the binding doesn't exist at all. Treat that the same as
+  // an empty list instead of throwing.
+  return (env.MODERATOR_IDENTITIES ?? '')
+    .split(',')
     .map((value) => value.trim())
     .includes(`${provider}:${providerUserId}`);
 }
