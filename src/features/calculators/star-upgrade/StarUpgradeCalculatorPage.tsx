@@ -209,7 +209,7 @@ export default function StarUpgradeCalculatorPage() {
               )}
             </SimpleGrid>
 
-            {!starLevelsLoading && !isValidSelection ? (
+            {starLevelsLoading ? null : !isValidSelection ? (
               <Alert color="red" variant="light" title="Invalid selection">
                 Target star level must be higher than current star level.
               </Alert>
