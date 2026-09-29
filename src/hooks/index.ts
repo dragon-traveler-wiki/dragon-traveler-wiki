@@ -15,6 +15,8 @@ export {
 export { useGradientAccent } from './use-gradient-accent';
 export { useIsMobile } from './use-is-mobile';
 export { useMobileTooltip } from './use-mobile-tooltip';
+export { useNullableNumber } from './use-nullable-number';
+export { usePersistedState } from './use-persisted-state';
 export {
   buildRowAlignedPageSizeOptions,
   getPageSizeStorageKey,

@@ -1,6 +1,9 @@
 import type { Character } from '@/features/characters/types';
-import { safeDecodeURIComponent, toEntitySlug } from '@/utils/entity-slug';
-import { getQualityRank } from '@/utils/quality';
+import {
+  safeDecodeURIComponent,
+  toEntitySlug,
+} from '../../../utils/entity-slug.ts';
+import { getQualityRank } from '../../../utils/quality.ts';
 
 function normalizeCharacterNameKey(value: string): string {
   return value.trim().toLowerCase();

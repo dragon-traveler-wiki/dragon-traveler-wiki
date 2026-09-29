@@ -42,7 +42,11 @@ app.use(
       const allowed = env.ALLOWED_ORIGINS.split(',').map((value) =>
         value.trim(),
       );
-      return allowed.includes(origin) ? origin : env.APP_ORIGIN;
+      // Returning null (rather than a fixed fallback like APP_ORIGIN) means a
+      // disallowed origin gets no Access-Control-Allow-Origin header at all,
+      // so the browser rejects the response instead of us echoing back a
+      // value that happens to look like an allow.
+      return allowed.includes(origin) ? origin : null;
     },
     allowHeaders: ['Content-Type', 'X-CSRF-Token', 'X-Turnstile-Token'],
     allowMethods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
