@@ -1,25 +1,12 @@
 import { readStoredJson, writeStoredJson } from '@/utils/saved-storage';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { addDaysIso } from '../utils/daily-answer';
+import {
+  applyWin,
+  DEFAULT_STATS,
+  isValidStats,
+  withCurrentStreak,
+} from '../utils/daily-stats';
 import type { DtdleStats } from '../types';
-
-function isValidStats(value: unknown): value is DtdleStats {
-  if (value === null || typeof value !== 'object') return false;
-  const v = value as Partial<DtdleStats>;
-  return (
-    typeof v.currentStreak === 'number' &&
-    typeof v.maxStreak === 'number' &&
-    typeof v.gamesPlayed === 'number' &&
-    (v.lastPlayedDate === null || typeof v.lastPlayedDate === 'string')
-  );
-}
-
-const DEFAULT_STATS: DtdleStats = {
-  currentStreak: 0,
-  maxStreak: 0,
-  gamesPlayed: 0,
-  lastPlayedDate: null,
-};
 
 /** Shared win-streak tracking, persisted under `storageKey`. A "day" is `todayStr`. */
 export function useDailyStats(storageKey: string, todayStr: string) {
@@ -31,27 +18,13 @@ export function useDailyStats(storageKey: string, todayStr: string) {
     writeStoredJson(storageKey, stats);
   }, [storageKey, stats]);
 
-  const displayedStats = useMemo(() => {
-    const streakIsCurrent =
-      stats.lastPlayedDate === todayStr ||
-      stats.lastPlayedDate === addDaysIso(todayStr, -1);
-    return streakIsCurrent || stats.currentStreak === 0
-      ? stats
-      : { ...stats, currentStreak: 0 };
-  }, [stats, todayStr]);
+  const displayedStats = useMemo(
+    () => withCurrentStreak(stats, todayStr),
+    [stats, todayStr],
+  );
 
   const recordWin = useCallback(() => {
-    setStats((prev) => {
-      if (prev.lastPlayedDate === todayStr) return prev;
-      const isConsecutive = prev.lastPlayedDate === addDaysIso(todayStr, -1);
-      const currentStreak = isConsecutive ? prev.currentStreak + 1 : 1;
-      return {
-        currentStreak,
-        maxStreak: Math.max(prev.maxStreak, currentStreak),
-        gamesPlayed: prev.gamesPlayed + 1,
-        lastPlayedDate: todayStr,
-      };
-    });
+    setStats((prev) => applyWin(prev, todayStr));
   }, [todayStr]);
 
   return { stats: displayedStats, recordWin };
