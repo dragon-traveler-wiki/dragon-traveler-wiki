@@ -1,6 +1,7 @@
 import type { MantineColor, MantineSize } from '@mantine/core';
 import { Badge, Popover } from '@mantine/core';
 import type { ReactNode } from 'react';
+import { useState } from 'react';
 import {
   CURSOR_DEFAULT_STYLE,
   CURSOR_POINTER_STYLE,
@@ -31,16 +32,27 @@ export default function IconBadge({
   popoverContent,
 }: IconBadgeProps) {
   const needsButtonSemantics = Boolean(popoverContent) && component === 'span';
-  const iconElement = iconSrc ? (
-    <SafeImage
-      src={iconSrc}
-      alt=""
-      w={iconSize}
-      h={iconSize}
-      fit="contain"
-      style={{ display: 'block' }}
-    />
-  ) : undefined;
+
+  // Tracks whether `iconSrc` has 404'd, so the badge can stop reserving the
+  // icon's layout slot instead of leaving a blank gap where a broken image
+  // used to be (SafeImage swallows the error and renders nothing). Comparing
+  // directly against the failed src (rather than a boolean) means this
+  // self-resets whenever `iconSrc` changes to something new.
+  const [failedSrc, setFailedSrc] = useState<string | undefined>(undefined);
+  const iconFailed = iconSrc !== undefined && iconSrc === failedSrc;
+
+  const iconElement =
+    iconSrc && !iconFailed ? (
+      <SafeImage
+        src={iconSrc}
+        alt=""
+        w={iconSize}
+        h={iconSize}
+        fit="contain"
+        style={{ display: 'block' }}
+        onError={() => setFailedSrc(iconSrc)}
+      />
+    ) : undefined;
 
   const badge = (
     <Badge

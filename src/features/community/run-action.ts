@@ -1,4 +1,5 @@
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
+import { CommunityApiError } from './api';
 
 export function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -16,13 +17,16 @@ interface ActionToasts {
   success?: { title: string; message: string };
 }
 
-export type ActionResult<T> = { ok: true; value: T } | { ok: false };
+export type ActionResult<T> =
+  { ok: true; value: T } | { ok: false; status?: number };
 
 /**
  * Runs an API call and reports the outcome with the standard toasts, so
  * handlers don't each repeat try/catch and toast wiring. Callers handle their
  * own loading state and any follow-up (refreshing lists, closing dialogs) based
- * on the result.
+ * on the result. The failed result carries the API's HTTP status (when the
+ * error came from the community API) so a caller can branch on specific
+ * codes it cares about, e.g. a 409 conflict offering to reload.
  */
 export async function runAction<T>(
   action: () => Promise<T>,
@@ -34,6 +38,9 @@ export async function runAction<T>(
     return { ok: true, value };
   } catch (error) {
     showErrorToast({ title: errorTitle, message: errorMessage(error) });
-    return { ok: false };
+    return {
+      ok: false,
+      status: error instanceof CommunityApiError ? error.status : undefined,
+    };
   }
 }

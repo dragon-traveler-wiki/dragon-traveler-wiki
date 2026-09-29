@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { getNewestActiveCharacterKeys } from '../../src/features/characters/utils/new-character-keys.ts';
+import {
+  getNewestActiveCharacterKeys,
+  getNewestUpdatedCharacterKeys,
+} from '../../src/features/characters/utils/new-character-keys.ts';
 
 test('removed latest additions do not hide the newest active re-added batch', () => {
   const result = getNewestActiveCharacterKeys(
@@ -51,4 +54,75 @@ test('history entries absent from the active roster are ignored', () => {
   );
 
   assert.deepEqual([...result], ['current']);
+});
+
+test('getNewestUpdatedCharacterKeys flags the newest batch of content edits', () => {
+  const result = getNewestUpdatedCharacterKeys(
+    {
+      athena: {
+        added: 100,
+        changes: [{ timestamp: 500, fields: { lore: {} } }],
+      },
+      zeus: {
+        added: 100,
+        changes: [{ timestamp: 500, fields: { skills: {} } }],
+      },
+      hera: {
+        added: 100,
+        changes: [{ timestamp: 200, fields: { lore: {} } }],
+      },
+    },
+    ['athena', 'zeus', 'hera'],
+  );
+
+  assert.deepEqual([...result].sort(), ['athena', 'zeus']);
+});
+
+test('getNewestUpdatedCharacterKeys ignores lifecycle events, only regular edits count', () => {
+  const result = getNewestUpdatedCharacterKeys(
+    {
+      gudong: {
+        added: 100,
+        changes: [
+          { timestamp: 900, type: 'readded' },
+          { timestamp: 300, fields: { lore: {} } },
+        ],
+      },
+      perseus: {
+        added: 100,
+        changes: [{ timestamp: 300, fields: { lore: {} } }],
+      },
+    },
+    ['gudong', 'perseus'],
+  );
+
+  assert.deepEqual([...result].sort(), ['gudong', 'perseus']);
+});
+
+test('getNewestUpdatedCharacterKeys excludes slugs already flagged new', () => {
+  const result = getNewestUpdatedCharacterKeys(
+    {
+      athena: {
+        added: 100,
+        changes: [{ timestamp: 500, fields: { lore: {} } }],
+      },
+      zeus: {
+        added: 100,
+        changes: [{ timestamp: 500, fields: { skills: {} } }],
+      },
+    },
+    ['athena', 'zeus'],
+    new Set(['athena']),
+  );
+
+  assert.deepEqual([...result], ['zeus']);
+});
+
+test('getNewestUpdatedCharacterKeys returns empty when no character has a content edit', () => {
+  const result = getNewestUpdatedCharacterKeys(
+    { athena: { added: 100, changes: [{ timestamp: 200, type: 'readded' }] } },
+    ['athena'],
+  );
+
+  assert.deepEqual([...result], []);
 });

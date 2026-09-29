@@ -1,6 +1,6 @@
-import { matchesContentTypeFilters } from '@/constants/content-types';
-import { getDisplayAuthor } from '@/features/community/display-author';
-import { getTierListEntityType, type TierList } from './types';
+import { matchesContentTypeFilters } from '../../constants/content-types.ts';
+import { getDisplayAuthor } from '../community/display-author.ts';
+import { getTierListEntityType, type TierList } from './types.ts';
 
 export interface TierListViewFilters {
   [key: string]: string[];

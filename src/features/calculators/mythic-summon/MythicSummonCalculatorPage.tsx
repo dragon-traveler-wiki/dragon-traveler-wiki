@@ -1,4 +1,3 @@
-import GuideHeroCard from '@/features/guides/components/GuideHeroCard';
 import MythicSummonReference from '@/features/calculators/mythic-summon/components/MythicSummonReference';
 import {
   calculateConditionalGuaranteedValue,
@@ -263,22 +262,24 @@ export default function MythicSummonCalculatorPage() {
   return (
     <Container size="xl" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
-        <GuideHeroCard
-          icon={<IoSparkles size={20} />}
-          title="Mythic Summon Calculator"
-          subtitle="Forecast summon outcomes and reverse-calculate required pulls for your goals."
+        <Stack gap={2}>
+          <Title order={1}>Mythic Summon Calculator</Title>
+          <Text size="sm" c="dimmed">
+            Forecast summon outcomes and reverse-calculate required pulls for
+            your goals.
+          </Text>
+        </Stack>
+
+        <Alert
+          variant="light"
+          color={accent.primary}
+          title="About this calculator"
+          icon={<IoInformationCircleOutline />}
         >
-          <Alert
-            variant="light"
-            color={accent.primary}
-            title="About this calculator"
-            icon={<IoInformationCircleOutline />}
-          >
-            Calculate the average resource yield from Mythic Summons, including
-            both drop rates and milestone rewards. Enter the number of summons
-            to see expected returns.
-          </Alert>
-        </GuideHeroCard>
+          Calculate the average resource yield from Mythic Summons, including
+          both drop rates and milestone rewards. Enter the number of summons to
+          see expected returns.
+        </Alert>
 
         <StaticSurface p="lg">
           <Stack gap="md">

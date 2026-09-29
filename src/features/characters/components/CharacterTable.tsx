@@ -22,6 +22,7 @@ interface CharacterTableProps {
   selectedTierListName: string | null;
   getTierLabel: (char: Character) => string | undefined;
   newCharacterKeys?: Set<string>;
+  updatedCharacterKeys?: Set<string>;
 }
 
 export default function CharacterTable({
@@ -32,6 +33,7 @@ export default function CharacterTable({
   selectedTierListName,
   getTierLabel,
   newCharacterKeys,
+  updatedCharacterKeys,
 }: CharacterTableProps) {
   return (
     <ScrollArea type="auto" scrollbarSize={6} offsetScrollbars>
@@ -103,6 +105,9 @@ export default function CharacterTable({
                       routePath={getCharacterRoutePath(char)}
                       style={{ flexShrink: 0 }}
                       isNew={newCharacterKeys?.has(
+                        getCharacterIdentityKey(char),
+                      )}
+                      isUpdated={updatedCharacterKeys?.has(
                         getCharacterIdentityKey(char),
                       )}
                     />

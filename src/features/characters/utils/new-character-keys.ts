@@ -45,3 +45,38 @@ export function getNewestActiveCharacterKeys(
       .map(([slug]) => slug),
   );
 }
+
+/**
+ * Returns the active character slugs whose most recent content edit (a
+ * regular change record, not a lifecycle add/remove/readded event) falls in
+ * the newest such batch. `excludeSlugs` lets a caller drop characters
+ * already flagged "new" so a character isn't badged both ways at once.
+ */
+export function getNewestUpdatedCharacterKeys(
+  history: Record<string, CharacterLifecycleHistory>,
+  activeSlugs: Iterable<string>,
+  excludeSlugs: ReadonlySet<string> = new Set(),
+): Set<string> {
+  const active = new Set(activeSlugs);
+  const lastUpdatedAt = new Map<string, number>();
+
+  for (const [slug, value] of Object.entries(history)) {
+    if (!active.has(slug) || excludeSlugs.has(slug)) continue;
+
+    const contentChangeTimestamps = (value.changes ?? [])
+      .filter((change) => !change.type)
+      .map((change) => change.timestamp);
+    if (contentChangeTimestamps.length === 0) continue;
+
+    lastUpdatedAt.set(slug, Math.max(...contentChangeTimestamps));
+  }
+
+  const newestTimestamp = Math.max(0, ...lastUpdatedAt.values());
+  if (newestTimestamp === 0) return new Set();
+
+  return new Set(
+    [...lastUpdatedAt]
+      .filter(([, timestamp]) => timestamp === newestTimestamp)
+      .map(([slug]) => slug),
+  );
+}

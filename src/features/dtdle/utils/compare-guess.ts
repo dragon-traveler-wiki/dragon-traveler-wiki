@@ -1,5 +1,5 @@
 import type { Character } from '@/features/characters/types';
-import { getQualityRank } from '@/utils/quality';
+import { getQualityRank } from '../../../utils/quality.ts';
 import type { GuessComparison } from '../types';
 
 function parseMeasurement(value: string | undefined): number | null {

@@ -40,6 +40,7 @@ import CharacterSkillsSection from '@/features/characters/components/CharacterSk
 import CharacterSubclassPanel from '@/features/characters/components/CharacterSubclassPanel';
 import CharacterVariantSelector from '@/features/characters/components/CharacterVariantSelector';
 import { useNewCharacters } from '@/features/characters/hooks/use-new-characters';
+import { useUpdatedCharacters } from '@/features/characters/hooks/use-updated-characters';
 
 const CharacterModelLauncher = lazy(
   () => import('@/features/characters/components/CharacterModelLauncher'),
@@ -109,6 +110,7 @@ export default function CharacterPage() {
   } = useCharacterAssets(character, characterAssetKey);
 
   const newCharacterKeys = useNewCharacters();
+  const updatedCharacterKeys = useUpdatedCharacters(newCharacterKeys);
 
   const activeIllustrationFavoriteKey =
     favoritesOnly && characterAssetKey && activeIllustrationIndex >= 0
@@ -191,6 +193,9 @@ export default function CharacterPage() {
             fullBodySrc={fullBodySrc}
             assetKey={characterAssetKey}
             isNew={newCharacterKeys.has(getCharacterIdentityKey(character))}
+            isUpdated={updatedCharacterKeys.has(
+              getCharacterIdentityKey(character),
+            )}
             selectedSkinSlug={selectedSkinSlug}
           />
         </ErrorBoundary>

@@ -1,12 +1,12 @@
-﻿import { normalizeContentType } from '@/constants/content-types';
-import { DEFAULT_TIER_DEFINITIONS } from '@/constants/tier-colors';
+﻿import { normalizeContentType } from '../../../constants/content-types.ts';
+import { DEFAULT_TIER_DEFINITIONS } from '../../../constants/tier-colors.ts';
 import type { Quality } from '@/types/quality';
 import type { TierList, TierListEntityType } from '@/features/tier-list/types';
-import { normalizeOptionalNote } from '@/utils/normalize-note';
-import { toQuality } from '@/utils/quality';
-import { isRecord } from '@/utils/type-guards';
-import { resolvePastedPatch } from '@/utils/pasted-json';
-import { toEntitySlug } from '@/utils/entity-slug';
+import { normalizeOptionalNote } from '../../../utils/normalize-note.ts';
+import { toQuality } from '../../../utils/quality.ts';
+import { isRecord } from '../../../utils/type-guards.ts';
+import { resolvePastedPatch } from '../../../utils/pasted-json.ts';
+import { toEntitySlug } from '../../../utils/entity-slug.ts';
 
 interface LegacyTierEntry {
   character_slug?: string;

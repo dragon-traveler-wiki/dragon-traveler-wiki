@@ -1,4 +1,4 @@
-import { isRecord } from './type-guards';
+import { isRecord } from './type-guards.ts';
 
 /** Normalizes a pasted JSON value (entry array, wrapped array, or bare object) into a patch record. */
 export function resolvePastedPatch<TEntry>(

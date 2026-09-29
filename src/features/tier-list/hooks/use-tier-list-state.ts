@@ -63,7 +63,6 @@ import {
 } from 'react';
 
 const DEFAULT_TIER_LIST_NAME = 'My Tier List';
-const DEFAULT_TIER_LIST_AUTHOR = 'Anonymous';
 
 export interface UseTierListStateOptions {
   characters: Character[];
@@ -82,7 +81,6 @@ function createFallbackTierList(): TierList {
     name: '',
     slug: '',
     entity_type: 'character',
-    author: '',
     content_type: DEFAULT_CONTENT_TYPE,
     description: '',
     tiers: createDefaultTierDefs(),
@@ -160,7 +158,6 @@ function toBuilderState(
     notes,
     meta: {
       name: data.name || '',
-      author: data.author || '',
       categoryName: normalizeContentType(data.content_type),
       description: data.description || '',
       entityType,
@@ -351,7 +348,6 @@ export function useTierListState({
   });
 
   const deferredName = useDeferredValue(state.meta.name);
-  const deferredAuthor = useDeferredValue(state.meta.author);
   const deferredDescription = useDeferredValue(state.meta.description);
   const deferredCategoryName = useDeferredValue(state.meta.categoryName);
 
@@ -388,7 +384,6 @@ export function useTierListState({
       name: deferredName || DEFAULT_TIER_LIST_NAME,
       slug: toEntitySlug(deferredName || DEFAULT_TIER_LIST_NAME),
       entity_type: state.meta.entityType,
-      author: deferredAuthor || DEFAULT_TIER_LIST_AUTHOR,
       content_type: deferredCategoryName,
       description: deferredDescription,
       tiers: state.tierDefs.map((tierDef) => ({
@@ -403,7 +398,6 @@ export function useTierListState({
   }, [
     charMap,
     characterByIdentity,
-    deferredAuthor,
     deferredCategoryName,
     deferredDescription,
     deferredName,
@@ -466,7 +460,6 @@ export function useTierListState({
         );
       }) ||
       state.meta.name.trim().length > 0 ||
-      state.meta.author.trim().length > 0 ||
       state.meta.description.trim().length > 0 ||
       state.meta.categoryName !== DEFAULT_CONTENT_TYPE,
     [hasAnyPlaced, state.meta, state.notes, state.tierDefs],
@@ -501,13 +494,6 @@ export function useTierListState({
   const handleNameCommit = useCallback(
     (name: string) => {
       updateMeta({ name });
-    },
-    [updateMeta],
-  );
-
-  const handleAuthorCommit = useCallback(
-    (author: string) => {
-      updateMeta({ author });
     },
     [updateMeta],
   );
@@ -721,7 +707,6 @@ export function useTierListState({
     activeId,
     getEntityFromKey,
     handleAddTier,
-    handleAuthorCommit,
     handleCategoryChange,
     handleCharacterNoteChange,
     handleClear,

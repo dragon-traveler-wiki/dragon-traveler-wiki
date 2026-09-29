@@ -38,29 +38,24 @@ import type {
 
 export const TierListMetaFields = memo(function TierListMetaFields({
   name,
-  author,
   categoryName,
   description,
   entityType,
   onNameCommit,
-  onAuthorCommit,
   onCategoryChange,
   onDescriptionCommit,
   onEntityTypeChange,
 }: {
   name: string;
-  author: string;
   categoryName: ContentType;
   description: string;
   entityType: TierListEntityType;
   onNameCommit: (value: string) => void;
-  onAuthorCommit: (value: string) => void;
   onCategoryChange: (value: string | null) => void;
   onDescriptionCommit: (value: string) => void;
   onEntityTypeChange: (value: TierListEntityType) => void;
 }) {
   const [nameInput, setNameInput] = useInputCommit(name, onNameCommit);
-  const [authorInput, setAuthorInput] = useInputCommit(author, onAuthorCommit);
   const [descriptionInput, setDescriptionInput] = useInputCommit(
     description,
     onDescriptionCommit,
@@ -73,12 +68,6 @@ export const TierListMetaFields = memo(function TierListMetaFields({
         value={nameInput}
         onChange={(e) => setNameInput(e.currentTarget.value)}
         style={{ flex: 1, minWidth: 150 }}
-      />
-      <TextInput
-        placeholder="Author..."
-        value={authorInput}
-        onChange={(e) => setAuthorInput(e.currentTarget.value)}
-        style={{ flex: 1, minWidth: 120 }}
       />
       <Select
         placeholder="Entity type..."

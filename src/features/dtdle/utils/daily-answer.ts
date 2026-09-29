@@ -1,5 +1,5 @@
 import type { Character } from '@/features/characters/types';
-import { buildRing, fnv1aHash32, pickFromRing } from './ring-hash';
+import { buildRing, fnv1aHash32, pickFromRing } from './ring-hash.ts';
 
 const EXCLUDED_QUALITIES = new Set(['N', 'C']);
 const LOOKBACK_DAYS = 14;

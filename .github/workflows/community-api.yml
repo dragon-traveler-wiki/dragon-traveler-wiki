@@ -10,6 +10,7 @@ on:
       - 'community-api/**'
       - '.github/workflows/community-api.yml'
   pull_request:
+    branches: [main]
     paths:
       - 'community-api/**'
       - '.github/workflows/community-api.yml'

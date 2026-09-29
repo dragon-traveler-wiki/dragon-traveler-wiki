@@ -12,6 +12,7 @@ import CharacterOwnershipManager from '@/features/characters/components/Characte
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import { useCharacterListData } from '@/features/characters/hooks/use-character-list-data';
 import { useNewCharacters } from '@/features/characters/hooks/use-new-characters';
+import { useUpdatedCharacters } from '@/features/characters/hooks/use-updated-characters';
 import { useGradientAccent, useIsMobile } from '@/hooks';
 import { getLatestTimestamp } from '@/utils';
 import {
@@ -37,6 +38,7 @@ export default function Characters() {
 
   const listData = useCharacterListData(characters);
   const newCharacterKeys = useNewCharacters();
+  const updatedCharacterKeys = useUpdatedCharacters(newCharacterKeys);
   const isMobile = useIsMobile();
   const { characterTrackingEnabled } = useContext(CharacterOwnershipContext);
 
@@ -110,6 +112,7 @@ export default function Characters() {
             <CharacterList
               data={listData}
               newCharacterKeys={newCharacterKeys}
+              updatedCharacterKeys={updatedCharacterKeys}
             />
           )}
         </ListPageShell>
