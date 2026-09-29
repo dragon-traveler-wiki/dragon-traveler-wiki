@@ -48,6 +48,7 @@ interface CharacterPageHeroSectionProps {
   fullBodySrc?: string | null;
   assetKey?: string;
   isNew?: boolean;
+  isUpdated?: boolean;
   selectedSkinSlug?: string | null;
 }
 
@@ -57,6 +58,7 @@ export default function CharacterPageHeroSection({
   fullBodySrc,
   assetKey,
   isNew = false,
+  isUpdated = false,
   selectedSkinSlug,
 }: CharacterPageHeroSectionProps) {
   const isDark = useDarkMode();
@@ -157,6 +159,7 @@ export default function CharacterPageHeroSection({
                 style={{ boxShadow: 'var(--mantine-shadow-xl)' }}
                 loading="eager"
                 isNew={isNew}
+                isUpdated={isUpdated}
                 skinOverride={selectedSkinSlug ?? undefined}
               />
             </Center>

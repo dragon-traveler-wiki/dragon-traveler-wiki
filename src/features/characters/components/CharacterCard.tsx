@@ -20,6 +20,7 @@ interface CharacterCardProps {
   routePath?: string;
   clampName?: boolean;
   isNew?: boolean;
+  isUpdated?: boolean;
 }
 
 export default function CharacterCard({
@@ -33,6 +34,7 @@ export default function CharacterCard({
   routePath,
   clampName = true,
   isNew = false,
+  isUpdated = false,
 }: CharacterCardProps) {
   const portrait = (
     <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -43,6 +45,7 @@ export default function CharacterCard({
         borderWidth={CHARACTER_CARD.BORDER_WIDTH}
         routePath={routePath}
         isNew={isNew}
+        isUpdated={isUpdated}
       />
       {note && (
         <NoteTooltipIcon

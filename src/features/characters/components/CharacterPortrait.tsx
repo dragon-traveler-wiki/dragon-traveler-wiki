@@ -30,9 +30,62 @@ interface CharacterPortraitProps {
   fallbackSrc?: string;
   routePath?: string;
   assetKey?: string;
+  /** Shows the newest-addition-batch corner badge. Takes priority over `isUpdated`. */
   isNew?: boolean;
+  /** Shows the newest-content-edit corner badge (ignored when `isNew` is set). */
+  isUpdated?: boolean;
   /** Renders this exact skin slug, bypassing the global "Show character skins" toggle. */
   skinOverride?: string;
+}
+
+const CORNER_BADGE_BY_KIND = {
+  new: { label: 'New', color: 'var(--mantine-color-green-6)' },
+  updated: { label: 'Updated', color: 'var(--mantine-color-blue-6)' },
+} as const;
+
+function CornerBadge({
+  kind,
+  size,
+}: {
+  kind: keyof typeof CORNER_BADGE_BY_KIND;
+  size: number;
+}) {
+  const { label, color } = CORNER_BADGE_BY_KIND[kind];
+
+  // Scale font and padding with portrait size
+  const fontSize = Math.max(9, Math.round(size * 0.12));
+  const padV = Math.max(1, Math.round(fontSize * 0.3));
+  const padH = Math.max(3, Math.round(fontSize * 0.55));
+  const badgeRadius = Math.max(3, Math.round(fontSize * 0.4));
+  // 45° point on circle edge: distance from each side = size * (1 - 1/√2) / 2 ≈ size * 0.146
+  // translate(-50%, -50%) centers the badge on that exact point
+  const edge = Math.round(size * 0.146);
+
+  return (
+    <span
+      style={{
+        position: 'absolute',
+        top: edge,
+        right: edge,
+        transform: 'translate(50%, -50%)',
+        background: color,
+        color: 'white',
+        borderRadius: badgeRadius,
+        fontSize,
+        fontWeight: 700,
+        lineHeight: 1,
+        padding: `${padV}px ${padH}px`,
+        letterSpacing: '0.04em',
+        pointerEvents: 'none',
+        userSelect: 'none',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
+        whiteSpace: 'nowrap',
+        zIndex: 1,
+      }}
+    >
+      {label}
+    </span>
+  );
 }
 
 export default function CharacterPortrait({
@@ -54,6 +107,7 @@ export default function CharacterPortrait({
   routePath,
   assetKey,
   isNew = false,
+  isUpdated = false,
   skinOverride,
 }: CharacterPortraitProps) {
   const mobileTooltip = useMobileTooltip();
@@ -134,43 +188,12 @@ export default function CharacterPortrait({
     linkedPortrait
   );
 
-  if (!isNew) return result;
-
-  // Scale font and padding with portrait size
-  const fontSize = Math.max(9, Math.round(size * 0.12));
-  const padV = Math.max(1, Math.round(fontSize * 0.3));
-  const padH = Math.max(3, Math.round(fontSize * 0.55));
-  const badgeRadius = Math.max(3, Math.round(fontSize * 0.4));
-  // 45° point on circle edge: distance from each side = size * (1 - 1/√2) / 2 ≈ size * 0.146
-  // translate(-50%, -50%) centers the badge on that exact point
-  const edge = Math.round(size * 0.146);
+  if (!isNew && !isUpdated) return result;
 
   return (
     <div style={{ position: 'relative', display: 'inline-flex' }}>
       {result}
-      <span
-        style={{
-          position: 'absolute',
-          top: edge,
-          right: edge,
-          transform: 'translate(50%, -50%)',
-          background: 'var(--mantine-color-green-6)',
-          color: 'white',
-          borderRadius: badgeRadius,
-          fontSize,
-          fontWeight: 700,
-          lineHeight: 1,
-          padding: `${padV}px ${padH}px`,
-          letterSpacing: '0.04em',
-          pointerEvents: 'none',
-          userSelect: 'none',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.4)',
-          whiteSpace: 'nowrap',
-          zIndex: 1,
-        }}
-      >
-        New
-      </span>
+      <CornerBadge kind={isNew ? 'new' : 'updated'} size={size} />
     </div>
   );
 }
