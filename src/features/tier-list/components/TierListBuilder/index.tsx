@@ -20,6 +20,7 @@ import {
 } from '@/features/tier-list/saved-tier-lists';
 import type { TierList, TierListEntityType } from '@/features/tier-list/types';
 import PublishModal from '@/features/community/PublishModal';
+import { getDisplayAuthor } from '@/features/community/display-author';
 import NoblePhantasmFilter from '@/features/wiki/noble-phantasms/components/NoblePhantasmFilter';
 import {
   EMPTY_NOBLE_PHANTASM_FILTERS,
@@ -104,7 +105,6 @@ export default function TierListBuilder({
     activeId,
     getEntityFromKey,
     handleAddTier,
-    handleAuthorCommit,
     handleCategoryChange,
     handleCharacterNoteChange,
     handleClear,
@@ -216,12 +216,10 @@ export default function TierListBuilder({
         <Stack gap="md">
           <TierListMetaFields
             name={meta.name}
-            author={meta.author}
             categoryName={meta.categoryName}
             description={meta.description}
             entityType={meta.entityType}
             onNameCommit={handleNameCommit}
-            onAuthorCommit={handleAuthorCommit}
             onCategoryChange={handleCategoryChange}
             onDescriptionCommit={handleDescriptionCommit}
             onEntityTypeChange={requestEntityTypeChange}
@@ -442,7 +440,7 @@ export default function TierListBuilder({
           opened={clearConfirmOpened}
           onCancel={closeClearConfirm}
           title="Clear tier list builder?"
-          message="This will remove all ranked entities, notes, custom tier changes, and metadata fields (name, author, category, and description) in the builder."
+          message="This will remove all ranked entities, notes, custom tier changes, and metadata fields (name, category, and description) in the builder."
           confirmLabel="Clear All"
           confirmColor="red"
           onConfirm={() => {
@@ -492,7 +490,10 @@ export default function TierListBuilder({
           >
             <TierListExportView
               tierListName={tierListData.name || 'My Tier List'}
-              author={meta.author || undefined}
+              author={getDisplayAuthor({
+                ...tierListData,
+                community: initialData?.community,
+              })}
               tierRows={tierExportRows}
             />
           </Box>

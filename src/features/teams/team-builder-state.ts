@@ -8,7 +8,6 @@ import type { FactionSlug } from '@/types/faction';
 
 export interface TeamBuilderMetaState {
   name: string;
-  author: string;
   contentType: ContentType;
   description: string;
   faction: FactionSlug | null;
@@ -49,7 +48,6 @@ export function createEmptyTeamBuilderState(): TeamBuilderState {
     teamWyrmspells: {},
     meta: {
       name: '',
-      author: '',
       contentType: DEFAULT_CONTENT_TYPE,
       description: '',
       faction: null,

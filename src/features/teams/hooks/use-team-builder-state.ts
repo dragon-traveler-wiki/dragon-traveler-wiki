@@ -55,7 +55,6 @@ import {
 } from 'react';
 
 const DEFAULT_TEAM_NAME = 'My Team';
-const DEFAULT_TEAM_AUTHOR = 'Anonymous';
 const DEFAULT_TEAM_FACTION = 'elemental_echo' as FactionSlug;
 
 export interface UseTeamBuilderStateOptions {
@@ -72,7 +71,6 @@ interface CharacterLocationInBuilder {
 function createFallbackTeam(): Team {
   return {
     name: '',
-    author: '',
     content_type: DEFAULT_CONTENT_TYPE,
     description: '',
     faction: DEFAULT_TEAM_FACTION,
@@ -113,7 +111,6 @@ function toBuilderState(
   const nextState = createEmptyTeamBuilderState();
   nextState.meta = {
     name: data.name || '',
-    author: data.author || '',
     contentType: normalizeContentType(data.content_type),
     description: data.description || '',
     faction: data.faction || null,
@@ -266,7 +263,6 @@ export function useTeamBuilderState({
   });
 
   const deferredName = useDeferredValue(state.meta.name);
-  const deferredAuthor = useDeferredValue(state.meta.author);
   const deferredDescription = useDeferredValue(state.meta.description);
   const deferredContentType = useDeferredValue(state.meta.contentType);
   const deferredFaction = useDeferredValue(state.meta.faction);
@@ -306,7 +302,6 @@ export function useTeamBuilderState({
       ) ||
       Object.values(state.teamWyrmspells).some((value) => Boolean(value)) ||
       state.meta.name.trim().length > 0 ||
-      state.meta.author.trim().length > 0 ||
       state.meta.description.trim().length > 0 ||
       state.meta.faction !== null ||
       state.meta.contentType !== DEFAULT_CONTENT_TYPE,
@@ -353,7 +348,6 @@ export function useTeamBuilderState({
 
     const nextTeam: Team = {
       name: deferredName || DEFAULT_TEAM_NAME,
-      author: deferredAuthor || DEFAULT_TEAM_AUTHOR,
       content_type: deferredContentType,
       description: deferredDescription,
       faction: deferredFaction || DEFAULT_TEAM_FACTION,
@@ -382,7 +376,6 @@ export function useTeamBuilderState({
   }, [
     charMap,
     characterByIdentity,
-    deferredAuthor,
     deferredContentType,
     deferredDescription,
     deferredFaction,
@@ -453,13 +446,6 @@ export function useTeamBuilderState({
   const handleNameCommit = useCallback(
     (name: string) => {
       updateMeta({ name });
-    },
-    [updateMeta],
-  );
-
-  const handleAuthorCommit = useCallback(
-    (author: string) => {
-      updateMeta({ author });
     },
     [updateMeta],
   );
@@ -1045,7 +1031,6 @@ export function useTeamBuilderState({
     getCharacterFromKey,
     getCharacterPath,
     handleAddToNextSlot,
-    handleAuthorCommit,
     handleBenchNoteChange,
     handleClear,
     handleContentTypeChange,

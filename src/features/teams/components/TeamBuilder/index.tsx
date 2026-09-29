@@ -91,7 +91,6 @@ export default function TeamBuilder({
     getCharacterFromKey,
     getCharacterPath,
     handleAddToNextSlot,
-    handleAuthorCommit,
     handleBenchNoteChange,
     handleClear,
     handleContentTypeChange,
@@ -176,12 +175,10 @@ export default function TeamBuilder({
         <Stack gap="md">
           <TeamMetaFields
             name={meta.name}
-            author={meta.author}
             contentType={meta.contentType}
             faction={meta.faction}
             description={meta.description}
             onNameCommit={handleNameCommit}
-            onAuthorCommit={handleAuthorCommit}
             onContentTypeChange={handleContentTypeChange}
             onFactionChange={handleFactionChange}
             onDescriptionCommit={handleDescriptionCommit}
@@ -322,7 +319,7 @@ export default function TeamBuilder({
           opened={clearConfirmOpened}
           onCancel={closeClearConfirm}
           title="Clear team builder?"
-          message="This will remove all team slots, bench entries, notes, overdrive order, selected wyrmspells, and metadata fields (name, author, content type, faction, and description) in the builder."
+          message="This will remove all team slots, bench entries, notes, overdrive order, selected wyrmspells, and metadata fields (name, content type, faction, and description) in the builder."
           confirmLabel="Clear All"
           confirmColor="red"
           onConfirm={() => {

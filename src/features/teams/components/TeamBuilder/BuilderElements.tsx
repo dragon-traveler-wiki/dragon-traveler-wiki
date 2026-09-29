@@ -51,29 +51,24 @@ import {
 
 export const TeamMetaFields = memo(function TeamMetaFields({
   name,
-  author,
   contentType,
   faction,
   description,
   onNameCommit,
-  onAuthorCommit,
   onContentTypeChange,
   onFactionChange,
   onDescriptionCommit,
 }: {
   name: string;
-  author: string;
   contentType: ContentType;
   faction: FactionSlug | null;
   description: string;
   onNameCommit: (value: string) => void;
-  onAuthorCommit: (value: string) => void;
   onContentTypeChange: (value: string | null) => void;
   onFactionChange: (value: string | null) => void;
   onDescriptionCommit: (value: string) => void;
 }) {
   const [nameInput, setNameInput] = useInputCommit(name, onNameCommit);
-  const [authorInput, setAuthorInput] = useInputCommit(author, onAuthorCommit);
   const [descriptionInput, setDescriptionInput] = useInputCommit(
     description,
     onDescriptionCommit,
@@ -87,12 +82,6 @@ export const TeamMetaFields = memo(function TeamMetaFields({
           value={nameInput}
           onChange={(e) => setNameInput(e.currentTarget.value)}
           style={{ flex: 1, minWidth: 150 }}
-        />
-        <TextInput
-          placeholder="Author..."
-          value={authorInput}
-          onChange={(e) => setAuthorInput(e.currentTarget.value)}
-          style={{ flex: 1, minWidth: 120 }}
         />
         <Select
           placeholder="Content type..."

@@ -9,7 +9,6 @@ export type TierPlacements = Record<string, string[]>;
 
 export interface TierListBuilderMetaState {
   name: string;
-  author: string;
   categoryName: ContentType;
   description: string;
   entityType: TierListEntityType;
@@ -52,7 +51,6 @@ export function createEmptyTierListBuilderState(): TierListBuilderState {
     notes: {},
     meta: {
       name: '',
-      author: '',
       categoryName: DEFAULT_CONTENT_TYPE,
       description: '',
       entityType: 'character',
