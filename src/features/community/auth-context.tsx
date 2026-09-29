@@ -14,6 +14,7 @@ import {
   isCommunityApiConfigured,
   logout as apiLogout,
   setPrimaryIdentity,
+  setUnauthorizedHandler,
   unlinkIdentity,
 } from './api';
 import type { CommunityUser } from './types';
@@ -61,6 +62,14 @@ export function CommunityAuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     queueMicrotask(() => void refresh());
+  }, [refresh]);
+
+  // A 401 on any community-api call means the session just expired (or was
+  // revoked elsewhere); refresh so the UI reflects signed-out state instead
+  // of continuing to show a stale signed-in user until the next poll.
+  useEffect(() => {
+    setUnauthorizedHandler(() => void refresh());
+    return () => setUnauthorizedHandler(null);
   }, [refresh]);
 
   // Keep alert counts current while the site stays open: re-check when the tab

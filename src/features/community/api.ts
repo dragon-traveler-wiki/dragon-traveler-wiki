@@ -23,6 +23,15 @@ export class CommunityApiError extends Error {
   }
 }
 
+// Lets the auth provider learn about a session that just expired mid-action
+// (a 401 on any call) without every call site having to check for it and
+// thread a callback through. Registered once by CommunityAuthProvider.
+let onUnauthorized: (() => void) | null = null;
+
+export function setUnauthorizedHandler(handler: (() => void) | null): void {
+  onUnauthorized = handler;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (!API_BASE) {
     throw new CommunityApiError('Community services are not configured.', 503);
@@ -40,6 +49,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     error?: string;
   };
   if (!response.ok) {
+    if (response.status === 401) onUnauthorized?.();
     throw new CommunityApiError(
       body.error || `Request failed (${response.status})`,
       response.status,

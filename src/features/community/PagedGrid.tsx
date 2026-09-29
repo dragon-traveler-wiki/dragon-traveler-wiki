@@ -1,5 +1,6 @@
-import { SimpleGrid, Text } from '@mantine/core';
+import { SimpleGrid } from '@mantine/core';
 import type { ReactNode } from 'react';
+import EmptyState from '@/components/ui/EmptyState';
 import PaginationControl from '@/components/ui/PaginationControl';
 import {
   getPageSizeStorageKey,
@@ -59,7 +60,7 @@ export default function PagedGrid<T>({
     storageKey,
   );
 
-  if (items.length === 0) return <Text c="dimmed">{emptyMessage}</Text>;
+  if (items.length === 0) return <EmptyState title={emptyMessage} />;
 
   const visible = items.slice(offset, offset + pageSize);
   return (

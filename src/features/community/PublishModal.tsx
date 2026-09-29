@@ -44,6 +44,7 @@ export default function PublishModal<T>({
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [challengeVersion, setChallengeVersion] = useState(0);
   const [publishing, setPublishing] = useState(false);
+  const [conflict, setConflict] = useState(false);
   const handleToken = useCallback(
     (token: string | null) => setTurnstileToken(token),
     [],
@@ -51,12 +52,14 @@ export default function PublishModal<T>({
   const close = () => {
     setTurnstileToken(null);
     setChallengeVersion((value) => value + 1);
+    setConflict(false);
     onClose();
   };
 
   const publish = async () => {
     if (!csrfToken || (!publicationId && !turnstileToken)) return;
     setPublishing(true);
+    setConflict(false);
     const result = await runAction(
       async () => {
         if (!publicationId) {
@@ -85,6 +88,7 @@ export default function PublishModal<T>({
       // A Turnstile token is single-use, so always ask for a fresh one.
       setTurnstileToken(null);
       setChallengeVersion((value) => value + 1);
+      if (result.status === 409) setConflict(true);
     }
     setPublishing(false);
   };
@@ -161,6 +165,32 @@ export default function PublishModal<T>({
             </Text>
             {!publicationId && (
               <TurnstileWidget key={challengeVersion} onToken={handleToken} />
+            )}
+            {conflict && (
+              <Alert
+                color="red"
+                variant="light"
+                icon={<IoInformationCircleOutline />}
+                title="Someone else changed this first"
+              >
+                <Stack gap="sm">
+                  <Text size="sm">
+                    Reload the page to get the latest version before trying
+                    again, or you&apos;ll keep overwriting each other&apos;s
+                    changes.
+                  </Text>
+                  <Group justify="flex-end">
+                    <Button
+                      size="xs"
+                      color="red"
+                      variant="light"
+                      onClick={() => window.location.reload()}
+                    >
+                      Reload page
+                    </Button>
+                  </Group>
+                </Stack>
+              </Alert>
             )}
             <Group justify="flex-end">
               <Button variant="outline" color={accent.primary} onClick={close}>
