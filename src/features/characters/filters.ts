@@ -6,9 +6,9 @@ import type {
 } from '@/features/characters/types';
 import type { FactionSlug } from '@/types/faction';
 import type { Quality } from '@/types/quality';
-import { getCharacterIdentityKey } from './utils/character-route';
-import { parseEffectRefs } from '@/utils/parse-effect-refs';
-import { compareQualityThenName } from '@/utils/quality';
+import { getCharacterIdentityKey } from './utils/character-route.ts';
+import { parseEffectRefs } from '../../utils/parse-effect-refs.ts';
+import { compareQualityThenName } from '../../utils/quality.ts';
 
 export interface CharacterFilters {
   search: string;
