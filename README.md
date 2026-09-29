@@ -86,7 +86,7 @@ Turnstile test key).
 npm run build
 ```
 
-Output is written to `dist/`. In CI, data is fetched from the private [dragon-traveler-data](https://github.com/zhenga8533/dragon-traveler-data) repo and copied into `dist/data/` before deployment.
+Output is written to `dist/`. In CI, data is fetched from the private [dragon-traveler-data](https://github.com/dragon-traveler-wiki/dragon-traveler-data) repo and copied into `dist/data/` before deployment.
 
 ## Project Structure
 

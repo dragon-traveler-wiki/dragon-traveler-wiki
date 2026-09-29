@@ -55,7 +55,7 @@ jobs:
       - name: Checkout private data repo
         uses: actions/checkout@v7
         with:
-          repository: zhenga8533/dragon-traveler-data
+          repository: dragon-traveler-wiki/dragon-traveler-data
           token: ${{ secrets.PAT }}
           ref: ${{ github.event.inputs.data_branch || 'main' }}
           path: private-data

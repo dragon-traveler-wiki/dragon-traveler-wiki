@@ -1,5 +1,5 @@
 export const GITHUB_REPO_URL =
-  'https://github.com/zhenga8533/dragon-traveler-wiki';
+  'https://github.com/dragon-traveler-wiki/dragon-traveler-wiki';
 
 export const MAX_GITHUB_ISSUE_URL_LENGTH = 8000;
 
