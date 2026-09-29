@@ -27,19 +27,13 @@ import {
 } from 'react';
 import {
   BackSide,
-  Box3,
-  DataTexture,
-  MathUtils,
   Mesh,
   Object3D,
   PerspectiveCamera,
-  RGBAFormat,
   ShaderMaterial,
-  SkinnedMesh,
   SRGBColorSpace,
   Texture,
   TextureLoader,
-  UnsignedByteType,
   Vector3,
 } from 'three';
 import { clone as cloneSkeleton } from 'three/addons/utils/SkeletonUtils.js';
@@ -53,6 +47,19 @@ import {
   type AnimationSeekRequest,
 } from '../hooks/use-model-animation';
 import type { ModelMetadata } from './character-model-metadata';
+import {
+  fragmentShader,
+  neutralTexture,
+  outlineFragmentShader,
+  outlineVertexShader,
+  vertexShader,
+} from './character-model-shaders';
+import {
+  CAMERA_FIT_MARGIN,
+  CAMERA_VIEW_DIRECTION,
+  primaryActorBounds,
+  projectedFitDistance,
+} from './character-model-camera-math';
 
 interface CharacterModelSceneProps {
   metadata: ModelMetadata;
@@ -66,100 +73,6 @@ interface CharacterModelSceneProps {
   accent: string;
   onAnimationFinished: () => void;
   onProgress: (progress: AnimationProgress) => void;
-}
-
-const CAMERA_FIT_MARGIN = 1.12;
-const CAMERA_VIEW_DIRECTION = new Vector3(0, 0.08, 1).normalize();
-const CAMERA_CORE_JOINT_WEIGHT = 0.5;
-
-const vertexShader = /* glsl */ `
-  #include <common>
-  #include <skinning_pars_vertex>
-  varying vec2 vUv;
-  varying vec3 vWorldNormal;
-  varying vec3 vWorldPosition;
-  void main() {
-    vUv = uv;
-    #include <beginnormal_vertex>
-    #include <skinbase_vertex>
-    #include <skinnormal_vertex>
-    vWorldNormal = normalize(mat3(modelMatrix) * objectNormal);
-    #include <begin_vertex>
-    #include <skinning_vertex>
-    vec4 worldPosition = modelMatrix * vec4(transformed, 1.0);
-    vWorldPosition = worldPosition.xyz;
-    gl_Position = projectionMatrix * viewMatrix * worldPosition;
-  }
-`;
-
-const fragmentShader = /* glsl */ `
-  uniform sampler2D baseMap;
-  uniform sampler2D shadeMap;
-  uniform sampler2D emissionMap;
-  uniform sampler2D mraMap;
-  uniform vec3 lightDirection;
-  uniform float emissionStrength;
-  uniform float indirectLight;
-  uniform float shadowThreshold;
-  uniform float shadowSoftness;
-  varying vec2 vUv;
-  varying vec3 vWorldNormal;
-  varying vec3 vWorldPosition;
-  void main() {
-    vec4 base = texture2D(baseMap, vUv);
-    vec3 authoredShade = texture2D(shadeMap, vUv).rgb;
-    vec3 emission = texture2D(emissionMap, vUv).rgb;
-    vec3 mra = texture2D(mraMap, vUv).rgb;
-    vec3 normal = normalize(vWorldNormal);
-    vec3 light = normalize(lightDirection);
-    vec3 viewDirection = normalize(cameraPosition - vWorldPosition);
-    vec3 halfDirection = normalize(light + viewDirection);
-    float halfLambert = dot(normal, light) * 0.5 + 0.5;
-    float toonLight = smoothstep(shadowThreshold - shadowSoftness, shadowThreshold + shadowSoftness, halfLambert);
-    vec3 color = mix(mix(authoredShade, base.rgb, indirectLight), base.rgb, toonLight);
-    float metallic = mra.r;
-    float roughness = clamp(mra.g, 0.04, 1.0);
-    float specular = pow(max(dot(normal, halfDirection), 0.0), mix(96.0, 8.0, roughness));
-    color += mix(vec3(0.04), base.rgb, metallic) * specular * toonLight * 0.22;
-    color += base.rgb * pow(1.0 - max(dot(normal, viewDirection), 0.0), 3.0) * toonLight * 0.08;
-    color += emission * emissionStrength;
-    gl_FragColor = vec4(color, base.a);
-    #include <tonemapping_fragment>
-    #include <colorspace_fragment>
-  }
-`;
-
-const outlineVertexShader = /* glsl */ `
-  #include <common>
-  #include <skinning_pars_vertex>
-  uniform float outlineWidth;
-  void main() {
-    #include <beginnormal_vertex>
-    #include <skinbase_vertex>
-    #include <skinnormal_vertex>
-    #include <begin_vertex>
-    #include <skinning_vertex>
-    transformed += objectNormal * outlineWidth;
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);
-  }
-`;
-
-const outlineFragmentShader = /* glsl */ `
-  void main() {
-    gl_FragColor = vec4(0.055, 0.04, 0.075, 1.0);
-  }
-`;
-
-function neutralTexture(r: number, g: number, b: number): DataTexture {
-  const texture = new DataTexture(
-    new Uint8Array([r, g, b, 255]),
-    1,
-    1,
-    RGBAFormat,
-    UnsignedByteType,
-  );
-  texture.needsUpdate = true;
-  return texture;
 }
 
 function CharacterModel({
@@ -287,144 +200,6 @@ function CharacterModel({
       <primitive ref={framingModelRef} object={model} />
     </Center>
   );
-}
-
-function isDescendantOf(node: Object3D, ancestor: Object3D): boolean {
-  for (let current: Object3D | null = node; current; current = current.parent) {
-    if (current === ancestor) return true;
-  }
-  return false;
-}
-
-interface SkeletonBranchLayout {
-  commonJoints: number[];
-  branches: Array<{ root: Object3D; joints: number[] }>;
-}
-
-function skeletonBranchLayout(mesh: SkinnedMesh): SkeletonBranchLayout | null {
-  const bones = mesh.skeleton.bones;
-  if (!bones.length) return null;
-
-  const ancestors: Object3D[] = [];
-  for (
-    let current: Object3D | null = bones[0];
-    current;
-    current = current.parent
-  ) {
-    ancestors.push(current);
-  }
-  const commonAncestor = ancestors.find((ancestor) =>
-    bones.every((bone) => isDescendantOf(bone, ancestor)),
-  );
-  if (!commonAncestor) return null;
-
-  const commonJoints = new Set<number>();
-  const branches = new Map<Object3D, number[]>();
-  bones.forEach((bone, index) => {
-    if (bone === commonAncestor) {
-      commonJoints.add(index);
-      return;
-    }
-    let branch: Object3D = bone;
-    while (branch.parent && branch.parent !== commonAncestor) {
-      branch = branch.parent;
-    }
-    if (branch.parent !== commonAncestor) return;
-    const joints = branches.get(branch) ?? [];
-    joints.push(index);
-    branches.set(branch, joints);
-  });
-
-  return {
-    commonJoints: [...commonJoints],
-    branches: [...branches.entries()]
-      .map(([root, joints]) => ({ root, joints }))
-      .sort((left, right) => right.joints.length - left.joints.length),
-  };
-}
-
-function primarySkeletonJoints(mesh: SkinnedMesh): Set<number> | null {
-  const layout = skeletonBranchLayout(mesh);
-  const primaryBranch = layout?.branches[0];
-  if (!layout || !primaryBranch) return null;
-  return new Set([...layout.commonJoints, ...primaryBranch.joints]);
-}
-
-function primaryActorBounds(model: Object3D, vertexCount: number): Box3 | null {
-  model.updateWorldMatrix(true, true);
-  let result: Box3 | null = null;
-  model.traverse((child) => {
-    if (result || !(child instanceof SkinnedMesh)) return;
-    const positions = child.geometry.getAttribute('position');
-    if (!positions || positions.count < vertexCount) return;
-    const skinIndices = child.geometry.getAttribute('skinIndex');
-    const skinWeights = child.geometry.getAttribute('skinWeight');
-    const primaryJoints = primarySkeletonJoints(child);
-
-    child.skeleton.update();
-    const box = new Box3();
-    const vertex = new Vector3();
-    for (let index = 0; index < vertexCount; index += 1) {
-      if (primaryJoints && skinIndices && skinWeights) {
-        const indices = [
-          skinIndices.getX(index),
-          skinIndices.getY(index),
-          skinIndices.getZ(index),
-          skinIndices.getW(index),
-        ];
-        const weights = [
-          skinWeights.getX(index),
-          skinWeights.getY(index),
-          skinWeights.getZ(index),
-          skinWeights.getW(index),
-        ];
-        const coreWeight = weights.reduce(
-          (total, weight, influence) =>
-            total + (primaryJoints.has(indices[influence]) ? weight : 0),
-          0,
-        );
-        if (coreWeight < CAMERA_CORE_JOINT_WEIGHT) continue;
-      }
-      vertex.fromBufferAttribute(positions, index);
-      child.applyBoneTransform(index, vertex);
-      box.expandByPoint(vertex.applyMatrix4(child.matrixWorld));
-    }
-    if (!box.isEmpty()) result = box;
-  });
-  return result;
-}
-
-function projectedFitDistance(
-  box: Box3,
-  center: Vector3,
-  viewDirection: Vector3,
-  camera: PerspectiveCamera,
-): number {
-  const forward = viewDirection.clone().negate();
-  const right = forward.clone().cross(camera.up).normalize();
-  const up = right.clone().cross(forward).normalize();
-  const verticalTangent = Math.tan(MathUtils.degToRad(camera.fov) / 2);
-  const horizontalTangent = verticalTangent * camera.aspect;
-  let distance = 0;
-
-  for (const x of [box.min.x, box.max.x]) {
-    for (const y of [box.min.y, box.max.y]) {
-      for (const z of [box.min.z, box.max.z]) {
-        const offset = new Vector3(x, y, z).sub(center);
-        const depth = offset.dot(viewDirection);
-        distance = Math.max(
-          distance,
-          depth +
-            (Math.abs(offset.dot(right)) * CAMERA_FIT_MARGIN) /
-              horizontalTangent,
-          depth +
-            (Math.abs(offset.dot(up)) * CAMERA_FIT_MARGIN) / verticalTangent,
-        );
-      }
-    }
-  }
-
-  return Math.max(distance, 0.1);
 }
 
 function CameraFit({
