@@ -14,7 +14,6 @@ import {
   IoEllipsisHorizontalOutline,
   IoGift,
   IoHome,
-  IoList,
   IoServer,
   IoShield,
   IoTrophy,
@@ -89,6 +88,7 @@ export const NAV_ITEMS: NavItem[] = [
           routeLeaf('faq'),
           routeLeaf('usefulLinks'),
           routeLeaf('dtdle'),
+          routeLeaf('changelog'),
         ],
       },
     ],
@@ -97,7 +97,6 @@ export const NAV_ITEMS: NavItem[] = [
   { ...routeLeaf('teams'), icon: IoShield },
   { ...routeLeaf('events'), icon: IoCalendar },
   { ...routeLeaf('codes'), icon: IoGift },
-  { ...routeLeaf('changelog'), icon: IoList },
 ];
 
 export function isNavPathActive(navPath: string, pathname: string) {
