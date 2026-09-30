@@ -118,6 +118,8 @@ export default function SettingsPanel({
     setGrayUnowned,
     showCharacterTiers,
     setShowCharacterTiers,
+    showNewUpdatedBadges,
+    setShowNewUpdatedBadges,
   } = useContext(CharacterOwnershipContext);
   const { locale, setLocale } = useContext(LocaleContext);
   const { skinsEnabled, setSkinsEnabled } = useContext(CharacterSkinContext);
@@ -481,6 +483,14 @@ export default function SettingsPanel({
             description="Display selected skins on portraits instead of default art"
             checked={skinsEnabled}
             onChange={(e) => setSkinsEnabled(e.currentTarget.checked)}
+          />
+          <Switch
+            size={isMobile ? 'md' : 'sm'}
+            color={accent.primary}
+            label="Show New/Updated badges"
+            description="Highlight recently added or edited characters"
+            checked={showNewUpdatedBadges}
+            onChange={(e) => setShowNewUpdatedBadges(e.currentTarget.checked)}
           />
           {showCharacterTiers && (
             <Select

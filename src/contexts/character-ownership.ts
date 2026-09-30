@@ -11,6 +11,8 @@ export interface CharacterOwnershipContextValue {
   setGrayUnowned: (value: boolean) => void;
   showCharacterTiers: boolean;
   setShowCharacterTiers: (value: boolean) => void;
+  showNewUpdatedBadges: boolean;
+  setShowNewUpdatedBadges: (value: boolean) => void;
 }
 
 export const CharacterOwnershipContext =
@@ -25,4 +27,6 @@ export const CharacterOwnershipContext =
     setGrayUnowned: () => {},
     showCharacterTiers: true,
     setShowCharacterTiers: () => {},
+    showNewUpdatedBadges: false,
+    setShowNewUpdatedBadges: () => {},
   });

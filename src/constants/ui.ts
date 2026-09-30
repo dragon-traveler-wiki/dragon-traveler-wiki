@@ -190,6 +190,7 @@ export const STORAGE_KEY = {
   UI_CHARACTER_TRACKING_ENABLED: 'ui:characterTrackingEnabled',
   UI_GRAY_UNOWNED: 'ui:grayUnowned',
   UI_SHOW_CHARACTER_TIERS: 'ui:showCharacterTiers',
+  UI_SHOW_NEW_UPDATED_BADGES: 'ui:showNewUpdatedBadges',
   BUBBLE_CHART_CONFIG: 'characters:bubbleChartConfig',
   RECENT_SEARCHES: 'search:recent',
   BUILDER_POOL_LAYOUT: 'builder:poolLayout',
