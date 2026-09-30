@@ -70,6 +70,10 @@ export function CharacterOwnershipProvider({
   const [showCharacterTiers, setShowCharacterTiersState] = useState<boolean>(
     () => loadBoolPref(STORAGE_KEY.UI_SHOW_CHARACTER_TIERS, true),
   );
+  const [showNewUpdatedBadges, setShowNewUpdatedBadgesState] =
+    useState<boolean>(() =>
+      loadBoolPref(STORAGE_KEY.UI_SHOW_NEW_UPDATED_BADGES, false),
+    );
 
   const setCharacterStarLevel = (identityKey: string, value: string | null) => {
     setOwnedCharacters((prev) => {
@@ -114,6 +118,14 @@ export function CharacterOwnershipProvider({
     );
   };
 
+  const setShowNewUpdatedBadges = (value: boolean) => {
+    setShowNewUpdatedBadgesState(value);
+    window.localStorage.setItem(
+      STORAGE_KEY.UI_SHOW_NEW_UPDATED_BADGES,
+      String(value),
+    );
+  };
+
   return (
     <CharacterOwnershipContext.Provider
       value={{
@@ -127,6 +139,8 @@ export function CharacterOwnershipProvider({
         setGrayUnowned,
         showCharacterTiers,
         setShowCharacterTiers,
+        showNewUpdatedBadges,
+        setShowNewUpdatedBadges,
       }}
     >
       {children}

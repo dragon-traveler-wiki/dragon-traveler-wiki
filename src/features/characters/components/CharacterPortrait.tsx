@@ -111,9 +111,12 @@ export default function CharacterPortrait({
   skinOverride,
 }: CharacterPortraitProps) {
   const mobileTooltip = useMobileTooltip();
-  const { characterTrackingEnabled, grayUnowned, isOwned } = useContext(
-    CharacterOwnershipContext,
-  );
+  const {
+    characterTrackingEnabled,
+    grayUnowned,
+    isOwned,
+    showNewUpdatedBadges,
+  } = useContext(CharacterOwnershipContext);
   const { getDisplaySkin } = useContext(CharacterSkinContext);
   const routeAssetKey = routePath?.match(/^\/characters\/([^/?#]+)/)?.[1];
   const resolvedAssetKey = assetKey ?? routeAssetKey;
@@ -188,7 +191,7 @@ export default function CharacterPortrait({
     linkedPortrait
   );
 
-  if (!isNew && !isUpdated) return result;
+  if (!showNewUpdatedBadges || (!isNew && !isUpdated)) return result;
 
   return (
     <div style={{ position: 'relative', display: 'inline-flex' }}>
