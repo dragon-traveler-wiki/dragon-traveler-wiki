@@ -37,6 +37,8 @@ export default function TreasureCard({
       statusEffects={statusEffects}
       italic
       lineHeight={1.6}
+      // Explicit so the lore doesn't inherit ExpandableText's dimmed color on phones.
+      color="var(--mantine-color-text)"
     />
   );
   return (

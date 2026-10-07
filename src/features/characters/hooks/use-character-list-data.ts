@@ -106,9 +106,10 @@ export function useCharacterListData(
   const { col: sortCol, dir: sortDir } = sortState;
 
   // Mirror CHARACTER_GRID_COLS breakpoints to keep page size = whole rows
+  const isXl = useMediaQuery(BREAKPOINTS.XL);
   const isMd = useMediaQuery(BREAKPOINTS.MD);
   const isSm = useMediaQuery(BREAKPOINTS.DESKTOP);
-  const activeCols = isMd ? 6 : isSm ? 4 : 3;
+  const activeCols = isXl ? 8 : isMd ? 6 : isSm ? 4 : 3;
   const gridPageSizeOptions = useMemo(
     () => buildRowAlignedPageSizeOptions(activeCols, [4, 6, 8, 10]),
     [activeCols],

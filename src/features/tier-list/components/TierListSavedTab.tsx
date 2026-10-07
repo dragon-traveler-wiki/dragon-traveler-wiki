@@ -9,7 +9,7 @@ import type { TierListRankableEntity } from '@/features/tier-list/types';
 
 interface TierListSavedTabProps {
   savedTierLists: TierListType[];
-  visibleSavedTierLists: TierListType[];
+  filteredSavedTierLists: TierListType[];
   resolveTierEntryEntity: (
     entry: TierListType['entries'][number],
   ) => TierListRankableEntity | undefined;
@@ -29,7 +29,7 @@ interface TierListSavedTabProps {
 
 export default function TierListSavedTab({
   savedTierLists,
-  visibleSavedTierLists,
+  filteredSavedTierLists,
   resolveTierEntryEntity,
   viewMode,
   search,
@@ -47,7 +47,7 @@ export default function TierListSavedTab({
   const isMobile = useIsMobile();
   const [activeValue, handleSelectTierList] = useEntityTabParam(
     'saved-list',
-    visibleSavedTierLists,
+    filteredSavedTierLists,
   );
 
   if (savedTierLists.length === 0) {
@@ -61,7 +61,7 @@ export default function TierListSavedTab({
     );
   }
 
-  if (visibleSavedTierLists.length === 0) {
+  if (filteredSavedTierLists.length === 0) {
     return (
       <>
         <NoResultsSuggestions
@@ -87,7 +87,7 @@ export default function TierListSavedTab({
       <Tabs value={activeValue} onChange={handleSelectTierList}>
         <ScrollArea type="auto" scrollbarSize={5} offsetScrollbars>
           <Tabs.List style={{ flexWrap: 'nowrap', minWidth: 'max-content' }}>
-            {visibleSavedTierLists.map((tl) => (
+            {filteredSavedTierLists.map((tl) => (
               <Tabs.Tab key={tl.name} value={tl.name} style={{ minHeight: 40 }}>
                 {tl.name || 'Untitled'}
               </Tabs.Tab>
@@ -95,7 +95,7 @@ export default function TierListSavedTab({
           </Tabs.List>
         </ScrollArea>
 
-        {visibleSavedTierLists.map((tierList) => {
+        {filteredSavedTierLists.map((tierList) => {
           const headerActions = (
             <EntityActionButtons
               onEdit={() => onRequestEdit(tierList)}

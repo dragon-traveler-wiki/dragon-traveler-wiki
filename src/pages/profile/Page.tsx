@@ -22,8 +22,8 @@ import EntityNotFound from '@/components/ui/EntityNotFound';
 import { useCharacterResolution } from '@/features/characters/hooks/use-character-resolution';
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import {
-  CommunityApiError,
   getPublicProfile,
+  isNotFoundError,
   setUserRole,
   unsuspendUser,
 } from '@/features/community/api';
@@ -45,6 +45,7 @@ import { useTierLists } from '@/features/tier-list/hooks/use-tier-list-data';
 import type { TierList } from '@/features/tier-list/types';
 import { getTierListRoutePath } from '@/features/tier-list/utils/tier-list-route';
 import { useGradientAccent, useTabParam } from '@/hooks';
+import { PAGE_WIDTH } from '@/constants/ui';
 
 export default function ProfilePage() {
   const { userId } = useParams<{ userId: string }>();
@@ -132,10 +133,7 @@ export default function ProfilePage() {
   };
 
   if (profileError) {
-    if (
-      profileError instanceof CommunityApiError &&
-      profileError.status === 404
-    ) {
+    if (isNotFoundError(profileError)) {
       return (
         <EntityNotFound
           entityType="User"
@@ -145,7 +143,7 @@ export default function ProfilePage() {
       );
     }
     return (
-      <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+      <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
         <DataFetchError
           title="Could not load profile"
           message={
@@ -165,9 +163,9 @@ export default function ProfilePage() {
   );
 
   return (
-    <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="xl">
-        <Group>
+        <Group wrap="nowrap">
           <Avatar
             src={profile.avatarUrl}
             size="lg"
@@ -176,8 +174,14 @@ export default function ProfilePage() {
           >
             <IoPersonOutline />
           </Avatar>
-          <Stack gap={4}>
-            <Title order={1}>{profile.displayName}</Title>
+          <Stack gap={4} style={{ minWidth: 0 }}>
+            <Title
+              order={1}
+              fz={{ base: '1.5rem', sm: '2.125rem' }}
+              style={{ wordBreak: 'break-word' }}
+            >
+              {profile.displayName}
+            </Title>
             <CommunityStatsBadges stats={profile.stats} />
             {profile.moderation && (
               <Group gap="xs">

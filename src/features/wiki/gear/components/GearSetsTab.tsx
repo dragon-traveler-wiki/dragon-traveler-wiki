@@ -7,7 +7,8 @@ import SearchableGridPanel from '@/components/layout/SearchableGridPanel';
 import { LINK_BLOCK_RESET_STYLE } from '@/constants/styles';
 import GearTypeTag from '@/features/wiki/gear/components/GearTypeTag';
 import type { Gear, GearSet } from '@/features/wiki/gear/types';
-import type { GradientPaletteAccents } from '@/contexts';
+import { CARD_GRID_COLS } from '@/constants/ui';
+import { useGradientAccent } from '@/hooks';
 
 interface GearSetsTabProps {
   loading: boolean;
@@ -25,7 +26,6 @@ interface GearSetsTabProps {
   pageSizeOptions: number[];
   onPageSizeChange: (pageSize: number) => void;
   gearItemsBySet: Map<string, Gear[]>;
-  accent: GradientPaletteAccents;
 }
 
 export default function GearSetsTab({
@@ -44,8 +44,8 @@ export default function GearSetsTab({
   pageSizeOptions,
   onPageSizeChange,
   gearItemsBySet,
-  accent,
 }: GearSetsTabProps) {
+  const { accent } = useGradientAccent();
   return (
     <ListPageShell
       loading={loading}
@@ -72,7 +72,7 @@ export default function GearSetsTab({
         pageSizeOptions={pageSizeOptions}
         onPageSizeChange={onPageSizeChange}
       >
-        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+        <SimpleGrid cols={CARD_GRID_COLS} spacing="md">
           {pageItems.map((set) => {
             const items = gearItemsBySet.get(set.slug) ?? [];
             const setBonus = set.set_bonus;

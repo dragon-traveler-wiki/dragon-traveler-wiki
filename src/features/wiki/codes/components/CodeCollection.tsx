@@ -16,7 +16,7 @@ import {
 } from 'react-icons/io5';
 import ResourceBadge from '@/components/ui/ResourceBadge';
 import { StaticSurface } from '@/components/ui/Surface';
-import { IMAGE_SIZE } from '@/constants/ui';
+import { CODE_GRID_COLS, IMAGE_SIZE } from '@/constants/ui';
 import type { ViewMode } from '@/hooks';
 import type { Code } from '@/features/wiki/codes/types';
 import { buildExpiredCodeUrl, isCodeActive } from '@/utils';
@@ -104,7 +104,7 @@ export default function CodeCollection({
 }: CodeCollectionProps) {
   if (viewMode === 'grid') {
     return (
-      <SimpleGrid cols={{ base: 1, xs: 2, sm: 3 }} spacing="md">
+      <SimpleGrid cols={CODE_GRID_COLS} spacing="md">
         {codes.map((entry) => {
           const active = isCodeActive(entry);
           return (

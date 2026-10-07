@@ -6,7 +6,7 @@ import DetailPageTitle from '@/components/common/DetailPageTitle';
 import LastUpdated from '@/components/common/LastUpdated';
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
 import SectionJumpNav from '@/components/layout/SectionJumpNav';
-import DataFetchError from '@/components/ui/DataFetchError';
+import PageFetchError from '@/components/ui/PageFetchError';
 import EntityNotFound from '@/components/ui/EntityNotFound';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import QualityIcon from '@/components/ui/QualityIcon';
@@ -44,6 +44,7 @@ import {
 } from '@mantine/core';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
+import { PAGE_WIDTH } from '@/constants/ui';
 
 function getRelicGroupSectionId(type: string) {
   return `relics-${type.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
@@ -143,13 +144,11 @@ export default function OracleScrollPage() {
 
   if (error) {
     return (
-      <Container size="lg" py="xl">
-        <DataFetchError
-          title="Could not load relics"
-          message={error.message}
-          onRetry={retry}
-        />
-      </Container>
+      <PageFetchError
+        title="Could not load relics"
+        message={error.message}
+        onRetry={retry}
+      />
     );
   }
 
@@ -211,7 +210,7 @@ export default function OracleScrollPage() {
         />
       )}
 
-      <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+      <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
         <SectionJumpNav sections={jumpSections} hiddenFrom="md" />
         <ErrorBoundary
           scope="section"

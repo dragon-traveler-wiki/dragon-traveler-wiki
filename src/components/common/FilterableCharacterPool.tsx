@@ -67,10 +67,11 @@ export default function FilterableCharacterPool({
   const [filterOpen, { toggle: toggleFilter }] = useDisclosure(false);
 
   // Mirror BUILDER_GRID_COLS breakpoints
+  const isXl = useMediaQuery(BREAKPOINTS.XL);
   const isMd = useMediaQuery(BREAKPOINTS.MD);
   // The side column has a fixed width regardless of viewport, so it uses a
   // fixed column count instead of the viewport-driven breakpoints below.
-  const cols = layout === 'side' ? SIDE_LAYOUT_COLS : isMd ? 6 : 4;
+  const cols = layout === 'side' ? SIDE_LAYOUT_COLS : isXl ? 8 : isMd ? 6 : 4;
   const pageSizeOptions = useMemo(
     () => buildRowAlignedPageSizeOptions(cols, [4, 6, 8, 10]),
     [cols],

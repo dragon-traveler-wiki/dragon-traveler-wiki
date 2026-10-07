@@ -13,7 +13,7 @@ import {
 } from '@/components/layout/PageLoadingSkeleton';
 import { Container, Group, Skeleton, Stack } from '@mantine/core';
 import { getRouteFallbackKind, ROUTE_PATH } from '@/constants/route-meta';
-import { STORAGE_KEY } from '@/constants/ui';
+import { CODE_GRID_COLS, STORAGE_KEY, PAGE_WIDTH } from '@/constants/ui';
 import { getInitialViewMode, type ViewMode } from '@/hooks/use-filters';
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router';
@@ -80,7 +80,7 @@ function CharacterListRouteFallback() {
   const viewMode = getInitialViewMode(STORAGE_KEY.CHARACTER_VIEW_MODE, 'grid');
 
   return (
-    <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="md">
         <Group justify="space-between" align="center" wrap="wrap">
           <Skeleton height={42} width={190} radius="md" aria-hidden="true" />
@@ -290,7 +290,7 @@ function RouteFallback() {
 
   if (fallbackKind === 'event-list') {
     return (
-      <ListRouteLoading containerSize="lg" tabs={2}>
+      <ListRouteLoading tabs={2}>
         <EventCardsLoading
           viewMode={getInitialViewMode(STORAGE_KEY.EVENT_VIEW_MODE, 'grid')}
           showPagination
@@ -305,7 +305,7 @@ function RouteFallback() {
         <ViewModeLoading
           viewMode={getInitialViewMode(STORAGE_KEY.CODES_VIEW_MODE, 'list')}
           cards={9}
-          gridCols={{ base: 1, xs: 2, sm: 3 }}
+          gridCols={CODE_GRID_COLS}
           cardHeight={180}
           showPagination
           label="Loading codes"
@@ -322,7 +322,7 @@ function RouteFallback() {
       'grid',
     );
     return (
-      <ListRouteLoading containerSize="lg">
+      <ListRouteLoading>
         <Stack gap="md">
           <Skeleton height={36} radius="md" aria-hidden="true" />
           {mode === 'builder' ? (
@@ -343,7 +343,12 @@ function RouteFallback() {
   if (fallbackKind === 'changelog') {
     const tab = getRouteTab(search, 'site', ['site', 'data']);
     return (
-      <ListRouteLoading tabs={2} description actions={false}>
+      <ListRouteLoading
+        containerSize={PAGE_WIDTH.READING}
+        tabs={2}
+        description
+        actions={false}
+      >
         {tab === 'data' ? (
           <ListPageLoading showPagination />
         ) : (
@@ -359,7 +364,7 @@ function RouteFallback() {
 
   if (fallbackKind === 'useful-links') {
     return (
-      <ListRouteLoading>
+      <ListRouteLoading containerSize={PAGE_WIDTH.READING}>
         <ViewModeLoading viewMode="list" />
       </ListRouteLoading>
     );

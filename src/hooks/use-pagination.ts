@@ -1,6 +1,5 @@
 import {
   useCallback,
-  useEffect,
   useMemo,
   useState,
   type Dispatch,
@@ -108,36 +107,32 @@ export function usePageSize(
     [options],
   );
 
-  const [pageSizeRaw, setPageSizeState] = useState(() => {
-    if (typeof window !== 'undefined' && storageKey) {
-      const stored = Number(window.localStorage.getItem(storageKey));
-
-      if (Number.isFinite(stored) && stored > 0) {
-        return pickClosestPageSize(stored, normalizedOptions);
-      }
+  // Only an explicit user choice is persisted, so without one the caller's
+  // (possibly responsive) default keeps applying.
+  const [chosenPageSize, setChosenPageSize] = useState<number | null>(() => {
+    if (typeof window === 'undefined' || !storageKey) {
+      return null;
     }
 
-    return pickClosestPageSize(
-      defaultSize ?? normalizedOptions[0],
-      normalizedOptions,
-    );
+    const stored = Number(window.localStorage.getItem(storageKey));
+    return Number.isFinite(stored) && stored > 0 ? stored : null;
   });
 
-  const pageSize = normalizedOptions.includes(pageSizeRaw)
-    ? pageSizeRaw
-    : pickClosestPageSize(defaultSize ?? pageSizeRaw, normalizedOptions);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && storageKey) {
-      window.localStorage.setItem(storageKey, String(pageSize));
-    }
-  }, [pageSize, storageKey]);
+  const pageSize = pickClosestPageSize(
+    chosenPageSize ?? defaultSize ?? normalizedOptions[0],
+    normalizedOptions,
+  );
 
   const setPageSize = useCallback(
     (nextPageSize: number) => {
-      setPageSizeState(pickClosestPageSize(nextPageSize, normalizedOptions));
+      const nextSize = pickClosestPageSize(nextPageSize, normalizedOptions);
+      setChosenPageSize(nextSize);
+
+      if (typeof window !== 'undefined' && storageKey) {
+        window.localStorage.setItem(storageKey, String(nextSize));
+      }
     },
-    [normalizedOptions],
+    [normalizedOptions, storageKey],
   );
 
   return {

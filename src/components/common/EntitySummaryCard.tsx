@@ -12,6 +12,10 @@ interface EntitySummaryCardProps {
   title: string;
   imageSrc?: string;
   imageAlt?: string;
+  /** Defaults to IMAGE_SIZE.CARD_ICON; use a smaller size for low-resolution art. */
+  imageSize?: number;
+  /** Keep the image column when there's no image so cards in a list stay aligned. */
+  reserveImageSpace?: boolean;
   titleAccessory?: ReactNode;
   metadata?: ReactNode;
   description?: ReactNode;
@@ -23,6 +27,8 @@ export default function EntitySummaryCard({
   title,
   imageSrc,
   imageAlt = title,
+  imageSize = IMAGE_SIZE.CARD_ICON,
+  reserveImageSpace = false,
   titleAccessory,
   metadata,
   description,
@@ -35,16 +41,21 @@ export default function EntitySummaryCard({
       {...(to ? { component: Link, to, style: LINK_BLOCK_RESET_STYLE } : {})}
     >
       <Group gap="md" align="flex-start" wrap="nowrap">
-        {imageSrc && (
-          <SafeImage
-            src={imageSrc}
-            alt={imageAlt}
-            w={IMAGE_SIZE.CARD_ICON}
-            h={IMAGE_SIZE.CARD_ICON}
-            fit="contain"
-            radius="sm"
-            loading="lazy"
-          />
+        {(imageSrc || reserveImageSpace) && (
+          // Fixed-size slot so a missing or failed image doesn't shift the text.
+          <Box w={imageSize} h={imageSize} style={{ flexShrink: 0 }}>
+            {imageSrc && (
+              <SafeImage
+                src={imageSrc}
+                alt={imageAlt}
+                w={imageSize}
+                h={imageSize}
+                fit="contain"
+                radius="sm"
+                loading="lazy"
+              />
+            )}
+          </Box>
         )}
         <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
           <Group gap="sm" wrap="nowrap" align="flex-start">

@@ -44,6 +44,7 @@ import {
 } from 'react-icons/io5';
 import StarUpgradeReferenceTable from '@/features/calculators/star-upgrade/components/StarUpgradeReferenceTable';
 import HeartTrialRateTable from '@/features/calculators/star-upgrade/components/HeartTrialRateTable';
+import { PAGE_WIDTH } from '@/constants/ui';
 
 export default function StarUpgradeCalculatorPage() {
   const { accent } = useGradientAccent();
@@ -139,7 +140,7 @@ export default function StarUpgradeCalculatorPage() {
   }));
 
   return (
-    <Container size="xl" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
         <ListPageHeader
           title="Star Upgrade Calculator"

@@ -23,7 +23,12 @@ import QualityIcon from '@/components/ui/QualityIcon';
 import { FACTION_SLUGS } from '@/constants/faction-colors';
 import { QUALITY_ORDER } from '@/constants/quality';
 import { getMinWidthStyle } from '@/constants/styles';
-import { IMAGE_SIZE, STORAGE_KEY } from '@/constants/ui';
+import {
+  IMAGE_SIZE,
+  STORAGE_KEY,
+  PAGE_WIDTH,
+  CARD_GRID_COLS,
+} from '@/constants/ui';
 import { WYRM_PHASE_COLOR } from '@/constants/wyrm-colors';
 import { WYRM_PHASE_ORDER } from '@/features/wiki/wyrms/types';
 import {
@@ -122,7 +127,7 @@ export default function WyrmsListPage() {
   const mostRecentUpdate = useMemo(() => getLatestTimestamp(wyrms), [wyrms]);
 
   return (
-    <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="md">
         <ListPageHeader title="Wyrms" timestamp={mostRecentUpdate}>
           <Group gap="xs">
@@ -182,7 +187,7 @@ export default function WyrmsListPage() {
             pageSizeOptions={pageSizeOptions}
             onPageSizeChange={setPageSize}
             gridContent={
-              <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+              <SimpleGrid cols={CARD_GRID_COLS} spacing="md">
                 {pageItems.map((wyrm) => {
                   const iconSrc = getWyrmPortrait(wyrm.slug);
                   const phaseColor = WYRM_PHASE_COLOR[wyrm.phase];

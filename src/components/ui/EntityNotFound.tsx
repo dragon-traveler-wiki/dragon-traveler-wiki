@@ -8,6 +8,7 @@ import {
 } from '@mantine/core';
 import { IoArrowBack, IoSearch } from 'react-icons/io5';
 import { Link } from 'react-router';
+import { PAGE_WIDTH } from '@/constants/ui';
 
 interface EntityNotFoundProps {
   entityType: string;
@@ -23,7 +24,7 @@ export default function EntityNotFound({
   backPath,
 }: EntityNotFoundProps) {
   return (
-    <Container size="sm" py={80}>
+    <Container size={PAGE_WIDTH.NARROW} py={80}>
       <Stack align="center" gap="xl">
         <ThemeIcon size={80} radius="xl" variant="light" color="gray">
           <IoSearch size={36} />

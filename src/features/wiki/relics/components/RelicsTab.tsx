@@ -27,12 +27,11 @@ import QualityIcon from '@/components/ui/QualityIcon';
 import RelicTypeTag from '@/features/wiki/relics/components/RelicTypeTag';
 import type { RelicFilters } from '@/features/wiki/relics/filters';
 import type { Relic } from '@/features/wiki/relics/types';
-import { IMAGE_SIZE } from '@/constants/ui';
+import { IMAGE_SIZE, CARD_GRID_COLS } from '@/constants/ui';
 import { getMinWidthStyle } from '@/constants/styles';
-import type { GradientPaletteAccents } from '@/contexts';
 import type { ViewMode } from '@/hooks';
 import type { StatusEffect } from '@/features/wiki/status-effects/types';
-import { useIsMobile } from '@/hooks';
+import { useGradientAccent, useIsMobile } from '@/hooks';
 
 interface RelicsTabProps {
   loading: boolean;
@@ -59,7 +58,6 @@ interface RelicsTabProps {
   sortDir: 'asc' | 'desc';
   onSort: (col: string) => void;
   pageItems: Relic[];
-  accent: GradientPaletteAccents;
   statusEffects: StatusEffect[];
 }
 
@@ -88,9 +86,9 @@ export default function RelicsTab({
   sortDir,
   onSort,
   pageItems,
-  accent,
   statusEffects,
 }: RelicsTabProps) {
+  const { accent } = useGradientAccent();
   const isMobile = useIsMobile();
 
   return (
@@ -170,7 +168,7 @@ export default function RelicsTab({
           />
         }
         gridContent={
-          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+          <SimpleGrid cols={CARD_GRID_COLS} spacing="md">
             {pageItems.map((item) => {
               const iconSrc = getRelicIcon(item.slug, item.quality);
               const oracleScroll = item.oracle_scroll;

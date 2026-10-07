@@ -282,7 +282,7 @@ export function useCharacterAssets(
     }
 
     return illustrations.findIndex(
-      (illustration) => illustration.name === activeIllustration.name,
+      (illustration) => illustration.src === activeIllustration.src,
     );
   }, [activeIllustration, illustrations]);
 

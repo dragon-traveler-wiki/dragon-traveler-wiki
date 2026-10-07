@@ -20,7 +20,12 @@ import {
   matchesArtifactFilters,
 } from '@/features/wiki/artifacts/filters';
 import { getMinWidthStyle } from '@/constants/styles';
-import { IMAGE_SIZE, STORAGE_KEY } from '@/constants/ui';
+import {
+  IMAGE_SIZE,
+  STORAGE_KEY,
+  PAGE_WIDTH,
+  CARD_GRID_COLS,
+} from '@/constants/ui';
 import QualityIcon from '@/components/ui/QualityIcon';
 import {
   useArtifacts,
@@ -101,7 +106,7 @@ export default function Artifacts() {
   }, [artifacts]);
 
   return (
-    <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="md">
         <ListPageHeader title="Artifacts" timestamp={mostRecentUpdate}>
           <Group gap="xs">
@@ -160,7 +165,7 @@ export default function Artifacts() {
             pageSizeOptions={pageSizeOptions}
             onPageSizeChange={setPageSize}
             gridContent={
-              <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+              <SimpleGrid cols={CARD_GRID_COLS} spacing="md">
                 {pageItems.map((artifact) => {
                   const iconSrc = getArtifactIcon(artifact.slug);
                   return (

@@ -15,6 +15,7 @@ import { CONTENT_TYPE_OPTIONS } from '@/constants/content-types';
 import {
   BUILDER_SIDE_LAYOUT_CONTAINER_SIZE,
   STORAGE_KEY,
+  PAGE_WIDTH,
 } from '@/constants/ui';
 import CommunitySortControl from '@/features/community/CommunitySortControl';
 import TeamBuilder from '@/features/teams/components/TeamBuilder';
@@ -245,7 +246,7 @@ export default function Teams() {
   const containerSize =
     mode === 'builder' && poolLayout === 'side'
       ? BUILDER_SIDE_LAYOUT_CONTAINER_SIZE
-      : 'lg';
+      : PAGE_WIDTH.WIDE;
 
   return (
     <Container size={containerSize} py={{ base: 'lg', sm: 'xl' }}>
@@ -310,35 +311,40 @@ export default function Teams() {
                     label="Loading teams"
                   />
                 )
-              ) : teamsError ? (
-                <DataFetchError
-                  title="Could not load teams"
-                  message={teamsError.message}
-                  onRetry={retryTeams}
-                />
               ) : (
-                <TeamsViewTab
-                  paginatedTeams={paginatedTeams}
-                  filteredTeams={filteredTeams}
-                  charMap={charMap}
-                  characterByIdentity={characterByIdentity}
-                  viewMode={viewMode}
-                  search={search}
-                  onClearFilters={handleClearFilters}
-                  onOpenFilters={toggleFilter}
-                  page={page}
-                  totalPages={totalPages}
-                  onPageChange={setPage}
-                  pageSize={pageSize}
-                  pageSizeOptions={pageSizeOptions}
-                  onPageSizeChange={setPageSize}
-                  onRequestEdit={requestEditTeam}
-                  hasMore={hasMoreTeams}
-                  loadedCount={teams.length}
-                  paginationTotal={paginationTotal}
-                  loadingMore={loadingMoreTeams}
-                  onLoadMore={loadMoreTeams}
-                />
+                <Stack gap="md">
+                  {teamsError && (
+                    <DataFetchError
+                      title="Could not load teams"
+                      message={teamsError.message}
+                      onRetry={retryTeams}
+                    />
+                  )}
+                  {!(teamsError && teams.length === 0) && (
+                    <TeamsViewTab
+                      paginatedTeams={paginatedTeams}
+                      filteredTeams={filteredTeams}
+                      charMap={charMap}
+                      characterByIdentity={characterByIdentity}
+                      viewMode={viewMode}
+                      search={search}
+                      onClearFilters={handleClearFilters}
+                      onOpenFilters={toggleFilter}
+                      page={page}
+                      totalPages={totalPages}
+                      onPageChange={setPage}
+                      pageSize={pageSize}
+                      pageSizeOptions={pageSizeOptions}
+                      onPageSizeChange={setPageSize}
+                      onRequestEdit={requestEditTeam}
+                      hasMore={hasMoreTeams}
+                      loadedCount={teams.length}
+                      paginationTotal={paginationTotal}
+                      loadingMore={loadingMoreTeams}
+                      onLoadMore={loadMoreTeams}
+                    />
+                  )}
+                </Stack>
               ))}
 
             {mode === 'saved' && (

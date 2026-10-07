@@ -16,6 +16,7 @@ import {
 import { useGradientAccent, useMobileTooltip, useTabParam } from '@/hooks';
 import { getLatestTimestamp } from '@/utils';
 import { retryFailedDataSources } from '@/utils/retry-failed-data-sources';
+import { PAGE_WIDTH } from '@/constants/ui';
 
 export default function NoblePhantasms() {
   const { accent } = useGradientAccent();
@@ -50,7 +51,7 @@ export default function NoblePhantasms() {
   );
 
   return (
-    <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="md">
         <ListPageHeader title="Noble Phantasms" timestamp={mostRecentUpdate}>
           {activeTab !== 'usage' && (

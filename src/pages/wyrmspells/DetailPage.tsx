@@ -6,7 +6,7 @@ import DetailPageNavigation from '@/components/common/DetailPageNavigation';
 import DetailPageTitle from '@/components/common/DetailPageTitle';
 import LastUpdated from '@/components/common/LastUpdated';
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
-import DataFetchError from '@/components/ui/DataFetchError';
+import PageFetchError from '@/components/ui/PageFetchError';
 import EntityNotFound from '@/components/ui/EntityNotFound';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import FactionTag from '@/components/ui/FactionTag';
@@ -15,7 +15,7 @@ import WyrmspellTypeTag from '@/features/wiki/wyrmspells/components/WyrmspellTyp
 import { getStableTagColor } from '@/constants/tag-colors';
 import { WYRMSPELL_TYPE_COLOR } from '@/constants/wyrmspell-colors';
 import { getHeroIconBoxStyles } from '@/constants/detail-styles';
-import { IMAGE_SIZE } from '@/constants/ui';
+import { IMAGE_SIZE, PAGE_WIDTH } from '@/constants/ui';
 import { getMaxQuality } from '@/features/wiki/wyrmspells/types';
 import QualitiesTable from '@/features/wiki/wyrmspells/components/QualitiesTable';
 import {
@@ -85,13 +85,11 @@ export default function WyrmspellPage() {
 
   if (error) {
     return (
-      <Container size="lg" py="xl">
-        <DataFetchError
-          title="Could not load wyrmspells"
-          message={error.message}
-          onRetry={retry}
-        />
-      </Container>
+      <PageFetchError
+        title="Could not load wyrmspells"
+        message={error.message}
+        onRetry={retry}
+      />
     );
   }
 
@@ -154,7 +152,7 @@ export default function WyrmspellPage() {
         </Group>
       </DetailPageHero>
 
-      <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+      <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
         <ErrorBoundary
           scope="section"
           name="wyrmspell details"

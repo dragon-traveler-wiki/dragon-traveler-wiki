@@ -30,6 +30,7 @@ import HomeHeroSection from '@/features/home/components/HomeHeroSection';
 import HomeSectionCard from '@/features/home/components/HomeSectionCard';
 import RecentUpdatesSection from '@/features/home/components/RecentUpdatesSection';
 import ScrollReveal from '@/components/ui/ScrollReveal';
+import { PAGE_WIDTH } from '@/constants/ui';
 
 const GENRES = ['Strategy', 'RPG', 'Card Game', 'Idle', 'Comedy', 'Anime'];
 
@@ -52,7 +53,7 @@ export default function Home() {
     <Stack gap={0}>
       <HomeHeroSection />
 
-      <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+      <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
         <Stack gap="xl">
           {/* Featured characters come from the reference tier list, so the whole
               section is omitted when there's no default and no chosen list. */}

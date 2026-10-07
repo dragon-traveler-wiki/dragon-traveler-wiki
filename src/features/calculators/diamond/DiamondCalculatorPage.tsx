@@ -58,6 +58,7 @@ import {
   sortSourcesByCadenceThenLabel,
   sumSourcesPerDay,
 } from '@/features/calculators/diamond/diamond-model';
+import { PAGE_WIDTH } from '@/constants/ui';
 
 const LOCAL_STORAGE_KEY = 'diamond-calculator:v1';
 
@@ -252,7 +253,7 @@ export default function DiamondCalculatorPage() {
   };
 
   return (
-    <Container size="xl" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
         <ListPageHeader
           title="Diamond Calculator"

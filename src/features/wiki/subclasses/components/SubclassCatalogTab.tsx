@@ -12,14 +12,14 @@ import EntityFilter from '@/components/common/EntityFilter';
 import FilteredListShell from '@/components/layout/FilteredListShell';
 import ListPageShell from '@/components/layout/ListPageShell';
 import { ViewModeLoading } from '@/components/layout/PageLoadingSkeleton';
+import EntitySummaryCard from '@/components/common/EntitySummaryCard';
 import RichText from '@/components/common/RichText';
 import ClassTag from '@/components/ui/ClassTag';
 import SafeImage from '@/components/ui/SafeImage';
 import SortableTh from '@/components/ui/SortableTh';
 import TierBadge from '@/components/ui/TierBadge';
-import { StaticSurface } from '@/components/ui/Surface';
 import { getMinWidthStyle } from '@/constants/styles';
-import { IMAGE_SIZE } from '@/constants/ui';
+import { IMAGE_SIZE, CARD_GRID_COLS } from '@/constants/ui';
 import type { GradientPaletteAccents } from '@/contexts';
 import type { CharacterClass } from '@/features/characters/types';
 import { SUBCLASS_FILTER_GROUPS } from '@/features/wiki/subclasses/filters';
@@ -120,56 +120,48 @@ export default function SubclassCatalogTab({
         pageSizeOptions={pageSizeOptions}
         onPageSizeChange={setPageSize}
         gridContent={
-          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+          <SimpleGrid cols={CARD_GRID_COLS} spacing="sm">
             {pageItems.map((item) => {
               const icon = getSubclassIcon(item.slug, item.class);
               return (
-                <StaticSurface key={item.slug} p="sm">
-                  <Stack gap="xs">
-                    <Group gap="sm" wrap="nowrap">
-                      {icon && (
-                        <SafeImage
-                          src={icon}
-                          alt={item.name}
-                          w={IMAGE_SIZE.CARD_ICON_SM}
-                          h={IMAGE_SIZE.CARD_ICON_SM}
-                          fit="contain"
-                          loading="lazy"
-                        />
-                      )}
-                      <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
-                        <Text fw={600}>{item.name}</Text>
-                        <Group gap="xs" wrap="wrap">
-                          <ClassTag characterClass={item.class} size="xs" />
-                          <TierBadge
-                            tier={String(item.tier)}
-                            showPrefix
-                            size="xs"
-                            index={item.tier - 1}
-                          />
-                        </Group>
-                      </Stack>
+                <EntitySummaryCard
+                  key={item.slug}
+                  title={item.name}
+                  imageSrc={icon}
+                  metadata={
+                    <Group gap="xs" wrap="wrap">
+                      <ClassTag characterClass={item.class} size="xs" />
+                      <TierBadge
+                        tier={String(item.tier)}
+                        showPrefix
+                        size="xs"
+                        index={item.tier - 1}
+                      />
                     </Group>
-                    {item.bonuses.length > 0 && (
-                      <Group gap="xs" wrap="wrap">
-                        {item.bonuses.map((bonus) => (
-                          <Badge
-                            key={bonus}
-                            variant="outline"
-                            size="xs"
-                            color={accent.secondary}
-                          >
-                            {bonus}
-                          </Badge>
-                        ))}
-                      </Group>
-                    )}
-                    <RichText
-                      text={item.effect}
-                      statusEffects={statusEffects}
-                    />
-                  </Stack>
-                </StaticSurface>
+                  }
+                  description={
+                    <Stack gap="xs">
+                      {item.bonuses.length > 0 && (
+                        <Group gap="xs" wrap="wrap">
+                          {item.bonuses.map((bonus) => (
+                            <Badge
+                              key={bonus}
+                              variant="outline"
+                              size="xs"
+                              color={accent.secondary}
+                            >
+                              {bonus}
+                            </Badge>
+                          ))}
+                        </Group>
+                      )}
+                      <RichText
+                        text={item.effect}
+                        statusEffects={statusEffects}
+                      />
+                    </Stack>
+                  }
+                />
               );
             })}
           </SimpleGrid>
@@ -218,8 +210,8 @@ export default function SubclassCatalogTab({
                           <SafeImage
                             src={icon}
                             alt={item.name}
-                            w={IMAGE_SIZE.CARD_ICON_SM}
-                            h={IMAGE_SIZE.CARD_ICON_SM}
+                            w={IMAGE_SIZE.PORTRAIT_SM}
+                            h={IMAGE_SIZE.PORTRAIT_SM}
                             fit="contain"
                             loading="lazy"
                           />

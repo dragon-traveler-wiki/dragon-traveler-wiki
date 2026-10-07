@@ -3,7 +3,7 @@ import ListPageHeader from '@/components/layout/ListPageHeader';
 import ResourceBadge from '@/components/ui/ResourceBadge';
 import { StaticSurface } from '@/components/ui/Surface';
 import { getMinWidthStyle } from '@/constants/styles';
-import { BREAKPOINTS } from '@/constants/ui';
+import { BREAKPOINTS, PAGE_WIDTH } from '@/constants/ui';
 import {
   Code,
   Container,
@@ -140,7 +140,7 @@ const EFFICIENCY_COLUMNS: GuideColumn<(typeof EFFICIENCY_ROWS)[number]>[] = [
 
 export default function ShovelEventGuide() {
   return (
-    <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.READING} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
         <ListPageHeader
           title="Shovel Event Guide"

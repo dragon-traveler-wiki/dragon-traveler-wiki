@@ -7,7 +7,7 @@ import ListPageHeader from '@/components/layout/ListPageHeader';
 import ExportButton from '@/components/tools/ExportButton';
 import DataCorrectionButton from '@/components/tools/DataCorrectionButton';
 import { QUALITY_ORDER } from '@/constants/quality';
-import { BREAKPOINTS, PAGE_SIZE, STORAGE_KEY } from '@/constants/ui';
+import { PAGE_SIZE, STORAGE_KEY, PAGE_WIDTH } from '@/constants/ui';
 
 import HowlkinsTab from '@/features/wiki/howlkins/components/HowlkinsTab';
 import GoldenAlliancesTab from '@/features/wiki/howlkins/components/GoldenAlliancesTab';
@@ -23,7 +23,7 @@ import {
 } from '@/features/wiki/hooks/use-wiki-data';
 import {
   useFilteredPageData,
-  useGradientAccent,
+  useIsMobile,
   useSearchParamFilter,
   useSecondaryTabList,
   useTabParam,
@@ -31,17 +31,13 @@ import {
 import { getLatestTimestamp } from '@/utils';
 import { retryFailedDataSources } from '@/utils/retry-failed-data-sources';
 import { Container, Group, Stack, Tabs } from '@mantine/core';
-import { useMediaQuery } from '@mantine/hooks';
 import { useCallback, useMemo } from 'react';
 
 // Alliance cards are tall on phones, so start with fewer per page there.
 const MOBILE_ALLIANCE_PAGE_SIZE = 10;
 
 export default function Howlkins() {
-  const { accent } = useGradientAccent();
-  const isMobile = useMediaQuery(BREAKPOINTS.MOBILE, undefined, {
-    getInitialValueInEffect: false,
-  });
+  const isMobile = useIsMobile();
   const [activeTab, handleTabChange] = useTabParam('tab', 'howlkins', [
     'howlkins',
     'golden-alliances',
@@ -162,7 +158,7 @@ export default function Howlkins() {
   });
 
   return (
-    <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="md">
         <ListPageHeader
           title="Howlkins"
@@ -246,7 +242,6 @@ export default function Howlkins() {
               pageSizeOptions={alliancePageSizeOptions}
               onPageSizeChange={setAlliancePageSize}
               howlkinMap={howlkinMap}
-              accent={accent}
             />
           </Tabs.Panel>
         </Tabs>

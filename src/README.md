@@ -46,7 +46,7 @@ Game data is served from localized `data/<locale>/*.json` and shared
 `data/global/*.json` files. The private data repository is read directly in
 development and copied into the production artifact during deployment.
 
-**`useDataFetch<T>(path, initial)`** — the core primitive. Fetches a JSON file, caches the result in a module-level `Map` so repeated calls (including across components) share one request, and returns `{ data, loading, error }`.
+**`useDataFetch<T>(path, initial)`** — the core primitive. Fetches a JSON file, caches the result in a module-level `Map` so repeated calls (including across components) share one request, and returns `{ data, loading, error, retry }`. Pages should render `DataFetchError` with `retry` when `error` is set (or `PageFetchError` when the page's primary data failed) rather than treating a failed load as empty or not found.
 
 **Feature hooks** wrap `useDataFetch` with a fixed path and type, e.g.:
 
@@ -90,15 +90,18 @@ Checklist for adding a new dataset (e.g. "Mounts"):
 
 ## Key Shared Hooks
 
-| Hook                  | Purpose                                            |
-| --------------------- | -------------------------------------------------- |
-| `useDataFetch`        | Fetch + cache a JSON file                          |
-| `useFilteredPageData` | Filter, sort, paginate a dataset for list pages    |
-| `useFilters`          | Filter state with localStorage persistence         |
-| `usePagination`       | Page/offset state; resets on filter or size change |
-| `useSort`             | Sort column/direction state                        |
-| `useDarkMode`         | Current color scheme                               |
-| `useIsMobile`         | Responsive breakpoint                              |
+| Hook                  | Purpose                                                                       |
+| --------------------- | ----------------------------------------------------------------------------- |
+| `useDataFetch`        | Fetch + cache a JSON file                                                     |
+| `useFilteredPageData` | Filter, sort, paginate a dataset for list pages                               |
+| `useFilters`          | Filter state with localStorage persistence                                    |
+| `useViewMode`         | Grid/list view persistence; phones start in grid view without a stored choice |
+| `usePagination`       | Page/offset state; resets on filter or size change                            |
+| `useSortState`        | Sort column/direction state with localStorage persistence                     |
+| `useAdjacentItems`    | Previous/next entries for detail page navigation                              |
+| `useTabParam`         | Tab state synced to a URL search param (e.g. `?tab=`)                         |
+| `useDarkMode`         | Current color scheme                                                          |
+| `useIsMobile`         | Responsive breakpoint                                                         |
 
 ## Styling Conventions
 
@@ -157,15 +160,36 @@ placeholders from `COMMUNITY_CARD_HEIGHT` so pages don't jump when content
 arrives; update those heights if a card's layout changes. Wrap any custom
 placeholder in `LoadingRegion` too.
 
+## Page Layout
+
+Container widths come from `PAGE_WIDTH` in `constants/ui.ts`, chosen by page type
+so pages of the same kind line up:
+
+- **`PAGE_WIDTH.WIDE`** — grids, tables, and detail layouts (list and detail pages, tools, community pages)
+- **`PAGE_WIDTH.READING`** — prose-heavy pages (FAQ, guides, changelog, policies), kept narrow for line length
+- **`PAGE_WIDTH.NARROW`** — single messages and small forms (not found, sign-in prompts)
+
+Loading skeletons and heroes use the same widths so a page doesn't shift when it
+loads. Grids use the shared column constants: `CARD_GRID_COLS` for entity summary
+cards, `CHARACTER_GRID_COLS` for portrait grids, `BUILDER_GRID_COLS` for builder
+pools and tier rows, and `CODE_GRID_COLS` / `EVENT_GRID_COLS` for those trackers. Code that derives page sizes from the column count mirrors
+those breakpoints with `BREAKPOINTS` media queries, so keep them in sync.
+
+Page titles use `ListPageHeader` (title, optional `description`, timestamp, and
+actions as children). Long pages can add `SectionJumpNav`, a sticky row of links to
+section ids that highlights the current section.
+
 ## Page Shells
 
 Most list pages use one of two layout shells:
 
-- **`ListPageShell`** — handles loading, errors, and empty data; callers provide a page-appropriate `loadingFallback`
-- **`FilteredListShell`** — list with sidebar filter panel, search, sort, and pagination built in; powered by `useFilteredPageData`
+- **`ListPageShell`** — handles loading, errors (`DataFetchError` with retry), and empty data (`EmptyState`); callers provide a page-appropriate `loadingFallback`
+- **`FilteredListShell`** — list with a toolbar (count, view toggle, filter popover), grid/table content, empty state, and pagination; powered by `useFilteredPageData`
 
-Detail pages for static wiki content use `DetailPageHero` + `DetailPageNavigation`
-for the top section. Community-published detail pages (`TeamPage`, `TierListPage`)
-don't — they use their own header (`TeamHeroSection`, or a plain title for tier
-lists) and skip prev/next navigation, since an open-ended, popularity-sorted
-public catalog doesn't have a stable "next item" the way a fixed wiki dataset does.
+Detail pages for static wiki content use `DetailPageHero` (with `DetailPageTitle`)
+
+- `DetailPageNavigation` for the top section, with `useAdjacentItems` resolving the
+  previous/next entries. Community-published detail pages (`TeamPage`, `TierListPage`)
+  don't — they use their own header (`TeamHeroSection`, or a plain title for tier
+  lists) and skip prev/next navigation, since an open-ended, popularity-sorted
+  public catalog doesn't have a stable "next item" the way a fixed wiki dataset does.

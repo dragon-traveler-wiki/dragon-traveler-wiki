@@ -3,9 +3,11 @@ import { useGradientAccent, usePageSize, useTabParam } from '@/hooks';
 import { getPageSizeStorageKey, usePagination } from '@/hooks/use-pagination';
 import ListPageHeader from '@/components/layout/ListPageHeader';
 import { Container, Stack, Tabs } from '@mantine/core';
+import { useState } from 'react';
 import SiteUpdatesTab from './SiteUpdatesTab';
 import DataHistoryTab from './DataHistoryTab';
 import { useToggleSet } from './use-toggle-set';
+import { PAGE_WIDTH } from '@/constants/ui';
 
 const CHANGELOG_PAGE_SIZE_OPTIONS = [10, 20, 30, 50] as const;
 const SITE_PAGE_SIZE = 10;
@@ -17,6 +19,10 @@ export default function Changelog() {
     'site',
     'data',
   ]);
+  // Data History fetches on mount, so defer it until the tab is first opened
+  // and keep it mounted afterwards to preserve its filters and page.
+  const [dataTabVisited, setDataTabVisited] = useState(activeTab === 'data');
+  if (activeTab === 'data' && !dataTabVisited) setDataTabVisited(true);
   const {
     set: expandedEntries,
     toggle: toggleEntry,
@@ -39,14 +45,14 @@ export default function Changelog() {
   const paginatedChangelog = changelog.slice(offset, offset + pageSize);
 
   return (
-    <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.READING} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
         <ListPageHeader
           title="Changelog"
           description="Track updates to the Dragon Traveler Wiki"
         />
 
-        <Tabs value={activeTab} onChange={handleTabChange} keepMounted={false}>
+        <Tabs value={activeTab} onChange={handleTabChange}>
           <Tabs.List>
             <Tabs.Tab value="site">Site Updates</Tabs.Tab>
             <Tabs.Tab value="data">Data History</Tabs.Tab>
@@ -74,7 +80,7 @@ export default function Changelog() {
           </Tabs.Panel>
 
           <Tabs.Panel value="data" pt="md">
-            <DataHistoryTab />
+            {dataTabVisited && <DataHistoryTab />}
           </Tabs.Panel>
         </Tabs>
       </Stack>

@@ -6,7 +6,7 @@ import RichText from '@/components/common/RichText';
 import SafeImage from '@/components/ui/SafeImage';
 import { StaticSurface } from '@/components/ui/Surface';
 import { RICH_TOOLTIP_STYLES } from '@/constants/styles';
-import { POPOVER_MAX_WIDTH } from '@/constants/ui';
+import { POPOVER_MAX_WIDTH, IMAGE_SIZE } from '@/constants/ui';
 import type { RecommendedSubclassEntry } from '@/features/characters/types';
 import type { StatusEffect } from '@/features/wiki/status-effects/types';
 import { useMobileTooltip } from '@/hooks';
@@ -81,8 +81,8 @@ export default function RecommendedSubclasses({
                       <SafeImage
                         src={entry.icon}
                         alt={entry.name}
-                        w={50}
-                        h={46}
+                        w={IMAGE_SIZE.CARD_ICON_SM}
+                        h={IMAGE_SIZE.CARD_ICON_SM}
                         fit="contain"
                         loading="lazy"
                       />

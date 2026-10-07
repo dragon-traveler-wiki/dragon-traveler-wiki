@@ -6,6 +6,7 @@ import ClassicMode from '@/features/dtdle/components/ClassicMode';
 import IllustrationMode from '@/features/dtdle/components/IllustrationMode';
 import QuoteMode from '@/features/dtdle/components/QuoteMode';
 import { useTabParam } from '@/hooks';
+import { PAGE_WIDTH } from '@/constants/ui';
 
 const VALID_MODES = ['classic', 'quote', 'ability', 'illustration'];
 
@@ -17,7 +18,7 @@ export default function Dtdle() {
   );
 
   return (
-    <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.READING} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
         <ListPageHeader
           title="DTdle"

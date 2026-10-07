@@ -18,7 +18,8 @@ retention). This file covers how the client is organised.
 - **`hooks.ts`** — `useCommunityItems(kind, { search, sort, owner, status })` loads one
   server page at a time and returns `data`, `total`, `hasMore`, `loadMore`, `refresh`
   (refetch in place, no spinner) and `retry`. `useCommunityItem(kind, id)` fetches one
-  item for detail pages. `useCommunityItemsFull(kind)` auto-loads further pages up to
+  item for detail pages and returns `retry`; results are keyed by request, so it never
+  returns the previous item while a new id loads. `useCommunityItemsFull(kind)` auto-loads further pages up to
   a cap for callers that need a broad in-memory set (the global search index); browse
   pages should use the paginated hook. Thin wrappers live in
   `features/teams/hooks/use-teams-data.ts` and
@@ -33,6 +34,15 @@ retention). This file covers how the client is organised.
   place, anyone else gets a remix without its community link.
 - **`route.ts`**, **`display-author.ts`** — canonical `<base>/<id>/<slug>` paths and
   the "who wrote this" rule (the signed-in publisher, not the free-text author).
+
+## Browse pages
+
+The Teams and Tier List pages share `hooks/use-community-browse-state.ts`:
+`useCommunityBrowseState` owns the persisted search, sort, and filters, and
+`useSavedItemsForMode` reloads local saved items whenever the page enters the
+saved mode (including via back/forward). Only the View tab depends on the community
+API; My Saved and the builder work from local data, so an API outage doesn't block
+them.
 
 ## Pagination
 

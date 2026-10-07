@@ -1,7 +1,7 @@
 import { GITHUB_REPO_URL } from '@/constants/github';
 import { getGlassStyles } from '@/constants/glass';
 import { ICON_TEXT_FLEX_STYLE } from '@/constants/styles';
-import { IMAGE_SIZE } from '@/constants/ui';
+import { IMAGE_SIZE, PAGE_WIDTH } from '@/constants/ui';
 import { useDarkMode, useGradientAccent } from '@/hooks';
 import {
   Anchor,
@@ -68,7 +68,7 @@ export default function Footer() {
         paddingBottom: 'var(--mantine-spacing-md)',
       }}
     >
-      <Container size="lg">
+      <Container size={PAGE_WIDTH.WIDE}>
         <Stack gap="sm" align="center">
           <Group justify="center" gap="md" wrap="wrap">
             {footerLinks.map((link) => (

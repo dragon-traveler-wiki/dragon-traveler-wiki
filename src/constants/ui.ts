@@ -57,17 +57,52 @@ export const Z_INDEX = {
   TOOLTIP: 700,
 } as const;
 
+/**
+ * Container width by page type, so pages of the same kind line up:
+ * - WIDE: grids, tables, and detail layouts (lists, detail pages, tools)
+ * - READING: prose-heavy pages, kept narrow for comfortable line length
+ * - NARROW: single messages and small forms (not found, sign-in prompts)
+ */
+export const PAGE_WIDTH = {
+  WIDE: 'xl',
+  READING: 'md',
+  NARROW: 'sm',
+} as const;
+
+// Grid breakpoints for entity summary cards on list pages
+export const CARD_GRID_COLS = {
+  base: 1,
+  sm: 2,
+  xl: 3,
+} as const;
+
+// Grid breakpoints for code cards on the codes page
+export const CODE_GRID_COLS = {
+  base: 1,
+  xs: 2,
+  sm: 3,
+} as const;
+
+// Grid breakpoints for event cards on the events page
+export const EVENT_GRID_COLS = {
+  base: 1,
+  sm: 2,
+  md: 3,
+} as const;
+
 // Grid breakpoints for character lists
 export const CHARACTER_GRID_COLS = {
   base: 3,
   sm: 4,
   md: 6,
+  xl: 8,
 } as const;
 
 // Grid breakpoints for builder character pools and tier rows
 export const BUILDER_GRID_COLS = {
   base: 4,
   md: 6,
+  xl: 8,
 } as const;
 
 export const CHARACTER_GRID_SPACING = 12;
@@ -93,6 +128,7 @@ export const BREAKPOINTS = {
   DESKTOP: '(min-width: 48em)',
   MD: '(min-width: 62em)',
   LG: '(min-width: 75em)',
+  XL: '(min-width: 88em)',
 } as const;
 
 /** Container width used by the team/tier-list builder pages when the character

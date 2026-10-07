@@ -17,6 +17,7 @@ import {
   Text,
   Title,
 } from '@mantine/core';
+import { PAGE_WIDTH } from '@/constants/ui';
 
 const FACTION_GIFTS: {
   faction: string;
@@ -205,7 +206,7 @@ function QA({ q, children }: { q: string; children: React.ReactNode }) {
 
 export default function BeginnerQA() {
   return (
-    <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.READING} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
         <ListPageHeader
           title="Beginner Q&A"

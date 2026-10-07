@@ -13,12 +13,12 @@ import {
 import { IoCalendarOutline, IoInformationCircleOutline } from 'react-icons/io5';
 import FilterToolbar from '@/components/layout/FilterToolbar';
 import ListPageHeader from '@/components/layout/ListPageHeader';
+import ListPageShell from '@/components/layout/ListPageShell';
 import PageFilterHeaderControls from '@/components/layout/PageFilterHeaderControls';
 import { EventCardsLoading } from '@/components/layout/PageLoadingSkeleton';
-import DataFetchError from '@/components/ui/DataFetchError';
 import EmptyState from '@/components/ui/EmptyState';
 import PaginationControl from '@/components/ui/PaginationControl';
-import { IMAGE_SIZE } from '@/constants/ui';
+import { IMAGE_SIZE, PAGE_WIDTH } from '@/constants/ui';
 import type { Character } from '@/features/characters/types';
 import EventCollection from '@/features/wiki/events/components/EventCollection';
 import EventFilter from '@/features/wiki/events/components/EventFilter';
@@ -58,7 +58,7 @@ export default function EventsPageContent({
   );
 
   return (
-    <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="md">
         <ListPageHeader title="Events" timestamp={pageState.mostRecentUpdate}>
           {!isMobile && !loading && !error ? (
@@ -140,52 +140,54 @@ export default function EventsPageContent({
           </ScrollArea>
         </Tabs>
 
-        {loading ? (
-          <EventCardsLoading viewMode={pageState.viewMode} showPagination />
-        ) : null}
-        {!loading && error ? (
-          <DataFetchError
-            title="Could not load events"
-            message={error.message}
-            onRetry={onRetry}
-          />
-        ) : null}
-        {!loading && !error && pageState.filtered.length === 0 ? (
-          <EmptyState
-            icon={<IoCalendarOutline size={32} />}
-            title={
-              pageState.tab === 'active' ? 'No active events' : 'No past events'
-            }
-            description={
-              pageState.activeFilterCount > 0
-                ? `No ${pageState.tab} events match the current filters.`
-                : pageState.tab === 'active'
-                  ? 'There are no active events right now. Check back later!'
-                  : 'No past events have been recorded yet.'
-            }
-            color={accent.primary}
-            action={
-              pageState.activeFilterCount > 0 ? (
-                <Button
-                  size="xs"
-                  variant="light"
-                  color={accent.primary}
-                  onClick={pageState.resetFilters}
-                >
-                  Clear filters
-                </Button>
-              ) : undefined
-            }
-          />
-        ) : null}
-        {!loading && !error && pageState.pageItems.length > 0 ? (
-          <EventCollection
-            entries={pageState.pageItems}
-            viewMode={pageState.viewMode}
-            characterByIdentity={characterByIdentity}
-          />
-        ) : null}
-        {!loading && !error ? (
+        <ListPageShell
+          loading={loading}
+          error={error}
+          onRetry={onRetry}
+          hasData={events.length > 0}
+          emptyMessage="No events have been recorded yet."
+          emptyIcon={<IoCalendarOutline size={32} />}
+          errorTitle="Could not load events"
+          loadingFallback={
+            <EventCardsLoading viewMode={pageState.viewMode} showPagination />
+          }
+        >
+          {pageState.filtered.length === 0 ? (
+            <EmptyState
+              icon={<IoCalendarOutline size={32} />}
+              title={
+                pageState.tab === 'active'
+                  ? 'No active events'
+                  : 'No past events'
+              }
+              description={
+                pageState.activeFilterCount > 0
+                  ? `No ${pageState.tab} events match the current filters.`
+                  : pageState.tab === 'active'
+                    ? 'There are no active events right now. Check back later!'
+                    : 'No past events have been recorded yet.'
+              }
+              color={accent.primary}
+              action={
+                pageState.activeFilterCount > 0 ? (
+                  <Button
+                    size="xs"
+                    variant="light"
+                    color={accent.primary}
+                    onClick={pageState.resetFilters}
+                  >
+                    Clear filters
+                  </Button>
+                ) : undefined
+              }
+            />
+          ) : (
+            <EventCollection
+              entries={pageState.pageItems}
+              viewMode={pageState.viewMode}
+              characterByIdentity={characterByIdentity}
+            />
+          )}
           <PaginationControl
             currentPage={pageState.page}
             totalPages={pageState.totalPages}
@@ -196,7 +198,7 @@ export default function EventsPageContent({
             onPageSizeChange={pageState.setPageSize}
             scrollToTop
           />
-        ) : null}
+        </ListPageShell>
       </Stack>
     </Container>
   );

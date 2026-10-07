@@ -10,13 +10,12 @@ import FilteredListShell from '@/components/layout/FilteredListShell';
 import ListPageShell from '@/components/layout/ListPageShell';
 import { ViewModeLoading } from '@/components/layout/PageLoadingSkeleton';
 import SortableTh from '@/components/ui/SortableTh';
-import { IMAGE_SIZE } from '@/constants/ui';
+import { IMAGE_SIZE, CARD_GRID_COLS } from '@/constants/ui';
 import { getMinWidthStyle } from '@/constants/styles';
 import QualityIcon from '@/components/ui/QualityIcon';
 import GearTypeTag from '@/features/wiki/gear/components/GearTypeTag';
 import type { Gear, GearSet } from '@/features/wiki/gear/types';
 import type { GearFilters } from '@/features/wiki/gear/filters';
-import type { GradientPaletteAccents } from '@/contexts';
 import type { ViewMode } from '@/hooks';
 import type { StatusEffect } from '@/features/wiki/status-effects/types';
 
@@ -28,6 +27,7 @@ import {
   Table,
   Text,
 } from '@mantine/core';
+import { useGradientAccent } from '@/hooks';
 
 interface GearTabProps {
   loading: boolean;
@@ -55,7 +55,6 @@ interface GearTabProps {
   onSort: (col: string) => void;
   pageItems: Gear[];
   gearSetBySlug: Map<string, GearSet>;
-  accent: GradientPaletteAccents;
   statusEffects: StatusEffect[];
 }
 
@@ -85,9 +84,9 @@ export default function GearTab({
   onSort,
   pageItems,
   gearSetBySlug,
-  accent,
   statusEffects,
 }: GearTabProps) {
+  const { accent } = useGradientAccent();
   return (
     <ListPageShell
       loading={loading}
@@ -140,7 +139,7 @@ export default function GearTab({
           />
         }
         gridContent={
-          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+          <SimpleGrid cols={CARD_GRID_COLS} spacing="md">
             {pageItems.map((item) => {
               const setData = gearSetBySlug.get(item.set);
               const setBonus = setData?.set_bonus ?? item.set_bonus;

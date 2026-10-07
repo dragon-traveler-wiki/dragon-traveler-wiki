@@ -7,7 +7,7 @@ import FactionTag from '@/components/ui/FactionTag';
 import QualityIcon from '@/components/ui/QualityIcon';
 import SafeVideo from '@/components/ui/SafeVideo';
 import { QUALITY_BORDER_COLOR } from '@/constants/quality';
-import { CHARACTER_HERO } from '@/constants/ui';
+import { CHARACTER_HERO, PAGE_WIDTH } from '@/constants/ui';
 import type { Character } from '@/features/characters/types';
 import {
   getCharacterIdentityKey,
@@ -136,7 +136,7 @@ export default function CharacterPageHeroSection({
 
       {/* Content overlay */}
       <Container
-        size="lg"
+        size={PAGE_WIDTH.WIDE}
         style={{ position: 'relative', zIndex: 1 }}
         py={{ base: 'xl', sm: 50 }}
       >

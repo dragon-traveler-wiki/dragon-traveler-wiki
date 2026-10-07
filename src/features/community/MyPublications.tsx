@@ -2,6 +2,7 @@ import { Badge, Stack, Tabs, Title } from '@mantine/core';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { CommunityCardsLoading } from '@/components/layout/PageLoadingSkeleton';
+import DataFetchError from '@/components/ui/DataFetchError';
 import { useCharacterResolution } from '@/features/characters/hooks/use-character-resolution';
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import TeamCard from '@/features/teams/components/TeamCard';
@@ -21,6 +22,8 @@ type OwnItem = CommunityItem<Record<string, unknown>>;
 interface MyPublicationsProps {
   items: OwnItem[];
   loading: boolean;
+  error: string | null;
+  onRetry: () => void;
   onRemoved: (id: string) => void;
 }
 
@@ -28,6 +31,8 @@ interface MyPublicationsProps {
 export default function MyPublications({
   items,
   loading,
+  error,
+  onRetry,
   onRemoved,
 }: MyPublicationsProps) {
   const { accent } = useGradientAccent();
@@ -107,6 +112,12 @@ export default function MyPublications({
       <Title order={2}>Your publications</Title>
       {loading ? (
         <CommunityCardsLoading kind="team" cards={2} />
+      ) : error ? (
+        <DataFetchError
+          title="Could not load publications"
+          message={error}
+          onRetry={onRetry}
+        />
       ) : (
         <Tabs defaultValue="teams">
           <Tabs.List>

@@ -25,6 +25,7 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 import { useContext, useMemo } from 'react';
 import { IoPeople, IoPersonOutline } from 'react-icons/io5';
+import { PAGE_WIDTH } from '@/constants/ui';
 
 export default function Characters() {
   const { accent } = useGradientAccent();
@@ -45,7 +46,7 @@ export default function Characters() {
     useDisclosure(false);
 
   return (
-    <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="md">
         <ListPageHeader title="Characters" timestamp={mostRecentUpdate}>
           <Group gap="xs">

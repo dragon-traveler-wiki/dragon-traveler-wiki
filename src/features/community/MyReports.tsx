@@ -2,7 +2,6 @@ import {
   Anchor,
   Badge,
   Button,
-  Card,
   Group,
   SegmentedControl,
   Stack,
@@ -13,6 +12,8 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { CommunityCardsLoading } from '@/components/layout/PageLoadingSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
+import DataFetchError from '@/components/ui/DataFetchError';
+import { StaticSurface } from '@/components/ui/Surface';
 import { useGradientAccent } from '@/hooks';
 import { formatShortDate } from '@/utils/timestamps';
 import { withdrawReport } from './api';
@@ -31,6 +32,8 @@ type Filter = 'open' | 'closed';
 interface MyReportsProps {
   reports: MyReport[];
   loading: boolean;
+  error: string | null;
+  onRetry: () => void;
   onWithdrawn: (id: string) => void;
 }
 
@@ -38,6 +41,8 @@ interface MyReportsProps {
 export default function MyReports({
   reports,
   loading,
+  error,
+  onRetry,
   onWithdrawn,
 }: MyReportsProps) {
   const { accent } = useGradientAccent();
@@ -79,7 +84,7 @@ export default function MyReports({
         ? `/teams/${report.item_id}/${report.slug}`
         : `/tier-list/${report.item_id}/${report.slug}`;
     return (
-      <Card withBorder>
+      <StaticSurface p="md">
         <Stack gap={4}>
           <Group justify="space-between" wrap="wrap">
             <Anchor component={Link} to={path} fw={600}>
@@ -121,7 +126,7 @@ export default function MyReports({
             </Group>
           )}
         </Stack>
-      </Card>
+      </StaticSurface>
     );
   };
 
@@ -130,6 +135,12 @@ export default function MyReports({
       <Title order={2}>Your reports</Title>
       {loading ? (
         <CommunityCardsLoading kind="report" cards={2} />
+      ) : error ? (
+        <DataFetchError
+          title="Could not load reports"
+          message={error}
+          onRetry={onRetry}
+        />
       ) : reports.length === 0 ? (
         <Text c="dimmed">You have not reported anything.</Text>
       ) : (

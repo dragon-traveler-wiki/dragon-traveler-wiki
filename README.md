@@ -20,7 +20,7 @@ A community-driven English wiki for the Chinese mobile game **Dragon Traveler** 
 
 ## Tech Stack
 
-- **Framework**: React 19, TypeScript, Vite 7, Mantine v8
+- **Framework**: React 19, TypeScript, Vite 8, Mantine v9
 - **Routing**: React Router 8
 - **Drag-and-drop**: @dnd-kit/core
 - **Hosting**: GitHub Pages for the SPA, plus Cloudflare Workers and D1 for community content

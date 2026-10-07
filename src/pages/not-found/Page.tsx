@@ -9,7 +9,7 @@ import {
 } from '@mantine/core';
 import { IoGift, IoHome, IoPeople, IoTrophy } from 'react-icons/io5';
 import { Link } from 'react-router';
-import { IMAGE_SIZE } from '@/constants/ui';
+import { IMAGE_SIZE, PAGE_WIDTH } from '@/constants/ui';
 
 const QUICK_LINKS = [
   { label: 'Characters', to: '/characters', Icon: IoPeople, color: 'grape' },
@@ -19,7 +19,7 @@ const QUICK_LINKS = [
 
 export default function NotFound() {
   return (
-    <Container size="sm" py={80}>
+    <Container size={PAGE_WIDTH.NARROW} py={80}>
       <Stack align="center" gap="xl">
         <Text
           style={{

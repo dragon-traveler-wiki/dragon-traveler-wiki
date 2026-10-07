@@ -9,9 +9,9 @@ import {
 } from 'react';
 import { STORAGE_KEY } from '@/constants/ui';
 import {
-  CommunityApiError,
   getSiteSettings,
   isCommunityApiConfigured,
+  isNotFoundError,
 } from '@/features/community/api';
 import {
   useTierList,
@@ -189,7 +189,7 @@ export function TierListReferenceProvider({
       ? !savedTierLists.some(
           (tierList) => getSavedTierListKey(tierList) === stored,
         )
-      : fetchError instanceof CommunityApiError && fetchError.status === 404;
+      : isNotFoundError(fetchError);
     if (missing) queueMicrotask(() => setStored(null));
   }, [stored, isSaved, savedTierLists, fetchError]);
 

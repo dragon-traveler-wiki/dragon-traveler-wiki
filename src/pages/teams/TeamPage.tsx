@@ -1,9 +1,9 @@
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
-import DataFetchError from '@/components/ui/DataFetchError';
+import PageFetchError from '@/components/ui/PageFetchError';
 import EntityNotFound from '@/components/ui/EntityNotFound';
-import { STORAGE_KEY } from '@/constants/ui';
-import { CommunityApiError } from '@/features/community/api';
+import { STORAGE_KEY, PAGE_WIDTH } from '@/constants/ui';
+import { isNotFoundError } from '@/features/community/api';
 import { toBuilderDraft } from '@/features/community/builder-edit';
 import CommunityActions from '@/features/community/CommunityActions';
 import RevisionHistory from '@/features/community/RevisionHistory';
@@ -91,18 +91,13 @@ export default function TeamPage() {
     return <DetailPageLoading />;
   }
 
-  if (
-    teamError &&
-    !(teamError instanceof CommunityApiError && teamError.status === 404)
-  ) {
+  if (teamError && !isNotFoundError(teamError)) {
     return (
-      <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
-        <DataFetchError
-          title="Could not load team"
-          message={teamError.message}
-          onRetry={retryTeam}
-        />
-      </Container>
+      <PageFetchError
+        title="Could not load team"
+        message={teamError.message}
+        onRetry={retryTeam}
+      />
     );
   }
 
@@ -184,7 +179,7 @@ export default function TeamPage() {
         }}
       />
 
-      <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+      <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
         <Stack gap="md">
           <TeamDetailContent
             team={team}

@@ -5,7 +5,7 @@ import DetailPageNavigation from '@/components/common/DetailPageNavigation';
 import DetailPageTitle from '@/components/common/DetailPageTitle';
 import LastUpdated from '@/components/common/LastUpdated';
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
-import DataFetchError from '@/components/ui/DataFetchError';
+import PageFetchError from '@/components/ui/PageFetchError';
 import EntityNotFound from '@/components/ui/EntityNotFound';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import QualityIcon from '@/components/ui/QualityIcon';
@@ -51,6 +51,7 @@ import {
 } from '@mantine/core';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
+import { PAGE_WIDTH } from '@/constants/ui';
 
 const SSR_AND_ABOVE: Quality[] = ['UR+', 'UR', 'SSR EX', 'SSR+', 'SSR'];
 const GEAR_SETS_LIST_PATH = '/gear?tab=gear-sets';
@@ -182,16 +183,14 @@ export default function GearSetPage() {
 
   if (error) {
     return (
-      <Container size="lg" py="xl">
-        <DataFetchError
-          title="Could not load gear"
-          message={error.message}
-          onRetry={() => {
-            if (gearError) retryGear();
-            if (gearSetsError) retryGearSets();
-          }}
-        />
-      </Container>
+      <PageFetchError
+        title="Could not load gear"
+        message={error.message}
+        onRetry={() => {
+          if (gearError) retryGear();
+          if (gearSetsError) retryGearSets();
+        }}
+      />
     );
   }
 
@@ -321,7 +320,7 @@ export default function GearSetPage() {
         )}
       </DetailPageHero>
 
-      <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+      <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
         <ErrorBoundary
           scope="section"
           name="gear set details"

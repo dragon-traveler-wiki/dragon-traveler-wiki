@@ -9,7 +9,7 @@ import {
   getHomeHeroWordmarkStyle,
 } from '@/constants/home-styles';
 import { getHeroNavGlassStyles } from '@/constants/glass';
-import { IMAGE_SIZE, TRANSITION } from '@/constants/ui';
+import { IMAGE_SIZE, TRANSITION, PAGE_WIDTH } from '@/constants/ui';
 import { BannerContext } from '@/contexts';
 import { useDarkMode, useGradientAccent, useIsMobile } from '@/hooks';
 import {
@@ -107,7 +107,7 @@ export default function HomeHeroSection() {
       }}
     >
       <Container
-        size="lg"
+        size={PAGE_WIDTH.WIDE}
         style={{ position: 'relative', zIndex: 1, width: '100%' }}
         py={{ base: 'xl', sm: 72 }}
       >
