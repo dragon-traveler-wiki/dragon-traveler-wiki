@@ -1,5 +1,6 @@
 import TranslationNote from '@/components/common/TranslationNote';
 import ListPageHeader from '@/components/layout/ListPageHeader';
+import SectionJumpNav from '@/components/layout/SectionJumpNav';
 import CollapsibleSectionCard from '@/components/ui/CollapsibleSectionCard';
 import { StaticSurface } from '@/components/ui/Surface';
 import { useGradientAccent } from '@/hooks';
@@ -40,6 +41,8 @@ type FAQItem = {
 };
 
 type FAQSection = {
+  id: string;
+  navLabel: string;
   title: string;
   description: string;
   items: FAQItem[];
@@ -47,6 +50,8 @@ type FAQSection = {
 
 const FAQ_SECTIONS: FAQSection[] = [
   {
+    id: 'faq-getting-started',
+    navLabel: 'Getting Started',
     title: 'Getting Started',
     description: 'Core priorities for new and returning players.',
     items: [
@@ -114,6 +119,8 @@ const FAQ_SECTIONS: FAQSection[] = [
     ],
   },
   {
+    id: 'faq-navigation',
+    navLabel: 'Navigation',
     title: 'Navigation & Discovery',
     description: 'Fast ways to find the page or data you need.',
     items: [
@@ -178,6 +185,8 @@ const FAQ_SECTIONS: FAQSection[] = [
     ],
   },
   {
+    id: 'faq-progression',
+    navLabel: 'Progression',
     title: 'Progression & Team Building',
     description: 'How to make practical upgrade and roster decisions.',
     items: [
@@ -229,6 +238,8 @@ const FAQ_SECTIONS: FAQSection[] = [
     ],
   },
   {
+    id: 'faq-wiki-data',
+    navLabel: 'Wiki Data',
     title: 'Wiki Data & Technical Notes',
     description: 'How data is maintained and how site behavior works.',
     items: [
@@ -299,6 +310,8 @@ const FAQ_SECTIONS: FAQSection[] = [
     ],
   },
   {
+    id: 'faq-community',
+    navLabel: 'Community',
     title: 'Community Publishing',
     description: 'Publishing, voting, reporting, and managing your account.',
     items: [
@@ -421,7 +434,7 @@ function FAQCard({
   accentColor: string;
 }) {
   return (
-    <StaticSurface p="md">
+    <StaticSurface p={{ base: 'sm', sm: 'md' }}>
       <Stack gap="xs">
         <Group gap="xs" wrap="nowrap" align="flex-start">
           <ThemeIcon
@@ -436,7 +449,7 @@ function FAQCard({
             {question}
           </Text>
         </Group>
-        <Text size="sm" c="dimmed" style={{ paddingLeft: 36 }}>
+        <Text size="sm" c="dimmed" pl={{ base: 0, sm: 36 }}>
           {answer}
         </Text>
       </Stack>
@@ -453,6 +466,7 @@ function FAQSectionCard({
 }) {
   return (
     <CollapsibleSectionCard
+      id={section.id}
       color={accentColor}
       header={
         <Stack gap={2}>
@@ -479,6 +493,13 @@ function FAQSectionCard({
   );
 }
 
+const SOURCE_SECTION_ID = 'faq-source';
+
+const JUMP_SECTIONS = [
+  ...FAQ_SECTIONS.map(({ id, navLabel }) => ({ id, label: navLabel })),
+  { id: SOURCE_SECTION_ID, label: 'Source' },
+];
+
 export default function FAQ() {
   const { accent } = useGradientAccent();
 
@@ -490,10 +511,12 @@ export default function FAQ() {
           description="Quick answers about wiki usage and beginner-friendly progression priorities."
         />
 
+        <SectionJumpNav sections={JUMP_SECTIONS} />
+
         <Stack gap="md">
           {FAQ_SECTIONS.map((section) => (
             <FAQSectionCard
-              key={section.title}
+              key={section.id}
               section={section}
               accentColor={accent.primary}
             />
@@ -502,9 +525,11 @@ export default function FAQ() {
 
         <Divider />
 
-        <StaticSurface p="lg">
+        <StaticSurface id={SOURCE_SECTION_ID} p={{ base: 'sm', sm: 'lg' }}>
           <Stack gap="sm">
-            <Title order={2}>Source Reference</Title>
+            <Title order={2} size="h3">
+              Source Reference
+            </Title>
             <TranslationNote
               sourceHref="https://www.gamekee.com/lhlr"
               sourceLabel="GameKee Dragon Traveler Reference"

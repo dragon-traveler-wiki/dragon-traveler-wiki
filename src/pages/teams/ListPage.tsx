@@ -290,9 +290,12 @@ export default function Teams() {
                 if (newMode === 'view') setEditData(null);
               }}
               data={[
-                { label: 'View Teams', value: 'view' },
-                { label: 'My Saved', value: 'saved' },
-                { label: 'Create Your Own', value: 'builder' },
+                { label: isMobile ? 'Browse' : 'View Teams', value: 'view' },
+                { label: isMobile ? 'Saved' : 'My Saved', value: 'saved' },
+                {
+                  label: isMobile ? 'Create' : 'Create Your Own',
+                  value: 'builder',
+                },
               ]}
             />
 

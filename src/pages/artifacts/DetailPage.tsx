@@ -7,6 +7,7 @@ import DetailPageTitle from '@/components/common/DetailPageTitle';
 import LastUpdated from '@/components/common/LastUpdated';
 import RichText from '@/components/common/RichText';
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
+import SectionJumpNav from '@/components/layout/SectionJumpNav';
 import DataFetchError from '@/components/ui/DataFetchError';
 import EntityNotFound from '@/components/ui/EntityNotFound';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
@@ -47,6 +48,10 @@ import {
 } from '@mantine/core';
 import { useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router';
+
+function getTreasureSectionId(treasureName: string) {
+  return `treasure-${treasureName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+}
 
 export default function ArtifactPage() {
   const { name } = useParams<{ name: string }>();
@@ -93,6 +98,18 @@ export default function ArtifactPage() {
       path: `/artifacts/${entry.slug}`,
       iconSrc: getArtifactIcon(entry.slug),
     }),
+  );
+
+  const jumpSections = useMemo(
+    () => [
+      { id: 'artifact-effects', label: 'Effects' },
+      ...(artifact?.treasures ?? []).map((treasure) => ({
+        id: getTreasureSectionId(treasure.name),
+        label: treasure.name,
+      })),
+      { id: 'artifact-history', label: 'History' },
+    ],
+    [artifact],
   );
 
   if (loading) {
@@ -188,6 +205,7 @@ export default function ArtifactPage() {
       </DetailPageHero>
 
       <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+        <SectionJumpNav sections={jumpSections} hiddenFrom="md" />
         <ErrorBoundary
           scope="section"
           name="artifact details"
@@ -195,7 +213,7 @@ export default function ArtifactPage() {
         >
           <Stack gap="xl">
             {/* Artifact Effects */}
-            <Stack gap="md">
+            <Stack gap="md" id="artifact-effects">
               <Title order={2} size="h3">
                 Artifact Effects
               </Title>
@@ -221,6 +239,7 @@ export default function ArtifactPage() {
                   {artifact.treasures.map((treasure) => (
                     <TreasureCard
                       key={treasure.name}
+                      id={getTreasureSectionId(treasure.name)}
                       treasure={treasure}
                       artifactSlug={artifact.slug}
                       isDark={isDark}
@@ -234,7 +253,11 @@ export default function ArtifactPage() {
           </Stack>
         </ErrorBoundary>
 
-        <ChangeHistory history={changesData[artifact.slug]} />
+        {changesData[artifact.slug] && (
+          <Box id="artifact-history">
+            <ChangeHistory history={changesData[artifact.slug]} />
+          </Box>
+        )}
 
         <DetailPageNavigation previousItem={previousItem} nextItem={nextItem} />
       </Container>

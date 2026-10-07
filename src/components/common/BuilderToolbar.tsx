@@ -56,6 +56,7 @@ function ResponsiveToolbarAction({
       <ActionIcon
         variant="light"
         color={color}
+        size="lg"
         disabled={action.disabled}
         loading={action.loading}
         onClick={action.onClick}
@@ -148,6 +149,7 @@ export default function BuilderToolbar({
                 <ActionIcon
                   variant="light"
                   color={color}
+                  size="lg"
                   onClick={copy}
                   aria-label={label}
                 >

@@ -15,31 +15,29 @@ const SWEEP_RATES = [
 
 export default function HeartTrialRateTable() {
   return (
-    <Table.ScrollContainer minWidth={320}>
-      <Table withTableBorder withColumnBorders>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th ta="center">Quality</Table.Th>
-            <Table.Th ta="center">Sweeps / Day</Table.Th>
-            <Table.Th ta="center">Shards / Day</Table.Th>
+    <Table withTableBorder withColumnBorders>
+      <Table.Thead>
+        <Table.Tr>
+          <Table.Th ta="center">Quality</Table.Th>
+          <Table.Th ta="center">Sweeps/day</Table.Th>
+          <Table.Th ta="center">Shards/day</Table.Th>
+        </Table.Tr>
+      </Table.Thead>
+      <Table.Tbody>
+        {SWEEP_RATES.map((rate) => (
+          <Table.Tr key={rate.quality}>
+            <Table.Td>
+              <SafeImage
+                src={QUALITY_ICON_MAP[rate.quality]}
+                h={20}
+                fit="contain"
+              />
+            </Table.Td>
+            <Table.Td ta="center">{rate.sweeps}</Table.Td>
+            <Table.Td ta="center">{rate.shards}</Table.Td>
           </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {SWEEP_RATES.map((rate) => (
-            <Table.Tr key={rate.quality}>
-              <Table.Td>
-                <SafeImage
-                  src={QUALITY_ICON_MAP[rate.quality]}
-                  h={20}
-                  fit="contain"
-                />
-              </Table.Td>
-              <Table.Td ta="center">{rate.sweeps}</Table.Td>
-              <Table.Td ta="center">{rate.shards}</Table.Td>
-            </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
-    </Table.ScrollContainer>
+        ))}
+      </Table.Tbody>
+    </Table>
   );
 }

@@ -39,6 +39,7 @@ import {
 import { useFilteredPageData } from '@/hooks';
 import { getLatestTimestamp } from '@/utils';
 import {
+  Box,
   Container,
   Group,
   ScrollArea,
@@ -243,7 +244,7 @@ export default function Wyrmspells() {
                       key={spell.slug}
                       component={Link}
                       to={`/wyrmspells/${spell.slug}`}
-                      p="md"
+                      p={{ base: 'sm', sm: 'md' }}
                       style={LINK_BLOCK_RESET_STYLE}
                     >
                       <Group gap="md" align="flex-start" wrap="nowrap">
@@ -259,16 +260,19 @@ export default function Wyrmspells() {
                           />
                         )}
                         <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
-                          <Group gap="sm" wrap="wrap">
+                          <Group gap="sm" wrap="nowrap" align="flex-start">
                             <Text
                               fw={700}
                               className="dt-link-text"
-                              lineClamp={1}
+                              lineClamp={2}
+                              style={{ minWidth: 0 }}
                             >
                               {spell.name}
                             </Text>
                             {maxQuality && (
-                              <QualityIcon quality={maxQuality.quality} />
+                              <Box style={{ flexShrink: 0 }}>
+                                <QualityIcon quality={maxQuality.quality} />
+                              </Box>
                             )}
                           </Group>
                           <Group gap="sm" wrap="wrap">

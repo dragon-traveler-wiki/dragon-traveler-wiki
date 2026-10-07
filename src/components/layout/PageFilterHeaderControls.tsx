@@ -45,7 +45,11 @@ export default function PageFilterHeaderControls({
           : undefined
       }
     >
-      <Group gap="xs" justify={sticky ? 'flex-end' : undefined}>
+      <Group
+        gap="xs"
+        justify={sticky ? 'flex-end' : undefined}
+        wrap={sticky ? 'nowrap' : undefined}
+      >
         {extraControls}
         <ViewToggle viewMode={viewMode} onChange={onViewModeChange} />
         <FilterPopoverButton

@@ -3,17 +3,19 @@ import ListPageHeader from '@/components/layout/ListPageHeader';
 import ResourceBadge from '@/components/ui/ResourceBadge';
 import { StaticSurface } from '@/components/ui/Surface';
 import { getMinWidthStyle } from '@/constants/styles';
+import { BREAKPOINTS } from '@/constants/ui';
 import {
-  Badge,
+  Code,
   Container,
   List,
+  Paper,
   ScrollArea,
   Stack,
   Table,
   Text,
   Title,
 } from '@mantine/core';
-import { useGradientAccent } from '@/hooks';
+import { useMediaQuery } from '@mantine/hooks';
 
 const TARGET_ROWS = [
   {
@@ -54,9 +56,89 @@ const EFFICIENCY_ROWS = [
   },
 ];
 
-export default function ShovelEventGuide() {
-  const { accent } = useGradientAccent();
+interface GuideColumn<Row> {
+  key: keyof Row;
+  label: string;
+}
 
+interface GuideTableProps<Row> {
+  columns: GuideColumn<Row>[];
+  rows: Row[];
+  minWidth: number;
+}
+
+/** Table on wider screens; stacked label/value cards on phones. */
+function GuideTable<Row extends Record<string, string>>({
+  columns,
+  rows,
+  minWidth,
+}: GuideTableProps<Row>) {
+  const isWide = useMediaQuery(BREAKPOINTS.XS);
+  const [primary, ...rest] = columns;
+
+  if (!isWide) {
+    return (
+      <Stack gap="xs">
+        {rows.map((row) => (
+          <Paper key={row[primary.key]} withBorder p="sm" radius="sm">
+            <Stack gap={6}>
+              <Text fw={600}>{row[primary.key]}</Text>
+              {rest.map((column) => (
+                <div key={String(column.key)}>
+                  <Text size="xs" c="dimmed">
+                    {column.label}
+                  </Text>
+                  <Text size="sm">{row[column.key]}</Text>
+                </div>
+              ))}
+            </Stack>
+          </Paper>
+        ))}
+      </Stack>
+    );
+  }
+
+  return (
+    <ScrollArea type="auto" scrollbarSize={6} offsetScrollbars>
+      <Table striped highlightOnHover style={getMinWidthStyle(minWidth)}>
+        <Table.Thead>
+          <Table.Tr>
+            {columns.map((column) => (
+              <Table.Th key={String(column.key)}>{column.label}</Table.Th>
+            ))}
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {rows.map((row) => (
+            <Table.Tr key={row[primary.key]}>
+              <Table.Td>
+                <Text fw={600}>{row[primary.key]}</Text>
+              </Table.Td>
+              {rest.map((column) => (
+                <Table.Td key={String(column.key)}>{row[column.key]}</Table.Td>
+              ))}
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+    </ScrollArea>
+  );
+}
+
+const TARGET_COLUMNS: GuideColumn<(typeof TARGET_ROWS)[number]>[] = [
+  { key: 'target', label: 'Target' },
+  { key: 'recommendation', label: 'When to Aim' },
+  { key: 'cost', label: 'Diamond Cost' },
+  { key: 'rewards', label: 'Notable Reward' },
+];
+
+const EFFICIENCY_COLUMNS: GuideColumn<(typeof EFFICIENCY_ROWS)[number]>[] = [
+  { key: 'metric', label: 'Metric' },
+  { key: 'value', label: 'Value' },
+  { key: 'note', label: 'Interpretation' },
+];
+
+export default function ShovelEventGuide() {
   return (
     <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
@@ -70,9 +152,11 @@ export default function ShovelEventGuide() {
           sourceLabel="铲子活动"
         />
 
-        <StaticSurface p="lg">
+        <StaticSurface p={{ base: 'sm', sm: 'lg' }}>
           <Stack gap="sm">
-            <Title order={2}>Main Conclusion &amp; Schedule</Title>
+            <Title order={2} size="h3">
+              Main Conclusion &amp; Schedule
+            </Title>
             <List spacing="xs">
               <List.Item>
                 Daily buy: 800-
@@ -93,33 +177,16 @@ export default function ShovelEventGuide() {
           </Stack>
         </StaticSurface>
 
-        <StaticSurface p="lg">
+        <StaticSurface p={{ base: 'sm', sm: 'lg' }}>
           <Stack gap="sm">
-            <Title order={2}>Event Targets</Title>
-            <ScrollArea type="auto" scrollbarSize={6} offsetScrollbars>
-              <Table striped highlightOnHover style={getMinWidthStyle(540)}>
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th>Target</Table.Th>
-                    <Table.Th>When to Aim</Table.Th>
-                    <Table.Th>Diamond Cost</Table.Th>
-                    <Table.Th>Notable Reward</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {TARGET_ROWS.map((row) => (
-                    <Table.Tr key={row.target}>
-                      <Table.Td>
-                        <Text fw={600}>{row.target}</Text>
-                      </Table.Td>
-                      <Table.Td>{row.recommendation}</Table.Td>
-                      <Table.Td>{row.cost}</Table.Td>
-                      <Table.Td>{row.rewards}</Table.Td>
-                    </Table.Tr>
-                  ))}
-                </Table.Tbody>
-              </Table>
-            </ScrollArea>
+            <Title order={2} size="h3">
+              Event Targets
+            </Title>
+            <GuideTable
+              columns={TARGET_COLUMNS}
+              rows={TARGET_ROWS}
+              minWidth={540}
+            />
             <Text size="sm" c="dimmed">
               Priority is layer push, not stars. Stars carry over to next event;
               layers do not.
@@ -127,52 +194,34 @@ export default function ShovelEventGuide() {
           </Stack>
         </StaticSurface>
 
-        <StaticSurface p="lg">
+        <StaticSurface p={{ base: 'sm', sm: 'lg' }}>
           <Stack gap="sm">
-            <Title order={2}>Efficiency &amp; Investment Check</Title>
+            <Title order={2} size="h3">
+              Efficiency &amp; Investment Check
+            </Title>
             <Text>
               Formula:{' '}
-              <Badge
-                variant="light"
-                color={accent.primary}
-                size="lg"
-                component="span"
-              >
+              <Code fz="sm" fw={600}>
                 Efficiency Score = Floors Advanced ÷ Base Shovels Used
-              </Badge>
+              </Code>
             </Text>
             <Text size="sm" c="dimmed">
               Base shovels = guaranteed task rewards + daily pack/free income
               only (364 total over 7 days).
             </Text>
-            <ScrollArea type="auto" scrollbarSize={6} offsetScrollbars>
-              <Table striped highlightOnHover style={getMinWidthStyle(500)}>
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th>Metric</Table.Th>
-                    <Table.Th>Value</Table.Th>
-                    <Table.Th>Interpretation</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {EFFICIENCY_ROWS.map((row) => (
-                    <Table.Tr key={row.metric}>
-                      <Table.Td>
-                        <Text fw={600}>{row.metric}</Text>
-                      </Table.Td>
-                      <Table.Td>{row.value}</Table.Td>
-                      <Table.Td>{row.note}</Table.Td>
-                    </Table.Tr>
-                  ))}
-                </Table.Tbody>
-              </Table>
-            </ScrollArea>
+            <GuideTable
+              columns={EFFICIENCY_COLUMNS}
+              rows={EFFICIENCY_ROWS}
+              minWidth={500}
+            />
           </Stack>
         </StaticSurface>
 
-        <StaticSurface p="lg">
+        <StaticSurface p={{ base: 'sm', sm: 'lg' }}>
           <Stack gap="sm">
-            <Title order={2}>Pro Digging Tips</Title>
+            <Title order={2} size="h3">
+              Pro Digging Tips
+            </Title>
             <List type="ordered" spacing="xs">
               <List.Item>
                 Trade up, never waste explosives: bombs/rockets are worth about
@@ -195,9 +244,11 @@ export default function ShovelEventGuide() {
           </Stack>
         </StaticSurface>
 
-        <StaticSurface p="lg">
+        <StaticSurface p={{ base: 'sm', sm: 'lg' }}>
           <Stack gap="sm">
-            <Title order={2}>Diamond Value Note</Title>
+            <Title order={2} size="h3">
+              Diamond Value Note
+            </Title>
             <Text>
               If you have surplus diamonds (roughly 20,000–30,000), pushing to
               2,160 for weapon chests can be worth it because specific weapons

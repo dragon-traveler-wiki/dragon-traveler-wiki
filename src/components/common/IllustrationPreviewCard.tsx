@@ -49,7 +49,9 @@ export default function IllustrationPreviewCard({
             alignItems: 'center',
             justifyContent: 'center',
             width: '100%',
-            height: ILLUSTRATION_PANEL.HEIGHT,
+            // On phones the media sets its own height so a fixed-height
+            // frame doesn't letterbox landscape art.
+            height: isDesktop ? ILLUSTRATION_PANEL.HEIGHT : undefined,
             borderRadius: 'var(--mantine-radius-md)',
             overflow: 'hidden',
             position: 'relative',
@@ -64,7 +66,7 @@ export default function IllustrationPreviewCard({
               onError={() => setFailed(true)}
               style={{
                 width: '100%',
-                height: '100%',
+                height: isDesktop ? '100%' : 'auto',
                 objectFit: 'contain',
                 display: 'block',
               }}
@@ -75,7 +77,7 @@ export default function IllustrationPreviewCard({
               alt={name}
               fit="contain"
               w="100%"
-              h={ILLUSTRATION_PANEL.HEIGHT}
+              h={isDesktop ? '100%' : 'auto'}
               loading="lazy"
             />
           )}

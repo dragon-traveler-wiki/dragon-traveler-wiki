@@ -16,6 +16,7 @@ import EntityNotFound from '@/components/ui/EntityNotFound';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { CharacterDetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
 import FullBleedSection from '@/components/layout/FullBleedSection';
+import SectionJumpNav from '@/components/layout/SectionJumpNav';
 import { BREAKPOINTS } from '@/constants/ui';
 import { useCharacterAssets } from '@/features/characters/hooks/use-character-assets';
 import { useStarLevels } from '@/features/wiki/hooks/use-wiki-data';
@@ -42,6 +43,16 @@ import CharacterSubclassPanel from '@/features/characters/components/CharacterSu
 import CharacterVariantSelector from '@/features/characters/components/CharacterVariantSelector';
 import { useNewCharacters } from '@/features/characters/hooks/use-new-characters';
 import { useUpdatedCharacters } from '@/features/characters/hooks/use-updated-characters';
+
+const CHARACTER_SECTIONS = [
+  { id: 'about-section', label: 'About' },
+  { id: 'usage-section', label: 'Usage' },
+  { id: 'build-section', label: 'Build' },
+  { id: 'talent-section', label: 'Talent' },
+  { id: 'skills-section', label: 'Skills' },
+  { id: 'divinity-section', label: 'Divinity' },
+  { id: 'history-section', label: 'History' },
+];
 
 const CharacterModelLauncher = lazy(
   () => import('@/features/characters/components/CharacterModelLauncher'),
@@ -193,6 +204,10 @@ export default function CharacterPage() {
     linkedNoblePhantasms.length > 0 ||
     (selectedTierListName && tierLabel && tierListCharacterNote),
   );
+  const characterHistory =
+    changesData[`${character.slug}__${character.quality}`] ??
+    changesData[character.slug] ??
+    (character.legacy_slug ? changesData[character.legacy_slug] : undefined);
 
   return (
     <Box>
@@ -218,6 +233,7 @@ export default function CharacterPage() {
 
       {/* Main Content */}
       <Container size="xl" py={{ base: 'lg', sm: 'xl' }}>
+        <SectionJumpNav sections={CHARACTER_SECTIONS} hiddenFrom="md" />
         <Grid gap="xl">
           {/* Left Column - Illustration */}
           <Grid.Col span={{ base: 12, md: 4 }}>
@@ -346,15 +362,11 @@ export default function CharacterPage() {
           }
         />
 
-        <ChangeHistory
-          history={
-            changesData[`${character.slug}__${character.quality}`] ??
-            changesData[character.slug] ??
-            (character.legacy_slug
-              ? changesData[character.legacy_slug]
-              : undefined)
-          }
-        />
+        {characterHistory && (
+          <Box id="history-section">
+            <ChangeHistory history={characterHistory} />
+          </Box>
+        )}
 
         <DetailPageNavigation previousItem={previousItem} nextItem={nextItem} />
       </Container>

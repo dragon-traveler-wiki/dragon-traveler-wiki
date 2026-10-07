@@ -6,7 +6,7 @@ import { parseNumberInput } from '@/utils';
 import StatCard from '@/components/ui/StatCard';
 import { StaticSurface } from '@/components/ui/Surface';
 import { useStarLevels } from '@/features/wiki/hooks/use-wiki-data';
-import { useGradientAccent, useNullableNumber } from '@/hooks';
+import { useGradientAccent, useIsMobile, useNullableNumber } from '@/hooks';
 import { buildStarLevels } from '@/features/wiki/star-levels/star-levels';
 import {
   getHeartTrialShardsPerDay,
@@ -47,6 +47,7 @@ import HeartTrialRateTable from '@/features/calculators/star-upgrade/components/
 
 export default function StarUpgradeCalculatorPage() {
   const { accent } = useGradientAccent();
+  const isMobile = useIsMobile();
   const {
     data: rawStarLevels,
     loading: starLevelsLoading,
@@ -164,7 +165,7 @@ export default function StarUpgradeCalculatorPage() {
           />
         )}
 
-        <StaticSurface p="lg">
+        <StaticSurface p={{ base: 'sm', sm: 'lg' }}>
           <Stack gap="md">
             <Title order={2} size="h3">
               <Group gap="xs">
@@ -231,7 +232,7 @@ export default function StarUpgradeCalculatorPage() {
                 </Group>
 
                 <SimpleGrid
-                  cols={{ base: 1, sm: divineCrystalsNeeded > 0 ? 3 : 2 }}
+                  cols={{ base: 2, sm: divineCrystalsNeeded > 0 ? 3 : 2 }}
                   spacing="sm"
                 >
                   <StatCard
@@ -261,7 +262,7 @@ export default function StarUpgradeCalculatorPage() {
         </StaticSurface>
 
         {isValidSelection && copiesNeeded > 0 && (
-          <StaticSurface p="lg">
+          <StaticSurface p={{ base: 'sm', sm: 'lg' }}>
             <Stack gap="md">
               <Title order={2} size="h3">
                 <Group gap="xs">
@@ -336,6 +337,7 @@ export default function StarUpgradeCalculatorPage() {
 
               <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
                 <NumberInput
+                  hideControls={isMobile}
                   label="Current Copies"
                   description={`Full copies already owned (${SHARDS_PER_DUPE} shards each)`}
                   value={currentCopies ?? ''}
@@ -347,6 +349,7 @@ export default function StarUpgradeCalculatorPage() {
                   allowNegative={false}
                 />
                 <NumberInput
+                  hideControls={isMobile}
                   label="Current Shards"
                   description="Extra shards beyond full copies"
                   value={currentShards ?? ''}
@@ -415,8 +418,8 @@ export default function StarUpgradeCalculatorPage() {
                 />
               </SimpleGrid>
 
-              <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="sm">
-                <StaticSurface p="md">
+              <SimpleGrid cols={3} spacing="sm">
+                <StaticSurface p={{ base: 'xs', sm: 'md' }}>
                   <Stack gap={4} align="center">
                     <Text size="xs" c="dimmed" ta="center">
                       Daily Shards
@@ -426,7 +429,7 @@ export default function StarUpgradeCalculatorPage() {
                     </Text>
                   </Stack>
                 </StaticSurface>
-                <StaticSurface p="md">
+                <StaticSurface p={{ base: 'xs', sm: 'md' }}>
                   <Stack gap={4} align="center">
                     <Text size="xs" c="dimmed" ta="center">
                       Total Needed
@@ -436,7 +439,7 @@ export default function StarUpgradeCalculatorPage() {
                     </Text>
                   </Stack>
                 </StaticSurface>
-                <StaticSurface p="md">
+                <StaticSurface p={{ base: 'xs', sm: 'md' }}>
                   <Stack gap={4} align="center">
                     <Text size="xs" c="dimmed" ta="center">
                       Remaining

@@ -13,7 +13,11 @@ import {
 import { StaticSurface } from '@/components/ui/Surface';
 import { useGradientAccent } from '@/hooks';
 import { getTierColor, TIER_ORDER } from '@/constants/tier-colors';
-import { CHARACTER_GRID_SPACING, IMAGE_SIZE } from '@/constants/ui';
+import {
+  BUILDER_GRID_COLS,
+  CHARACTER_GRID_SPACING,
+  IMAGE_SIZE,
+} from '@/constants/ui';
 import TierListEntityCard from '@/features/tier-list/components/TierListEntityCard';
 import {
   getTierEntrySlug,
@@ -151,7 +155,7 @@ export default function TierListContent({
             >
               {viewMode === 'grid' ? (
                 <SimpleGrid
-                  cols={{ base: 2, xs: 3, sm: 4, md: 6 }}
+                  cols={BUILDER_GRID_COLS}
                   spacing={CHARACTER_GRID_SPACING}
                   data-export-cols-desktop="6"
                 >

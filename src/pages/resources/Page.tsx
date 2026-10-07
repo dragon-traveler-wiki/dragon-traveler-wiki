@@ -1,6 +1,7 @@
 ﻿import SafeImage from '@/components/ui/SafeImage';
 import {
   Badge,
+  Box,
   Container,
   Group,
   ScrollArea,
@@ -179,10 +180,16 @@ export default function Resources() {
                               fit="contain"
                             />
                           )}
-                          <Text fw={600}>{resource.name}</Text>
+                          <Text fw={600} style={{ flex: 1, minWidth: 0 }}>
+                            {resource.name}
+                          </Text>
                           {resource.quality && (
-                            <QualityIcon quality={resource.quality} />
+                            <Box style={{ flexShrink: 0 }}>
+                              <QualityIcon quality={resource.quality} />
+                            </Box>
                           )}
+                        </Group>
+                        <Group gap={4}>
                           <Badge
                             variant="light"
                             color={
@@ -278,7 +285,7 @@ export default function Resources() {
                             </Badge>
                           </Table.Td>
                           <Table.Td>
-                            <Text size="sm" c="dimmed">
+                            <Text size="sm" c="dimmed" lineClamp={3}>
                               <InlineMarkup text={resource.description} />
                             </Text>
                           </Table.Td>

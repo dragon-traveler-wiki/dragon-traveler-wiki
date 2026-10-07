@@ -19,6 +19,7 @@ import {
   IoPersonOutline,
 } from 'react-icons/io5';
 import { Link, useSearchParams } from 'react-router';
+import ListPageHeader from '@/components/layout/ListPageHeader';
 import { AccountPageLoading } from '@/components/layout/PageLoadingSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import { StaticSurface } from '@/components/ui/Surface';
@@ -191,7 +192,7 @@ export default function AccountPage() {
     return (
       <Container size="sm" py={{ base: 'lg', sm: 'xl' }}>
         <Stack gap="lg">
-          <Title order={1}>Account</Title>
+          <ListPageHeader title="Account" />
           <StaticSurface p="md">
             <Stack>
               <Alert
@@ -240,7 +241,7 @@ export default function AccountPage() {
   return (
     <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
-        <Group>
+        <Group wrap="nowrap">
           <Avatar
             src={user.avatarUrl}
             size="lg"
@@ -249,8 +250,14 @@ export default function AccountPage() {
           >
             <IoPersonOutline />
           </Avatar>
-          <div>
-            <Title order={1}>{user.displayName}</Title>
+          <div style={{ minWidth: 0 }}>
+            <Title
+              order={1}
+              fz={{ base: '1.5rem', sm: '2.125rem' }}
+              style={{ wordBreak: 'break-word' }}
+            >
+              {user.displayName}
+            </Title>
             <Text c="dimmed">
               {user.role === 'moderator' ? 'Moderator' : 'Community member'}
             </Text>

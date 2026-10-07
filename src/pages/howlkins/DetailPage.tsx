@@ -183,7 +183,7 @@ export default function GoldenAllianceDetailPage() {
                         <Table.Td>
                           <Badge
                             variant="light"
-                            size="sm"
+                            size="md"
                             color={accent.secondary}
                           >
                             {effect.level}
@@ -195,7 +195,7 @@ export default function GoldenAllianceDetailPage() {
                               <Badge
                                 key={i}
                                 variant="outline"
-                                size="sm"
+                                size="md"
                                 color={accent.secondary}
                               >
                                 {stat}

@@ -31,13 +31,13 @@ export default function StarUpgradeReferenceTable({
   const [opened, handlers] = useDisclosure(false);
 
   return (
-    <StaticSurface p="lg">
+    <StaticSurface p={{ base: 'sm', sm: 'lg' }}>
       <Stack gap="sm">
         <UnstyledButton onClick={handlers.toggle}>
-          <Group justify="space-between" align="center">
-            <Stack gap={2}>
+          <Group justify="space-between" align="center" wrap="nowrap">
+            <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
               <Title order={2} size="h3">
-                <Group gap="xs">
+                <Group gap="xs" wrap="nowrap">
                   <IoStatsChart />
                   Star Upgrade Reference Table
                 </Group>

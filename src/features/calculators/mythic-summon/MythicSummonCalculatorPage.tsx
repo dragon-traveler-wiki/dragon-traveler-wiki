@@ -28,7 +28,7 @@ import StatCard from '@/components/ui/StatCard';
 import { StaticSurface } from '@/components/ui/Surface';
 import { parseNumberInput } from '@/utils';
 import ResourceBadge from '@/components/ui/ResourceBadge';
-import { useGradientAccent, useNullableNumber } from '@/hooks';
+import { useGradientAccent, useIsMobile, useNullableNumber } from '@/hooks';
 import {
   Alert,
   Badge,
@@ -56,6 +56,7 @@ import {
 
 export default function MythicSummonCalculatorPage() {
   const { accent } = useGradientAccent();
+  const isMobile = useIsMobile();
   const [numSummons, safeNumSummons, setNumSummons] = useNullableNumber(100);
   const [currentPulls, safeCurrentPulls, setCurrentPulls] =
     useNullableNumber(0);
@@ -279,7 +280,7 @@ export default function MythicSummonCalculatorPage() {
           see expected returns.
         </Alert>
 
-        <StaticSurface p="lg">
+        <StaticSurface p={{ base: 'sm', sm: 'lg' }}>
           <Stack gap="md">
             <Title order={2} size="h3">
               <Group gap="xs">
@@ -294,6 +295,7 @@ export default function MythicSummonCalculatorPage() {
 
             <SimpleGrid cols={{ base: 1, xs: 2, md: 4 }} spacing="md">
               <NumberInput
+                hideControls={isMobile}
                 label="Target Mythic Luminary Shards"
                 value={targetShards ?? ''}
                 onChange={(val) => setTargetShards(parseNumberInput(val))}
@@ -303,6 +305,7 @@ export default function MythicSummonCalculatorPage() {
                 size="sm"
               />
               <NumberInput
+                hideControls={isMobile}
                 label="Target Wishing Lilies"
                 value={targetWishingLilies ?? ''}
                 onChange={(val) =>
@@ -314,6 +317,7 @@ export default function MythicSummonCalculatorPage() {
                 size="sm"
               />
               <NumberInput
+                hideControls={isMobile}
                 label="Target Substitute Doll Fragments"
                 value={targetSubstituteDolls ?? ''}
                 onChange={(val) =>
@@ -325,6 +329,7 @@ export default function MythicSummonCalculatorPage() {
                 size="sm"
               />
               <NumberInput
+                hideControls={isMobile}
                 label="Target Diamonds"
                 value={targetDiamonds ?? ''}
                 onChange={(val) => setTargetDiamonds(parseNumberInput(val))}
@@ -369,7 +374,7 @@ export default function MythicSummonCalculatorPage() {
           </Stack>
         </StaticSurface>
 
-        <StaticSurface p="lg">
+        <StaticSurface p={{ base: 'sm', sm: 'lg' }}>
           <Stack gap="md">
             <Title order={2} size="h3">
               <Group gap="xs">
@@ -380,6 +385,7 @@ export default function MythicSummonCalculatorPage() {
 
             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
               <NumberInput
+                hideControls={isMobile}
                 label="Current Pulls"
                 description="How many pulls you've already done"
                 value={currentPulls ?? ''}
@@ -390,6 +396,7 @@ export default function MythicSummonCalculatorPage() {
                 size="md"
               />
               <NumberInput
+                hideControls={isMobile}
                 label="Number of Summons"
                 description="How many summons you plan to do"
                 value={numSummons ?? ''}
@@ -418,7 +425,7 @@ export default function MythicSummonCalculatorPage() {
               <Text size="sm" c="dimmed">
                 Total pulls: <strong>{results.totalPulls}</strong>
               </Text>
-              <Text size="sm" c="dimmed">
+              <Text size="sm" c="dimmed" visibleFrom="sm">
                 •
               </Text>
               <Text size="sm" className="dt-link-text">
@@ -430,7 +437,7 @@ export default function MythicSummonCalculatorPage() {
           </Stack>
         </StaticSurface>
 
-        <StaticSurface p="lg">
+        <StaticSurface p={{ base: 'sm', sm: 'lg' }}>
           <Stack gap="md">
             <Group justify="space-between" align="flex-start" wrap="wrap">
               <Stack gap={4}>
@@ -452,16 +459,19 @@ export default function MythicSummonCalculatorPage() {
               </Button>
             </Group>
 
-            <SimpleGrid cols={{ base: 1, sm: 2, xl: 4 }} spacing="lg">
+            <SimpleGrid
+              cols={{ base: 2, xl: 4 }}
+              spacing={{ base: 'xs', sm: 'lg' }}
+            >
               <StatCard
                 icon={<IoStar />}
                 title="Mythic Luminary Shards"
                 value={results.totalMythicShards.toFixed(1)}
                 color={accent.primary}
                 subtitle={`${results.mythicShards.toFixed(1)} drops + ${results.milestoneShards} milestone`}
-                resourceSlug="mythic_luminary_shard"
+                resourceSlug={isMobile ? undefined : 'mythic_luminary_shard'}
                 showIcon={false}
-                showTitle={false}
+                showTitle={isMobile}
                 showResourceQuantity={false}
               />
               <StatCard
@@ -470,9 +480,9 @@ export default function MythicSummonCalculatorPage() {
                 value={results.wishingLilies.toFixed(1)}
                 color="pink"
                 subtitle={`${results.wishingLiliesFromRates.toFixed(1)} drops + ${results.wishingLiliesBonus.toFixed(0)} bonus`}
-                resourceSlug="wishing_lily"
+                resourceSlug={isMobile ? undefined : 'wishing_lily'}
                 showIcon={false}
-                showTitle={false}
+                showTitle={isMobile}
                 showResourceQuantity={false}
               />
               <StatCard
@@ -481,9 +491,11 @@ export default function MythicSummonCalculatorPage() {
                 value={results.substituteDollFragments.toFixed(1)}
                 color="cyan"
                 subtitle="From regular-pull drop rates"
-                resourceSlug="6_star_substitute_doll_fragment"
+                resourceSlug={
+                  isMobile ? undefined : '6_star_substitute_doll_fragment'
+                }
                 showIcon={false}
-                showTitle={false}
+                showTitle={isMobile}
                 showResourceQuantity={false}
               />
               <StatCard
@@ -492,9 +504,9 @@ export default function MythicSummonCalculatorPage() {
                 value={results.diamonds.toFixed(1)}
                 color="yellow"
                 subtitle="From regular-pull drop rates"
-                resourceSlug="diamond"
+                resourceSlug={isMobile ? undefined : 'diamond'}
                 showIcon={false}
-                showTitle={false}
+                showTitle={isMobile}
                 showResourceQuantity={false}
               />
             </SimpleGrid>

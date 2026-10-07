@@ -14,6 +14,7 @@ import {
 import { Container, Group, Skeleton, Stack } from '@mantine/core';
 import { getRouteFallbackKind, ROUTE_PATH } from '@/constants/route-meta';
 import { STORAGE_KEY } from '@/constants/ui';
+import { getInitialViewMode, type ViewMode } from '@/hooks/use-filters';
 import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes, useLocation, useParams } from 'react-router';
 
@@ -76,7 +77,7 @@ function GuidesLegacyRedirect() {
 }
 
 function CharacterListRouteFallback() {
-  const viewMode = getStoredViewMode(STORAGE_KEY.CHARACTER_VIEW_MODE, 'grid');
+  const viewMode = getInitialViewMode(STORAGE_KEY.CHARACTER_VIEW_MODE, 'grid');
 
   return (
     <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
@@ -95,14 +96,6 @@ function CharacterListRouteFallback() {
   );
 }
 
-type ViewMode = 'grid' | 'list';
-
-function getStoredViewMode(storageKey: string, fallback: ViewMode): ViewMode {
-  if (typeof window === 'undefined') return fallback;
-  const stored = window.localStorage.getItem(storageKey);
-  return stored === 'grid' || stored === 'list' ? stored : fallback;
-}
-
 function getRouteTab(search: string, fallback: string, validTabs: string[]) {
   const tab = new URLSearchParams(search).get('tab');
   return tab && validTabs.includes(tab) ? tab : fallback;
@@ -117,7 +110,7 @@ function FilteredListRouteFallback({
   defaultViewMode: ViewMode;
   tabs?: number;
 }) {
-  const viewMode = getStoredViewMode(storageKey, defaultViewMode);
+  const viewMode = getInitialViewMode(storageKey, defaultViewMode);
   return (
     <ListRouteLoading tabs={tabs}>
       <ViewModeLoading
@@ -201,7 +194,7 @@ function RouteFallback() {
           viewMode={
             tab === 'usage'
               ? 'list'
-              : getStoredViewMode(STORAGE_KEY.SUBCLASS_VIEW_MODE, 'list')
+              : getInitialViewMode(STORAGE_KEY.SUBCLASS_VIEW_MODE, 'list')
           }
           listType="table"
           withToolbar
@@ -225,7 +218,7 @@ function RouteFallback() {
         />
       ) : (
         <ViewModeLoading
-          viewMode={getStoredViewMode(STORAGE_KEY.GEAR_VIEW_MODE, 'grid')}
+          viewMode={getInitialViewMode(STORAGE_KEY.GEAR_VIEW_MODE, 'grid')}
           listType="table"
           withToolbar
           showPagination
@@ -242,7 +235,7 @@ function RouteFallback() {
           <CardGridLoading cardHeight={160} showPagination />
         ) : (
           <ViewModeLoading
-            viewMode={getStoredViewMode(STORAGE_KEY.RELIC_VIEW_MODE, 'grid')}
+            viewMode={getInitialViewMode(STORAGE_KEY.RELIC_VIEW_MODE, 'grid')}
             listType="table"
             withToolbar
             showPagination
@@ -263,7 +256,7 @@ function RouteFallback() {
           <CardGridLoading cardHeight={180} showPagination />
         ) : (
           <ViewModeLoading
-            viewMode={getStoredViewMode(STORAGE_KEY.HOWLKIN_VIEW_MODE, 'grid')}
+            viewMode={getInitialViewMode(STORAGE_KEY.HOWLKIN_VIEW_MODE, 'grid')}
             cardHeight={180}
             listType="table"
             withToolbar
@@ -285,7 +278,7 @@ function RouteFallback() {
           viewMode={
             tab === 'usage'
               ? 'list'
-              : getStoredViewMode(STORAGE_KEY.NOBLE_PHANTASM_VIEW_MODE, 'grid')
+              : getInitialViewMode(STORAGE_KEY.NOBLE_PHANTASM_VIEW_MODE, 'grid')
           }
           listType="table"
           withToolbar
@@ -299,7 +292,7 @@ function RouteFallback() {
     return (
       <ListRouteLoading containerSize="lg" tabs={2}>
         <EventCardsLoading
-          viewMode={getStoredViewMode(STORAGE_KEY.EVENT_VIEW_MODE, 'grid')}
+          viewMode={getInitialViewMode(STORAGE_KEY.EVENT_VIEW_MODE, 'grid')}
           showPagination
         />
       </ListRouteLoading>
@@ -310,7 +303,7 @@ function RouteFallback() {
     return (
       <ListRouteLoading tabs={2}>
         <ViewModeLoading
-          viewMode={getStoredViewMode(STORAGE_KEY.CODES_VIEW_MODE, 'list')}
+          viewMode={getInitialViewMode(STORAGE_KEY.CODES_VIEW_MODE, 'list')}
           cards={9}
           gridCols={{ base: 1, xs: 2, sm: 3 }}
           cardHeight={180}
@@ -324,7 +317,7 @@ function RouteFallback() {
   if (fallbackKind === 'team-list' || fallbackKind === 'tier-list') {
     const mode = new URLSearchParams(search).get('mode');
     const isTeams = fallbackKind === 'team-list';
-    const viewMode = getStoredViewMode(
+    const viewMode = getInitialViewMode(
       isTeams ? STORAGE_KEY.TEAMS_VIEW_MODE : STORAGE_KEY.TIER_LIST_VIEW_MODE,
       'grid',
     );

@@ -209,6 +209,7 @@ export default function CharacterLoreSection({
 
   return (
     <CollapsibleSectionCard
+      id="about-section"
       color={accent.primary}
       header={
         <Stack gap={2}>

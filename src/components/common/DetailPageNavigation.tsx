@@ -34,19 +34,22 @@ export default function DetailPageNavigation({
               radius="md"
               style={{ minHeight: 48, display: 'flex', alignItems: 'center' }}
             >
-              <Group gap="xs" className="dt-link-text">
-                <IoChevronBack />
+              <Group gap="xs" wrap="nowrap" className="dt-link-text">
+                <IoChevronBack style={{ flexShrink: 0 }} />
                 {previousItem.iconSrc && (
                   <SafeImage
                     src={previousItem.iconSrc}
                     alt=""
                     w={28}
                     h={28}
+                    style={{ flexShrink: 0 }}
                     fit="contain"
                     loading="lazy"
                   />
                 )}
-                <Text size="sm">Previous: {previousItem.label}</Text>
+                <Text size="sm" lineClamp={1} style={{ minWidth: 0 }}>
+                  Previous: {previousItem.label}
+                </Text>
               </Group>
             </Paper>
           </Link>
@@ -70,19 +73,22 @@ export default function DetailPageNavigation({
                 justifyContent: 'flex-end',
               }}
             >
-              <Group gap="xs" className="dt-link-text">
-                <Text size="sm">Next: {nextItem.label}</Text>
+              <Group gap="xs" wrap="nowrap" className="dt-link-text">
+                <Text size="sm" lineClamp={1} style={{ minWidth: 0 }}>
+                  Next: {nextItem.label}
+                </Text>
                 {nextItem.iconSrc && (
                   <SafeImage
                     src={nextItem.iconSrc}
                     alt=""
                     w={28}
                     h={28}
+                    style={{ flexShrink: 0 }}
                     fit="contain"
                     loading="lazy"
                   />
                 )}
-                <IoChevronForward />
+                <IoChevronForward style={{ flexShrink: 0 }} />
               </Group>
             </Paper>
           </Link>

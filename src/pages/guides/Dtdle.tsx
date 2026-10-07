@@ -26,8 +26,13 @@ export default function Dtdle() {
 
         {/* Each mode persists its daily progress to storage, so unmounting
             hidden modes only drops transient input state. */}
-        <Tabs value={activeMode} onChange={setActiveMode} keepMounted={false}>
-          <Tabs.List>
+        <Tabs
+          value={activeMode}
+          onChange={setActiveMode}
+          keepMounted={false}
+          styles={{ tab: { paddingInline: 'var(--mantine-spacing-xs)' } }}
+        >
+          <Tabs.List grow>
             <Tabs.Tab value="classic">Classic</Tabs.Tab>
             <Tabs.Tab value="quote">Quote</Tabs.Tab>
             <Tabs.Tab value="ability">Ability</Tabs.Tab>
@@ -35,22 +40,22 @@ export default function Dtdle() {
           </Tabs.List>
 
           <Tabs.Panel value="classic" pt="md">
-            <StaticSurface p="lg">
+            <StaticSurface p={{ base: 'sm', sm: 'lg' }}>
               <ClassicMode />
             </StaticSurface>
           </Tabs.Panel>
           <Tabs.Panel value="quote" pt="md">
-            <StaticSurface p="lg">
+            <StaticSurface p={{ base: 'sm', sm: 'lg' }}>
               <QuoteMode />
             </StaticSurface>
           </Tabs.Panel>
           <Tabs.Panel value="ability" pt="md">
-            <StaticSurface p="lg">
+            <StaticSurface p={{ base: 'sm', sm: 'lg' }}>
               <AbilityMode />
             </StaticSurface>
           </Tabs.Panel>
           <Tabs.Panel value="illustration" pt="md">
-            <StaticSurface p="lg">
+            <StaticSurface p={{ base: 'sm', sm: 'lg' }}>
               <IllustrationMode />
             </StaticSurface>
           </Tabs.Panel>

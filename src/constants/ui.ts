@@ -59,9 +59,14 @@ export const Z_INDEX = {
 
 // Grid breakpoints for character lists
 export const CHARACTER_GRID_COLS = {
-  base: 2,
-  xs: 3,
+  base: 3,
   sm: 4,
+  md: 6,
+} as const;
+
+// Grid breakpoints for builder character pools and tier rows
+export const BUILDER_GRID_COLS = {
+  base: 4,
   md: 6,
 } as const;
 

@@ -15,6 +15,7 @@ import {
   SimpleGrid,
   Stack,
   Text,
+  Title,
   Tooltip,
 } from '@mantine/core';
 
@@ -36,11 +37,11 @@ export default function CharacterSubclassPanel({
   }
 
   return (
-    <StaticSurface p="md" radius="lg">
+    <StaticSurface p={{ base: 'sm', sm: 'md' }} radius="lg">
       <Stack gap="sm">
-        <Text fw={600} size="sm">
+        <Title order={2} size="h4">
           Subclasses
-        </Text>
+        </Title>
         <SimpleGrid cols={{ base: 2, sm: 2 }} spacing="xs">
           {character.subclasses.map((subclass) => {
             const subclassDetails = subclassBySlug.get(subclass);

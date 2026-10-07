@@ -171,10 +171,16 @@ export default function OracleScrollsTab({
                                 radius="sm"
                               />
                             )}
-                            <Text size="sm" fw={500} style={{ flex: 1 }}>
-                              {relic.name}
-                            </Text>
-                            <RelicTypeTag type={relic.type} />
+                            <Stack
+                              gap={2}
+                              align="flex-start"
+                              style={{ flex: 1, minWidth: 0 }}
+                            >
+                              <Text size="sm" fw={500}>
+                                {relic.name}
+                              </Text>
+                              <RelicTypeTag type={relic.type} />
+                            </Stack>
                           </Group>
                         );
                       })}

@@ -43,10 +43,10 @@ export default function ActivatedSetBonuses({
               <Divider />
               <Group gap={6} wrap="wrap">
                 <Badge variant="light" color="gray" size="xs">
-                  Pieces: {setBonus.pieces}/{setBonus.requiredPieces}
+                  Equipped: {setBonus.pieces}
                 </Badge>
                 <Badge variant="light" color={accent.primary} size="xs">
-                  Activations: ×{setBonus.activations}
+                  {setBonus.requiredPieces}-piece bonus ×{setBonus.activations}
                 </Badge>
               </Group>
               <Stack gap={2}>
@@ -82,7 +82,8 @@ export default function ActivatedSetBonuses({
                     </Badge>
                   </Group>
                   <Text size="xs" c="dimmed">
-                    {setBonus.pieces}/{setBonus.requiredPieces} pieces
+                    {setBonus.pieces} equipped · {setBonus.requiredPieces}-piece
+                    bonus
                   </Text>
                   <ExpandableText size="xs">
                     <RichText

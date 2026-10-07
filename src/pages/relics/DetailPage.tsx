@@ -5,6 +5,7 @@ import DetailPageNavigation from '@/components/common/DetailPageNavigation';
 import DetailPageTitle from '@/components/common/DetailPageTitle';
 import LastUpdated from '@/components/common/LastUpdated';
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
+import SectionJumpNav from '@/components/layout/SectionJumpNav';
 import DataFetchError from '@/components/ui/DataFetchError';
 import EntityNotFound from '@/components/ui/EntityNotFound';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
@@ -43,6 +44,10 @@ import {
 } from '@mantine/core';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
+
+function getRelicGroupSectionId(type: string) {
+  return `relics-${type.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+}
 
 export default function OracleScrollPage() {
   const { accent } = useGradientAccent();
@@ -96,6 +101,17 @@ export default function OracleScrollPage() {
       relics: scrollRelics.filter((relic) => relic.type === type),
     })).filter((group) => group.relics.length > 0);
   }, [scrollRelics]);
+
+  const jumpSections = useMemo(
+    () => [
+      ...scrollRelicsByType.map((group) => ({
+        id: getRelicGroupSectionId(group.type),
+        label: group.type,
+      })),
+      { id: 'oracle-scroll-history', label: 'History' },
+    ],
+    [scrollRelicsByType],
+  );
 
   const { previousItem, nextItem } = useAdjacentItems(
     oracleScrolls,
@@ -196,6 +212,7 @@ export default function OracleScrollPage() {
       )}
 
       <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+        <SectionJumpNav sections={jumpSections} hiddenFrom="md" />
         <ErrorBoundary
           scope="section"
           name="oracle scroll details"
@@ -213,7 +230,11 @@ export default function OracleScrollPage() {
             )}
 
             {scrollRelicsByType.map((group) => (
-              <Stack key={group.type} gap="md">
+              <Stack
+                key={group.type}
+                id={getRelicGroupSectionId(group.type)}
+                gap="md"
+              >
                 <Title order={2} size="h3">
                   {group.type}
                 </Title>
@@ -232,7 +253,14 @@ export default function OracleScrollPage() {
           </Stack>
         </ErrorBoundary>
 
-        <ChangeHistory history={undefined} extraHistories={relicHistories} />
+        {relicHistories.length > 0 && (
+          <Box id="oracle-scroll-history">
+            <ChangeHistory
+              history={undefined}
+              extraHistories={relicHistories}
+            />
+          </Box>
+        )}
 
         <DetailPageNavigation previousItem={previousItem} nextItem={nextItem} />
       </Container>

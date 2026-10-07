@@ -8,7 +8,7 @@ import {
   Text,
   Timeline,
 } from '@mantine/core';
-import { IoCheckmarkCircle } from 'react-icons/io5';
+import { IoCheckmarkCircle, IoChevronDown, IoChevronUp } from 'react-icons/io5';
 import { ViewModeLoading } from '@/components/layout/PageLoadingSkeleton';
 import { formatIsoDate } from '@/utils/timestamps';
 import DataFetchError from '@/components/ui/DataFetchError';
@@ -113,11 +113,16 @@ export default function SiteUpdatesTab({
                   title={
                     <Group
                       justify="space-between"
-                      wrap="wrap"
+                      wrap="nowrap"
                       gap="xs"
-                      align="center"
+                      align="flex-start"
                     >
-                      <Group gap="xs" wrap="wrap" align="center">
+                      <Group
+                        gap="xs"
+                        wrap="wrap"
+                        align="center"
+                        style={{ flex: 1, minWidth: 0 }}
+                      >
                         <Text fw={600} size="sm">
                           {formatIsoDate(entry.date)}
                         </Text>
@@ -140,6 +145,15 @@ export default function SiteUpdatesTab({
                         variant="subtle"
                         color={accent.primary}
                         onClick={() => onToggleEntry(entryId)}
+                        aria-expanded={isExpanded}
+                        rightSection={
+                          isExpanded ? (
+                            <IoChevronUp size={12} />
+                          ) : (
+                            <IoChevronDown size={12} />
+                          )
+                        }
+                        style={{ flexShrink: 0 }}
                       >
                         {isExpanded ? 'Minimize' : 'Expand'}
                       </Button>

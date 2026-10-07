@@ -1,5 +1,6 @@
 import { Link } from 'react-router';
 import {
+  Box,
   Group,
   ScrollArea,
   SimpleGrid,
@@ -168,7 +169,7 @@ export default function HowlkinsTab({
               const allianceSlug = howlkinToAlliance.get(howlkin.slug);
               const cardContent = (
                 <Stack gap="xs">
-                  <Group gap="sm" wrap="nowrap">
+                  <Group gap="md" align="flex-start" wrap="nowrap">
                     {iconSrc && (
                       <SafeImage
                         src={iconSrc}
@@ -180,15 +181,18 @@ export default function HowlkinsTab({
                       />
                     )}
                     <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
-                      <Group gap="sm" wrap="wrap">
+                      <Group gap="sm" wrap="nowrap" align="flex-start">
                         <Text
                           fw={700}
                           className={allianceSlug ? 'dt-link-text' : undefined}
-                          lineClamp={1}
+                          lineClamp={2}
+                          style={{ minWidth: 0 }}
                         >
                           {howlkin.name}
                         </Text>
-                        <QualityIcon quality={howlkin.quality} />
+                        <Box style={{ flexShrink: 0 }}>
+                          <QualityIcon quality={howlkin.quality} />
+                        </Box>
                       </Group>
                       <Stack gap={2}>
                         {(howlkin.passive_effects ?? []).map((e, i) => (
@@ -207,13 +211,13 @@ export default function HowlkinsTab({
                   key={howlkin.slug}
                   component={Link}
                   to={`/howlkins/${allianceSlug}`}
-                  p="md"
+                  p={{ base: 'sm', sm: 'md' }}
                   style={LINK_BLOCK_RESET_STYLE}
                 >
                   {cardContent}
                 </InteractiveSurface>
               ) : (
-                <StaticSurface key={howlkin.slug} p="md">
+                <StaticSurface key={howlkin.slug} p={{ base: 'sm', sm: 'md' }}>
                   {cardContent}
                 </StaticSurface>
               );

@@ -438,9 +438,15 @@ export default function TierList() {
                 if (newMode === 'view') setEditData(null);
               }}
               data={[
-                { label: 'View Tier Lists', value: 'view' },
-                { label: 'My Saved', value: 'saved' },
-                { label: 'Create Your Own', value: 'builder' },
+                {
+                  label: isMobile ? 'Browse' : 'View Tier Lists',
+                  value: 'view',
+                },
+                { label: isMobile ? 'Saved' : 'My Saved', value: 'saved' },
+                {
+                  label: isMobile ? 'Create' : 'Create Your Own',
+                  value: 'builder',
+                },
               ]}
             />
 

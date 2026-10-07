@@ -4,6 +4,7 @@ import type { ViewMode } from '@/hooks/use-filters';
 import NoResultsSuggestions from '@/components/ui/NoResultsSuggestions';
 import PaginationControl from '@/components/ui/PaginationControl';
 import { StaticSurface } from '@/components/ui/Surface';
+import { pluralize } from '@/utils/string';
 import FilterToolbar from './FilterToolbar';
 
 interface FilteredListShellProps {
@@ -47,10 +48,10 @@ export default function FilteredListShell({
   pageSizeOptions,
   onPageSizeChange,
 }: FilteredListShellProps) {
-  const defaultEmpty = `No ${noun}s match the current filters.`;
+  const defaultEmpty = `No ${pluralize(noun)} match the current filters.`;
 
   return (
-    <StaticSurface p="md" data-no-hover>
+    <StaticSurface p={{ base: 'xs', sm: 'md' }} data-no-hover>
       <Stack gap="md">
         <FilterToolbar
           count={count}
@@ -66,7 +67,7 @@ export default function FilteredListShell({
 
         {count === 0 ? (
           <NoResultsSuggestions
-            title={`No ${noun}s found`}
+            title={`No ${pluralize(noun)} found`}
             message={emptyMessage ?? defaultEmpty}
             onReset={onResetFilters}
             onOpenFilters={onFilterToggle}
@@ -82,6 +83,7 @@ export default function FilteredListShell({
             currentPage={page}
             totalPages={totalPages}
             onChange={onPageChange}
+            scrollToTop
             totalItems={count}
             pageSize={pageSize}
             pageSizeOptions={pageSizeOptions}

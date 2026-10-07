@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { readStoredJson, writeStoredJson } from '@/utils/saved-storage';
+import { BREAKPOINTS } from '@/constants/ui';
+import {
+  readStoredJson,
+  readStoredString,
+  writeStoredJson,
+  writeStoredString,
+} from '@/utils/saved-storage';
 
 export type ViewMode = 'grid' | 'list';
 
@@ -9,22 +15,33 @@ interface UseViewModeOptions {
 }
 
 /**
+ * Resolves the initial view mode from localStorage. Without a stored
+ * preference, phones start in grid view because the list views are wide
+ * tables.
+ */
+export function getInitialViewMode(
+  storageKey: string,
+  defaultMode: ViewMode,
+): ViewMode {
+  if (typeof window === 'undefined') return defaultMode;
+  const stored = readStoredString(storageKey);
+  if (stored === 'grid' || stored === 'list') return stored;
+  return window.matchMedia(BREAKPOINTS.MOBILE).matches ? 'grid' : defaultMode;
+}
+
+/**
  * Hook to manage view mode (grid/list) with localStorage persistence
  */
 export function useViewMode({
   storageKey,
   defaultMode = 'grid',
 }: UseViewModeOptions) {
-  const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    if (typeof window === 'undefined') {
-      return defaultMode;
-    }
-    const stored = window.localStorage.getItem(storageKey);
-    return stored === 'grid' || stored === 'list' ? stored : defaultMode;
-  });
+  const [viewMode, setViewMode] = useState<ViewMode>(() =>
+    getInitialViewMode(storageKey, defaultMode),
+  );
 
   useEffect(() => {
-    window.localStorage.setItem(storageKey, viewMode);
+    writeStoredString(storageKey, viewMode);
   }, [storageKey, viewMode]);
 
   return [viewMode, setViewMode] as const;

@@ -77,7 +77,7 @@ export default function ActiveEventsSection() {
                 alt={event.name}
               />
             </Card.Section>
-            <Stack gap="xs" p="md" style={{ flex: 1 }}>
+            <Stack gap="xs" p={{ base: 'sm', sm: 'md' }} style={{ flex: 1 }}>
               <Group gap="xs" wrap="wrap">
                 <GlobalBadge isGlobal={event.is_global} size="sm" />
                 {event.type && (

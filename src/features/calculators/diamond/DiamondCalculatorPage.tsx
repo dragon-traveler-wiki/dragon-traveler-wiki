@@ -3,6 +3,7 @@ import { StaticSurface } from '@/components/ui/Surface';
 import { parseNumberInput } from '@/utils';
 import {
   useGradientAccent,
+  useIsMobile,
   useNullableNumber,
   usePersistedState,
 } from '@/hooks';
@@ -70,6 +71,7 @@ function readStoredCalculatorState(): Partial<CalculatorState> | null {
 
 export default function DiamondCalculatorPage() {
   const { accent } = useGradientAccent();
+  const isMobile = useIsMobile();
   const minDate = useMemo(() => getStartOfToday(), []);
   const storedState = useMemo(() => readStoredCalculatorState(), []);
 
@@ -268,7 +270,7 @@ export default function DiamondCalculatorPage() {
           values, then use the date field for rough balance projection.
         </Alert>
 
-        <StaticSurface p="lg">
+        <StaticSurface p={{ base: 'sm', sm: 'lg' }}>
           <Stack gap="md">
             <Title order={2} size="h3">
               <Group gap="xs">
@@ -279,6 +281,7 @@ export default function DiamondCalculatorPage() {
 
             <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
               <NumberInput
+                hideControls={isMobile}
                 label="Current Diamond Bank"
                 value={bank ?? ''}
                 onChange={(value) => setBank(parseNumberInput(value))}

@@ -1,6 +1,6 @@
 import { StaticSurface } from '@/components/ui/Surface';
 import { CharacterOwnershipContext } from '@/contexts';
-import { Select, Stack, Text } from '@mantine/core';
+import { Select, Stack, Title } from '@mantine/core';
 import { useContext } from 'react';
 
 interface StarLevelOption {
@@ -26,11 +26,11 @@ export default function CharacterProgressPanel({
   }
 
   return (
-    <StaticSurface p="md" radius="lg">
+    <StaticSurface p={{ base: 'sm', sm: 'md' }} radius="lg">
       <Stack gap="sm">
-        <Text fw={600} size="sm">
+        <Title order={2} size="h4">
           My Progress
-        </Text>
+        </Title>
         <Select
           label="Star Level"
           description="Track your owned star level for this character."

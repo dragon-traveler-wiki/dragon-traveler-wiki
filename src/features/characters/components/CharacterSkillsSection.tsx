@@ -5,7 +5,7 @@ import RichText from '@/components/common/RichText';
 import { StaticSurface } from '@/components/ui/Surface';
 import type { Character } from '@/features/characters/types';
 import type { StatusEffect } from '@/features/wiki/status-effects/types';
-import { useGradientAccent } from '@/hooks';
+import { useGradientAccent, useIsMobile } from '@/hooks';
 import { getDivinityIcon } from '@/assets';
 
 interface CharacterPageSkillsSectionProps {
@@ -26,6 +26,10 @@ export default function CharacterPageSkillsSection({
   scrollToTalent,
 }: CharacterPageSkillsSectionProps) {
   const { accent } = useGradientAccent();
+  const isMobile = useIsMobile();
+  const skillIconSize = isMobile ? 40 : 60;
+  const divinityIconSize = isMobile ? 44 : 60;
+  const badgeSize = isMobile ? 'md' : 'lg';
   const talent = character.talent;
   const talentLevels = talent?.talent_levels ?? [];
 
@@ -91,6 +95,7 @@ export default function CharacterPageSkillsSection({
       {/* Skills Section */}
       {character.skills.length > 0 && (
         <CollapsibleSectionCard
+          id="skills-section"
           color={accent.primary}
           header={
             <Stack gap={2}>
@@ -119,54 +124,53 @@ export default function CharacterPageSkillsSection({
                 <StaticSurface
                   key={skill.name}
                   id={`skill-${skill.name}`}
-                  p="md"
+                  p={{ base: 'sm', sm: 'md' }}
                 >
                   <Stack gap="sm">
-                    <Group gap="md" justify="space-between" wrap="nowrap">
-                      <Group gap="md" style={{ flex: 1 }}>
-                        {skillIcon && (
-                          <SafeImage
-                            src={skillIcon}
-                            alt={skill.name}
-                            w={60}
-                            h={60}
-                            fit="contain"
-                            loading="lazy"
-                          />
-                        )}
-                        <Group gap="xs" align="center">
-                          <Text fw={600} size="lg">
-                            {skill.name}
-                          </Text>
+                    <Group gap="sm" wrap="nowrap">
+                      {skillIcon && (
+                        <SafeImage
+                          src={skillIcon}
+                          alt={skill.name}
+                          w={skillIconSize}
+                          h={skillIconSize}
+                          fit="contain"
+                          loading="lazy"
+                          style={{ flexShrink: 0 }}
+                        />
+                      )}
+                      <Stack gap={6} style={{ flex: 1, minWidth: 0 }}>
+                        <Text fw={600} size="lg" style={{ lineHeight: 1.3 }}>
+                          {skill.name}
+                        </Text>
+                        <Group gap="xs" wrap="wrap">
                           {skill.type && (
                             <Badge
-                              size="lg"
+                              size={badgeSize}
                               variant="light"
                               color={accent.secondary}
                             >
                               {skill.type}
                             </Badge>
                           )}
-                        </Group>
-                      </Group>
-                      <Group gap="xs" style={{ flexShrink: 0 }}>
-                        <Badge
-                          size="lg"
-                          variant={isPassiveCooldown ? 'light' : 'filled'}
-                          color={isPassiveCooldown ? 'gray' : accent.primary}
-                        >
-                          {cooldownLabel}
-                        </Badge>
-                        {skill.cost != null && (
                           <Badge
-                            size="lg"
-                            variant="light"
-                            color={accent.secondary}
+                            size={badgeSize}
+                            variant={isPassiveCooldown ? 'light' : 'filled'}
+                            color={isPassiveCooldown ? 'gray' : accent.primary}
                           >
-                            Cost {skill.cost}
+                            {cooldownLabel}
                           </Badge>
-                        )}
-                      </Group>
+                          {skill.cost != null && (
+                            <Badge
+                              size={badgeSize}
+                              variant="light"
+                              color={accent.secondary}
+                            >
+                              Cost {skill.cost}
+                            </Badge>
+                          )}
+                        </Group>
+                      </Stack>
                     </Group>
                     <RichText
                       text={skill.description}
@@ -187,6 +191,7 @@ export default function CharacterPageSkillsSection({
       {/* Divinity Section */}
       {character.divinity && character.divinity.length > 0 && (
         <CollapsibleSectionCard
+          id="divinity-section"
           color={accent.primary}
           header={
             <Stack gap={2}>
@@ -211,26 +216,34 @@ export default function CharacterPageSkillsSection({
                   </Group>
                   <Stack gap="sm">
                     {divinityLevel.choices.map((choice) => (
-                      <StaticSurface key={choice.name} p="md">
+                      <StaticSurface
+                        key={choice.name}
+                        p={{ base: 'sm', sm: 'md' }}
+                      >
                         <Stack gap="sm">
-                          <Group gap="md">
+                          <Group gap="sm" wrap="nowrap">
                             {choice.icon && (
                               <SafeImage
                                 src={getDivinityIcon(choice.icon)}
                                 alt={choice.name}
-                                w={60}
-                                h={60}
+                                w={divinityIconSize}
+                                h={divinityIconSize}
                                 fit="contain"
                                 loading="lazy"
+                                style={{ flexShrink: 0 }}
                               />
                             )}
-                            <Group gap="xs" align="center">
+                            <Group
+                              gap="xs"
+                              align="center"
+                              style={{ flex: 1, minWidth: 0 }}
+                            >
                               <Text fw={600} size="lg">
                                 {choice.name}
                               </Text>
                               {isLevel6 && (
                                 <Badge
-                                  size="lg"
+                                  size={badgeSize}
                                   variant="light"
                                   color={accent.secondary}
                                 >

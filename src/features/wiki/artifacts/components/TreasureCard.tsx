@@ -8,8 +8,11 @@ import type { StatusEffect } from '@/features/wiki/status-effects/types';
 import { StaticSurface } from '@/components/ui/Surface';
 import { IMAGE_SIZE } from '@/constants/ui';
 import { Group, Stack, Text } from '@mantine/core';
+import ExpandableText from '@/components/ui/ExpandableText';
+import { useIsMobile } from '@/hooks';
 
 interface TreasureCardProps {
+  id?: string;
   treasure: ArtifactTreasure;
   artifactSlug: string;
   isDark: boolean;
@@ -18,28 +21,40 @@ interface TreasureCardProps {
 }
 
 export default function TreasureCard({
+  id,
   treasure,
   artifactSlug,
   isDark,
   qualityColor,
   statusEffects,
 }: TreasureCardProps) {
+  const isMobile = useIsMobile();
   const iconSrc = getTreasureIcon(artifactSlug, treasure.name);
+  const iconSize = isMobile ? IMAGE_SIZE.CARD_ICON_SM : IMAGE_SIZE.CARD_ICON;
+  const lore = (
+    <RichText
+      text={treasure.lore}
+      statusEffects={statusEffects}
+      italic
+      lineHeight={1.6}
+    />
+  );
   return (
     <StaticSurface
-      p="md"
+      id={id}
+      p={{ base: 'sm', sm: 'md' }}
       style={{
         borderTop: `3px solid var(--mantine-color-${qualityColor}-${isDark ? 7 : 5})`,
       }}
     >
-      <Stack gap="md">
-        <Group gap="md" wrap="nowrap" align="flex-start">
+      <Stack gap={isMobile ? 'sm' : 'md'}>
+        <Group gap={isMobile ? 'sm' : 'md'} wrap="nowrap" align="flex-start">
           {iconSrc && (
             <SafeImage
               src={iconSrc}
               alt={treasure.name}
-              w={IMAGE_SIZE.CARD_ICON}
-              h={IMAGE_SIZE.CARD_ICON}
+              w={iconSize}
+              h={iconSize}
               fit="contain"
               radius="sm"
               style={{ flexShrink: 0 }}
@@ -53,12 +68,7 @@ export default function TreasureCard({
             <ClassTag characterClass={treasure.character_class} size="sm" />
           </Stack>
         </Group>
-        <RichText
-          text={treasure.lore}
-          statusEffects={statusEffects}
-          italic
-          lineHeight={1.6}
-        />
+        {isMobile ? <ExpandableText>{lore}</ExpandableText> : lore}
         <EffectTable effects={treasure.effect} statusEffects={statusEffects} />
       </Stack>
     </StaticSurface>

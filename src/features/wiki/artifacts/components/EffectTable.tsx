@@ -3,6 +3,7 @@ import { COMPACT_COL_STYLE } from '@/constants/styles';
 import type { ArtifactEffect } from '@/features/wiki/artifacts/types';
 import type { StatusEffect } from '@/features/wiki/status-effects/types';
 import { Box, Table, Text } from '@mantine/core';
+import { useIsMobile } from '@/hooks';
 
 export default function EffectTable({
   effects,
@@ -11,10 +12,17 @@ export default function EffectTable({
   effects: ArtifactEffect[];
   statusEffects: StatusEffect[];
 }) {
+  const isMobile = useIsMobile();
   if (effects.length === 0) return null;
   return (
     <Box style={{ overflowX: 'auto' }}>
-      <Table striped withTableBorder withColumnBorders>
+      <Table
+        striped
+        withTableBorder
+        withColumnBorders
+        verticalSpacing={isMobile ? 4 : 'xs'}
+        horizontalSpacing={isMobile ? 'xs' : 'sm'}
+      >
         <Table.Thead>
           <Table.Tr>
             <Table.Th style={COMPACT_COL_STYLE}>Level</Table.Th>

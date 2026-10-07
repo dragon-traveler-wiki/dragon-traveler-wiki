@@ -16,7 +16,11 @@ import CollapsibleSectionCard from '@/components/ui/CollapsibleSectionCard';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import DataFetchError from '@/components/ui/DataFetchError';
 import EntityNotFound from '@/components/ui/EntityNotFound';
-import { CHARACTER_GRID_SPACING, STORAGE_KEY } from '@/constants/ui';
+import {
+  BUILDER_GRID_COLS,
+  CHARACTER_GRID_SPACING,
+  STORAGE_KEY,
+} from '@/constants/ui';
 import { useCharacterResolution } from '@/features/characters/hooks/use-character-resolution';
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import { getCharacterIdentityKey } from '@/features/characters/utils/character-route';
@@ -244,7 +248,7 @@ export default function TierListPage() {
               }
             >
               <SimpleGrid
-                cols={{ base: 2, xs: 3, sm: 4, md: 6 }}
+                cols={BUILDER_GRID_COLS}
                 spacing={CHARACTER_GRID_SPACING}
               >
                 {unranked.map((entity) => (

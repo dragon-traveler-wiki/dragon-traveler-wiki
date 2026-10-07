@@ -104,7 +104,7 @@ export default function Footer() {
               Unofficial fan project
             </Text>
 
-            <Text size="xs" c="dimmed" aria-hidden="true">
+            <Text size="xs" c="dimmed" aria-hidden="true" visibleFrom="xs">
               •
             </Text>
 

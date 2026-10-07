@@ -34,7 +34,7 @@ export default function HomeSectionCard({
 
   return (
     <StaticSurface
-      p="lg"
+      p={{ base: 'sm', sm: 'lg' }}
       h="100%"
       style={{ position: 'relative', overflow: 'hidden' }}
     >

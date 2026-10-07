@@ -1,12 +1,4 @@
-﻿import {
-  Anchor,
-  Badge,
-  Box,
-  Container,
-  Group,
-  Stack,
-  Text,
-} from '@mantine/core';
+﻿import { Anchor, Badge, Container, Group, Stack, Text } from '@mantine/core';
 import type { IconType } from 'react-icons';
 import { FaDiscord } from 'react-icons/fa';
 import { IoBookOutline, IoLinkOutline } from 'react-icons/io5';
@@ -107,35 +99,31 @@ export default function UsefulLinks() {
               <StaticSurface
                 key={link.link}
                 id={toEntitySlug(link.name)}
-                p="lg"
+                p={{ base: 'sm', sm: 'lg' }}
               >
-                <Group>
-                  <Text size="xl" lh={1}>
-                    <Icon />
-                  </Text>
-                  <Box style={{ flex: 1 }}>
-                    <Group gap="xs" mb={4}>
-                      <Anchor
-                        href={link.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        fw={600}
-                      >
-                        {link.name}
-                      </Anchor>
-                      <Badge
-                        variant="light"
-                        size="sm"
-                        color={getStableTagColor(link.application)}
-                      >
-                        {link.application}
-                      </Badge>
-                    </Group>
-                    <Text size="sm" c="dimmed">
-                      {link.description}
-                    </Text>
-                  </Box>
+                <Group gap="xs" mb={4} wrap="nowrap" align="center">
+                  <Icon size={18} aria-hidden style={{ flexShrink: 0 }} />
+                  <Group gap="xs" style={{ flex: 1, minWidth: 0 }}>
+                    <Anchor
+                      href={link.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      fw={600}
+                    >
+                      {link.name}
+                    </Anchor>
+                    <Badge
+                      variant="light"
+                      size="sm"
+                      color={getStableTagColor(link.application)}
+                    >
+                      {link.application}
+                    </Badge>
+                  </Group>
                 </Group>
+                <Text size="sm" c="dimmed">
+                  {link.description}
+                </Text>
               </StaticSurface>
             );
           })}

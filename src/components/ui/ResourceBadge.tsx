@@ -8,6 +8,13 @@ import { ResourcesContext } from '@/contexts';
 import IconBadge from '@/components/ui/IconBadge';
 import InlineMarkup from '@/components/ui/InlineMarkup';
 
+function humanizeSlug(slug: string): string {
+  return slug
+    .split('_')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 export interface ResourceBadgeProps {
   /** Resource slug (e.g. "dragonblood") — the canonical key in resources.json. */
   slug: string;
@@ -33,7 +40,7 @@ export default function ResourceBadge({
     ? getResourceIcon(resource.slug, resource.category)
     : undefined;
   const iconSize = size === 'xs' ? IMAGE_SIZE.ICON_XS : IMAGE_SIZE.ICON_SM;
-  const label = `${displayName ?? resource?.name ?? slug}${quantity != null ? ` x${quantity.toLocaleString()}` : ''}`;
+  const label = `${displayName ?? resource?.name ?? humanizeSlug(slug)}${quantity != null ? ` x${quantity.toLocaleString()}` : ''}`;
 
   return (
     <IconBadge

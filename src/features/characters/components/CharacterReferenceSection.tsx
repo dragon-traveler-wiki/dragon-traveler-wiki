@@ -146,6 +146,7 @@ export default function CharacterReferenceSection({
 
   return (
     <CollapsibleSectionCard
+      id="usage-section"
       color={accent.primary}
       header={
         <Stack gap={2}>

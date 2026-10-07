@@ -2,7 +2,7 @@ import SafeImage from '@/components/ui/SafeImage';
 import { InteractiveSurface, StaticSurface } from '@/components/ui/Surface';
 import { LINK_BLOCK_RESET_STYLE } from '@/constants/styles';
 import { IMAGE_SIZE } from '@/constants/ui';
-import { Group, Stack, Text } from '@mantine/core';
+import { Box, Group, Stack, Text } from '@mantine/core';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 
@@ -31,7 +31,7 @@ export default function EntitySummaryCard({
 
   return (
     <Surface
-      p="md"
+      p={{ base: 'sm', sm: 'md' }}
       {...(to ? { component: Link, to, style: LINK_BLOCK_RESET_STYLE } : {})}
     >
       <Group gap="md" align="flex-start" wrap="nowrap">
@@ -47,15 +47,18 @@ export default function EntitySummaryCard({
           />
         )}
         <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
-          <Group gap="sm" wrap="wrap">
+          <Group gap="sm" wrap="nowrap" align="flex-start">
             <Text
               fw={700}
               className={to ? 'dt-link-text' : undefined}
-              lineClamp={1}
+              lineClamp={2}
+              style={{ minWidth: 0 }}
             >
               {title}
             </Text>
-            {titleAccessory}
+            {titleAccessory && (
+              <Box style={{ flexShrink: 0 }}>{titleAccessory}</Box>
+            )}
           </Group>
           {metadata}
           {description}
