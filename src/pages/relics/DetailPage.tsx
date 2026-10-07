@@ -2,9 +2,13 @@
 import ChangeHistory from '@/components/common/ChangeHistory';
 import DetailPageHero from '@/components/common/DetailPageHero';
 import DetailPageNavigation from '@/components/common/DetailPageNavigation';
+import DetailPageTitle from '@/components/common/DetailPageTitle';
 import LastUpdated from '@/components/common/LastUpdated';
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
+import SectionJumpNav from '@/components/layout/SectionJumpNav';
+import DataFetchError from '@/components/ui/DataFetchError';
 import EntityNotFound from '@/components/ui/EntityNotFound';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import QualityIcon from '@/components/ui/QualityIcon';
 import { QUALITY_COLOR } from '@/constants/quality';
 import { RELIC_TYPE_ORDER } from '@/constants/relic-colors';
@@ -16,7 +20,12 @@ import {
   useRelics,
   useStatusEffects,
 } from '@/features/wiki/hooks/use-wiki-data';
-import { useDarkMode, useGradientAccent, useMobileTooltip } from '@/hooks';
+import {
+  useAdjacentItems,
+  useDarkMode,
+  useGradientAccent,
+  useMobileTooltip,
+} from '@/hooks';
 import {
   findEntityByParam,
   shouldRedirectToEntitySlug,
@@ -36,6 +45,10 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
+function getRelicGroupSectionId(type: string) {
+  return `relics-${type.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+}
+
 export default function OracleScrollPage() {
   const { accent } = useGradientAccent();
   const { scrollName } = useParams<{ scrollName: string }>();
@@ -44,7 +57,7 @@ export default function OracleScrollPage() {
   const tooltipProps = useMobileTooltip();
   const [previewOpen, setPreviewOpen] = useState(false);
 
-  const { data: relics, loading } = useRelics();
+  const { data: relics, loading, error, retry } = useRelics();
   const { data: changesData } = useRelicChanges();
   const { data: statusEffects } = useStatusEffects();
 
@@ -89,20 +102,25 @@ export default function OracleScrollPage() {
     })).filter((group) => group.relics.length > 0);
   }, [scrollRelics]);
 
-  const scrollIndex = useMemo(
-    () =>
-      currentScroll
-        ? oracleScrolls.findIndex((s) => s.slug === currentScroll.slug)
-        : -1,
-    [oracleScrolls, currentScroll],
+  const jumpSections = useMemo(
+    () => [
+      ...scrollRelicsByType.map((group) => ({
+        id: getRelicGroupSectionId(group.type),
+        label: group.type,
+      })),
+      { id: 'oracle-scroll-history', label: 'History' },
+    ],
+    [scrollRelicsByType],
   );
 
-  const previousScroll =
-    scrollIndex > 0 ? oracleScrolls[scrollIndex - 1] : null;
-  const nextScroll =
-    scrollIndex >= 0 && scrollIndex < oracleScrolls.length - 1
-      ? oracleScrolls[scrollIndex + 1]
-      : null;
+  const { previousItem, nextItem } = useAdjacentItems(
+    oracleScrolls,
+    currentScroll,
+    (entry) => ({
+      label: entry.name,
+      path: `/oracle-scrolls/${entry.slug}`,
+    }),
+  );
 
   const lastUpdated = useMemo(
     () =>
@@ -121,6 +139,18 @@ export default function OracleScrollPage() {
 
   if (loading) {
     return <DetailPageLoading />;
+  }
+
+  if (error) {
+    return (
+      <Container size="lg" py="xl">
+        <DataFetchError
+          title="Could not load relics"
+          message={error.message}
+          onRetry={retry}
+        />
+      </Container>
+    );
   }
 
   if (!currentScroll || scrollRelics.length === 0) {
@@ -151,18 +181,10 @@ export default function OracleScrollPage() {
           { label: 'Oracle Scrolls', path: '/relics?tab=oracle-scrolls' },
           { label: currentScroll.name },
         ]}
-        py={{ base: 'lg', sm: 'xl' }}
       >
         <Stack gap={6}>
           <Group gap="sm" align="center" wrap="wrap">
-            <Title
-              order={1}
-              c={isDark ? 'white' : 'dark'}
-              fz={{ base: '1.5rem', sm: '2.125rem' }}
-              style={{ wordBreak: 'break-word' }}
-            >
-              {currentScroll.name}
-            </Title>
+            <DetailPageTitle>{currentScroll.name}</DetailPageTitle>
             <QualityIcon quality={scrollRelics[0].quality} size={32} />
             <Badge variant="light" color={accent.secondary} size="lg">
               {scrollRelics.length} relic
@@ -185,71 +207,62 @@ export default function OracleScrollPage() {
               type: 'video',
             } satisfies Illustration,
           ]}
-          activeIllustration={{
-            name: currentScroll.name,
-            src: illustrationSrc,
-            type: 'video',
-          }}
-          activeIllustrationIndex={0}
-          hasMultipleIllustrations={false}
-          showPreviousIllustration={() => {}}
-          showNextIllustration={() => {}}
-          onSelectIllustration={() => {}}
           tooltipProps={tooltipProps}
         />
       )}
 
       <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
-        <Stack gap="lg">
-          {illustrationSrc && (
-            <IllustrationPreviewCard
-              src={illustrationSrc}
-              name={currentScroll.name}
-              type="video"
-              accentColor={accent.primary}
-              onExpand={() => setPreviewOpen(true)}
+        <SectionJumpNav sections={jumpSections} hiddenFrom="md" />
+        <ErrorBoundary
+          scope="section"
+          name="oracle scroll details"
+          resetKeys={[currentScroll.slug]}
+        >
+          <Stack gap="lg">
+            {illustrationSrc && (
+              <IllustrationPreviewCard
+                src={illustrationSrc}
+                name={currentScroll.name}
+                type="video"
+                accentColor={accent.primary}
+                onExpand={() => setPreviewOpen(true)}
+              />
+            )}
+
+            {scrollRelicsByType.map((group) => (
+              <Stack
+                key={group.type}
+                id={getRelicGroupSectionId(group.type)}
+                gap="md"
+              >
+                <Title order={2} size="h3">
+                  {group.type}
+                </Title>
+                <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+                  {group.relics.map((relic) => (
+                    <OracleScrollRelicCard
+                      key={relic.name}
+                      relic={relic}
+                      isDark={isDark}
+                      statusEffects={statusEffects}
+                    />
+                  ))}
+                </SimpleGrid>
+              </Stack>
+            ))}
+          </Stack>
+        </ErrorBoundary>
+
+        {relicHistories.length > 0 && (
+          <Box id="oracle-scroll-history">
+            <ChangeHistory
+              history={undefined}
+              extraHistories={relicHistories}
             />
-          )}
+          </Box>
+        )}
 
-          {scrollRelicsByType.map((group) => (
-            <Stack key={group.type} gap="md">
-              <Title order={2} size="h3">
-                {group.type}
-              </Title>
-              <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-                {group.relics.map((relic) => (
-                  <OracleScrollRelicCard
-                    key={relic.name}
-                    relic={relic}
-                    isDark={isDark}
-                    statusEffects={statusEffects}
-                  />
-                ))}
-              </SimpleGrid>
-            </Stack>
-          ))}
-        </Stack>
-
-        <ChangeHistory history={undefined} extraHistories={relicHistories} />
-
-        <DetailPageNavigation
-          previousItem={
-            previousScroll
-              ? {
-                  label: previousScroll.name,
-                  path: `/oracle-scrolls/${previousScroll.slug}`,
-                }
-              : null
-          }
-          nextItem={
-            nextScroll
-              ? {
-                  label: nextScroll.name,
-                  path: `/oracle-scrolls/${nextScroll.slug}`,
-                }
-              : null
-          }
-        />
+        <DetailPageNavigation previousItem={previousItem} nextItem={nextItem} />
       </Container>
     </Box>
   );

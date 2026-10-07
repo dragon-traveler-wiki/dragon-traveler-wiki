@@ -2,6 +2,7 @@ import { Badge, Group, Skeleton, Stack, Text } from '@mantine/core';
 import { StaticSurface } from '@/components/ui/Surface';
 import { LoadingRegion } from '@/components/layout/PageLoadingSkeleton';
 import { useChangelog } from '@/features/wiki/hooks/use-wiki-data';
+import HomeSectionError from './HomeSectionError';
 
 const TYPE_COLORS: Record<string, string> = {
   added: 'green',
@@ -11,7 +12,7 @@ const TYPE_COLORS: Record<string, string> = {
 };
 
 export default function RecentUpdatesSection() {
-  const { data: changelog, loading } = useChangelog();
+  const { data: changelog, loading, error, retry } = useChangelog();
 
   if (loading) {
     return (
@@ -31,6 +32,12 @@ export default function RecentUpdatesSection() {
           ))}
         </Stack>
       </LoadingRegion>
+    );
+  }
+
+  if (error) {
+    return (
+      <HomeSectionError message="Could not load updates." onRetry={retry} />
     );
   }
 

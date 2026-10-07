@@ -3,7 +3,14 @@ import {
   DETAIL_HERO_WRAPPER_STYLES,
   getDetailHeroGradient,
 } from '@/constants/detail-styles';
-import { Box, Container, Stack } from '@mantine/core';
+import {
+  Box,
+  Container,
+  Stack,
+  type ContainerProps,
+  type StyleProp,
+  type MantineSpacing,
+} from '@mantine/core';
 import type { ReactNode } from 'react';
 
 interface BreadcrumbItem {
@@ -20,8 +27,9 @@ interface DetailPageHeroProps {
   /** Opacity overrides for gradient in dark/light mode */
   gradientOpacity?: { dark: number; light: number };
   breadcrumbItems: BreadcrumbItem[];
-  /** Padding for the inner Container (default: 'xl') */
-  py?: string | Record<string, string>;
+  /** Container size; match the page's main content container (default: 'lg') */
+  size?: ContainerProps['size'];
+  py?: StyleProp<MantineSpacing>;
   children: ReactNode;
 }
 
@@ -31,7 +39,8 @@ export default function DetailPageHero({
   secondaryColor,
   gradientOpacity,
   breadcrumbItems,
-  py = 'xl',
+  size = 'lg',
+  py = { base: 'lg', sm: 'xl' },
   children,
 }: DetailPageHeroProps) {
   return (
@@ -44,7 +53,11 @@ export default function DetailPageHero({
           gradientOpacity,
         )}
       />
-      <Container size="lg" style={{ position: 'relative', zIndex: 1 }} py={py}>
+      <Container
+        size={size}
+        style={{ position: 'relative', zIndex: 1 }}
+        py={py}
+      >
         <Stack gap="lg">
           <Breadcrumbs items={breadcrumbItems} />
           {children}

@@ -313,8 +313,7 @@ export default function BannerBackground() {
               pointerEvents: 'none',
               animation: reduceMotion
                 ? 'none'
-                : 'blobDriftB 18s ease-in-out infinite',
-              animationDelay: '-6s',
+                : 'blobDriftB 18s ease-in-out -6s infinite',
               willChange: 'transform',
             }}
           />

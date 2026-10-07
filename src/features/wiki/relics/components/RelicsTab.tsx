@@ -18,6 +18,7 @@ import {
   FilterSection,
 } from '@/components/common/FilterControls';
 import EntitySummaryCard from '@/components/common/EntitySummaryCard';
+import EntityTableLinkCell from '@/components/common/EntityTableLinkCell';
 import FilteredListShell from '@/components/layout/FilteredListShell';
 import ListPageShell from '@/components/layout/ListPageShell';
 import { ViewModeLoading } from '@/components/layout/PageLoadingSkeleton';
@@ -25,12 +26,11 @@ import SortableTh from '@/components/ui/SortableTh';
 import QualityIcon from '@/components/ui/QualityIcon';
 import RelicTypeTag from '@/features/wiki/relics/components/RelicTypeTag';
 import type { RelicFilters } from '@/features/wiki/relics/filters';
-import type { Relic, RelicType } from '@/features/wiki/relics/types';
+import type { Relic } from '@/features/wiki/relics/types';
 import { IMAGE_SIZE } from '@/constants/ui';
 import { getMinWidthStyle } from '@/constants/styles';
 import type { GradientPaletteAccents } from '@/contexts';
 import type { ViewMode } from '@/hooks';
-import type { Quality } from '@/types/quality';
 import type { StatusEffect } from '@/features/wiki/status-effects/types';
 import { useIsMobile } from '@/hooks';
 
@@ -54,7 +54,6 @@ interface RelicsTabProps {
   onPageSizeChange: (pageSize: number) => void;
   filters: RelicFilters;
   onFiltersChange: (filters: RelicFilters) => void;
-  emptyFilters: RelicFilters;
   filterGroups: ChipFilterGroup[];
   sortCol: string | null;
   sortDir: 'asc' | 'desc';
@@ -84,7 +83,6 @@ export default function RelicsTab({
   onPageSizeChange,
   filters,
   onFiltersChange,
-  emptyFilters,
   filterGroups,
   sortCol,
   sortDir,
@@ -135,22 +133,10 @@ export default function RelicsTab({
               types: filters.types,
               qualities: filters.qualities,
             }}
-            onChange={(key, values) => {
-              if (key === 'types') {
-                onFiltersChange({
-                  ...filters,
-                  types: values as RelicType[],
-                });
-                return;
-              }
-              if (key === 'qualities') {
-                onFiltersChange({
-                  ...filters,
-                  qualities: values as Quality[],
-                });
-              }
-            }}
-            onClear={() => onFiltersChange(emptyFilters)}
+            onChange={(key, values) =>
+              onFiltersChange({ ...filters, [key]: values })
+            }
+            onClear={onResetFilters}
             search={filters.search}
             onSearchChange={(value) =>
               onFiltersChange({ ...filters, search: value })
@@ -286,15 +272,19 @@ export default function RelicsTab({
                           />
                         )}
                       </Table.Td>
-                      <Table.Td>
-                        <Text
-                          fw={600}
-                          size="sm"
-                          className={oracleScroll ? 'dt-link-text' : undefined}
+                      {oracleScroll ? (
+                        <EntityTableLinkCell
+                          to={`/oracle-scrolls/${oracleScroll.slug}`}
                         >
                           {item.name}
-                        </Text>
-                      </Table.Td>
+                        </EntityTableLinkCell>
+                      ) : (
+                        <Table.Td>
+                          <Text fw={600} size="sm">
+                            {item.name}
+                          </Text>
+                        </Table.Td>
+                      )}
                       <Table.Td>
                         <RelicTypeTag type={item.type} />
                       </Table.Td>
@@ -313,9 +303,6 @@ export default function RelicsTab({
                               cursor: 'pointer',
                               textDecoration: 'none',
                             }}
-                            onClick={(e: React.MouseEvent) =>
-                              e.stopPropagation()
-                            }
                           >
                             {oracleScroll.name}
                           </Badge>

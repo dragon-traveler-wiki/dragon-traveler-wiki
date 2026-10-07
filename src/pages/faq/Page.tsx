@@ -1,8 +1,10 @@
+import TranslationNote from '@/components/common/TranslationNote';
+import ListPageHeader from '@/components/layout/ListPageHeader';
+import SectionJumpNav from '@/components/layout/SectionJumpNav';
 import CollapsibleSectionCard from '@/components/ui/CollapsibleSectionCard';
 import { StaticSurface } from '@/components/ui/Surface';
 import { useGradientAccent } from '@/hooks';
 import {
-  Alert,
   Anchor,
   Box,
   Button,
@@ -39,6 +41,8 @@ type FAQItem = {
 };
 
 type FAQSection = {
+  id: string;
+  navLabel: string;
   title: string;
   description: string;
   items: FAQItem[];
@@ -46,6 +50,8 @@ type FAQSection = {
 
 const FAQ_SECTIONS: FAQSection[] = [
   {
+    id: 'faq-getting-started',
+    navLabel: 'Getting Started',
     title: 'Getting Started',
     description: 'Core priorities for new and returning players.',
     items: [
@@ -113,6 +119,8 @@ const FAQ_SECTIONS: FAQSection[] = [
     ],
   },
   {
+    id: 'faq-navigation',
+    navLabel: 'Navigation',
     title: 'Navigation & Discovery',
     description: 'Fast ways to find the page or data you need.',
     items: [
@@ -159,16 +167,16 @@ const FAQ_SECTIONS: FAQSection[] = [
             You can find tools like the{' '}
             <Anchor component={Link} to="/toolbox/star-upgrade-calculator">
               Star Upgrade Calculator
-            </Anchor>{' '}
-            and{' '}
+            </Anchor>
+            ,{' '}
             <Anchor component={Link} to="/toolbox/mythic-summon-calculator">
               Mythic Summon Calculator
-            </Anchor>{' '}
-            and{' '}
+            </Anchor>
+            , and{' '}
             <Anchor component={Link} to="/toolbox/diamond-calculator">
               Diamond Calculator
             </Anchor>{' '}
-            in the Guides section.
+            under Toolbox &gt; Calculators.
           </>
         ),
         icon: IoInformationCircleOutline,
@@ -177,6 +185,8 @@ const FAQ_SECTIONS: FAQSection[] = [
     ],
   },
   {
+    id: 'faq-progression',
+    navLabel: 'Progression',
     title: 'Progression & Team Building',
     description: 'How to make practical upgrade and roster decisions.',
     items: [
@@ -228,6 +238,8 @@ const FAQ_SECTIONS: FAQSection[] = [
     ],
   },
   {
+    id: 'faq-wiki-data',
+    navLabel: 'Wiki Data',
     title: 'Wiki Data & Technical Notes',
     description: 'How data is maintained and how site behavior works.',
     items: [
@@ -298,6 +310,8 @@ const FAQ_SECTIONS: FAQSection[] = [
     ],
   },
   {
+    id: 'faq-community',
+    navLabel: 'Community',
     title: 'Community Publishing',
     description: 'Publishing, voting, reporting, and managing your account.',
     items: [
@@ -420,7 +434,7 @@ function FAQCard({
   accentColor: string;
 }) {
   return (
-    <StaticSurface p="md">
+    <StaticSurface p={{ base: 'sm', sm: 'md' }}>
       <Stack gap="xs">
         <Group gap="xs" wrap="nowrap" align="flex-start">
           <ThemeIcon
@@ -435,7 +449,7 @@ function FAQCard({
             {question}
           </Text>
         </Group>
-        <Text size="sm" c="dimmed" style={{ paddingLeft: 36 }}>
+        <Text size="sm" c="dimmed" pl={{ base: 0, sm: 36 }}>
           {answer}
         </Text>
       </Stack>
@@ -452,6 +466,7 @@ function FAQSectionCard({
 }) {
   return (
     <CollapsibleSectionCard
+      id={section.id}
       color={accentColor}
       header={
         <Stack gap={2}>
@@ -478,24 +493,30 @@ function FAQSectionCard({
   );
 }
 
+const SOURCE_SECTION_ID = 'faq-source';
+
+const JUMP_SECTIONS = [
+  ...FAQ_SECTIONS.map(({ id, navLabel }) => ({ id, label: navLabel })),
+  { id: SOURCE_SECTION_ID, label: 'Source' },
+];
+
 export default function FAQ() {
   const { accent } = useGradientAccent();
 
   return (
     <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
-        <Stack gap={2}>
-          <Title order={1}>FAQ</Title>
-          <Text size="sm" c="dimmed">
-            Quick answers about wiki usage and beginner-friendly progression
-            priorities.
-          </Text>
-        </Stack>
+        <ListPageHeader
+          title="FAQ"
+          description="Quick answers about wiki usage and beginner-friendly progression priorities."
+        />
+
+        <SectionJumpNav sections={JUMP_SECTIONS} />
 
         <Stack gap="md">
           {FAQ_SECTIONS.map((section) => (
             <FAQSectionCard
-              key={section.title}
+              key={section.id}
               section={section}
               accentColor={accent.primary}
             />
@@ -504,31 +525,25 @@ export default function FAQ() {
 
         <Divider />
 
-        <StaticSurface p="lg">
+        <StaticSurface id={SOURCE_SECTION_ID} p={{ base: 'sm', sm: 'lg' }}>
           <Stack gap="sm">
-            <Title order={2}>Source Reference</Title>
-            <Alert
-              variant="light"
-              color="yellow"
-              title="Translation note"
-              icon={<IoInformationCircleOutline />}
+            <Title order={2} size="h3">
+              Source Reference
+            </Title>
+            <TranslationNote
+              sourceHref="https://www.gamekee.com/lhlr"
+              sourceLabel="GameKee Dragon Traveler Reference"
             >
               The embedded page below is an external community source used for
-              translation/adaptation. If it does not load, open it directly:{' '}
-              <Anchor
-                href="https://www.gamekee.com/lhlr"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                GameKee Dragon Traveler Reference
-              </Anchor>
-              .
-            </Alert>
+              translation/adaptation. If it does not load, open it directly:
+            </TranslationNote>
             <StaticSurface radius="md" p={0} style={{ overflow: 'hidden' }}>
               <Box
                 component="iframe"
                 src="https://www.gamekee.com/lhlr"
                 title="GameKee Dragon Traveler Reference"
+                sandbox="allow-scripts allow-same-origin allow-popups"
+                referrerPolicy="no-referrer"
                 style={{ width: '100%', height: 460, border: 0 }}
                 loading="lazy"
               />

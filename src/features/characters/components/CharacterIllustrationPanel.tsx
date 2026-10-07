@@ -4,7 +4,7 @@ import SafeVideo from '@/components/ui/SafeVideo';
 import { StaticSurface } from '@/components/ui/Surface';
 import { ILLUSTRATION_PANEL, NAV_ITEM_HEIGHT } from '@/constants/ui';
 import { LoadingRegion } from '@/components/layout/PageLoadingSkeleton';
-import { useGradientAccent } from '@/hooks';
+import { useGradientAccent, useIsMobile } from '@/hooks';
 import {
   ActionIcon,
   Badge,
@@ -15,6 +15,7 @@ import {
   Skeleton,
   Stack,
   Text,
+  Title,
   UnstyledButton,
 } from '@mantine/core';
 import {
@@ -62,6 +63,8 @@ export default function CharacterIllustrationPanel({
   modelAction,
 }: CharacterIllustrationPanelProps) {
   const { accent } = useGradientAccent();
+  const isMobile = useIsMobile();
+  const navIconSize = isMobile ? 'lg' : 'sm';
   const activeIllustrationName = activeIllustration?.name;
 
   if (loading) {
@@ -88,7 +91,11 @@ export default function CharacterIllustrationPanel({
   }
 
   return (
-    <StaticSurface p="md" radius="lg" style={{ overflow: 'hidden' }}>
+    <StaticSurface
+      p={{ base: 'sm', sm: 'md' }}
+      radius="lg"
+      style={{ overflow: 'hidden' }}
+    >
       <Stack gap="xs">
         {skinOptions.length > 1 && (
           <Select
@@ -101,9 +108,9 @@ export default function CharacterIllustrationPanel({
           />
         )}
         <Group justify="space-between" align="center">
-          <Text fw={600} size="sm">
+          <Title order={2} size="h4">
             Illustrations
-          </Text>
+          </Title>
           <Group gap="xs" wrap="nowrap">
             {modelAction}
             {activeIllustrationIndex >= 0 &&
@@ -113,7 +120,7 @@ export default function CharacterIllustrationPanel({
                     onClick={onPrevious}
                     variant="subtle"
                     color={accent.primary}
-                    size="sm"
+                    size={navIconSize}
                     aria-label="Previous illustration"
                   >
                     <IoChevronBack />
@@ -125,7 +132,7 @@ export default function CharacterIllustrationPanel({
                     onClick={onNext}
                     variant="subtle"
                     color={accent.primary}
-                    size="sm"
+                    size={navIconSize}
                     aria-label="Next illustration"
                   >
                     <IoChevronForward />

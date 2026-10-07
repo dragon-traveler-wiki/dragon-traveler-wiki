@@ -66,14 +66,11 @@ export default function FilterableCharacterPool({
   );
   const [filterOpen, { toggle: toggleFilter }] = useDisclosure(false);
 
-  // Mirror the SimpleGrid breakpoints: base: 2, xs: 3, sm: 4, md: 6
+  // Mirror BUILDER_GRID_COLS breakpoints
   const isMd = useMediaQuery(BREAKPOINTS.MD);
-  const isSm = useMediaQuery(BREAKPOINTS.DESKTOP);
-  const isXs = useMediaQuery(BREAKPOINTS.XS);
   // The side column has a fixed width regardless of viewport, so it uses a
   // fixed column count instead of the viewport-driven breakpoints below.
-  const cols =
-    layout === 'side' ? SIDE_LAYOUT_COLS : isMd ? 6 : isSm ? 4 : isXs ? 3 : 2;
+  const cols = layout === 'side' ? SIDE_LAYOUT_COLS : isMd ? 6 : 4;
   const pageSizeOptions = useMemo(
     () => buildRowAlignedPageSizeOptions(cols, [4, 6, 8, 10]),
     [cols],

@@ -2,22 +2,21 @@
 import type { ChipFilterGroup } from '@/components/common/EntityFilter';
 import EntityFilter from '@/components/common/EntityFilter';
 import { createFactionFilterGroup } from '@/components/common/EntityFilterGroups';
-import LastUpdated from '@/components/common/LastUpdated';
+import ListPageHeader from '@/components/layout/ListPageHeader';
 import PageFilterHeaderControls from '@/components/layout/PageFilterHeaderControls';
-import { CommunityBrowseLoading } from '@/components/layout/PageLoadingSkeleton';
+import {
+  CommunityBrowseLoading,
+  CommunityCardsLoading,
+  ViewModeLoading,
+} from '@/components/layout/PageLoadingSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import DataFetchError from '@/components/ui/DataFetchError';
-import {
-  CONTENT_TYPE_OPTIONS,
-  normalizeContentTypeFilters,
-} from '@/constants/content-types';
+import { CONTENT_TYPE_OPTIONS } from '@/constants/content-types';
 import {
   BUILDER_SIDE_LAYOUT_CONTAINER_SIZE,
   STORAGE_KEY,
 } from '@/constants/ui';
-import CommunitySortControl, {
-  type CommunitySort,
-} from '@/features/community/CommunitySortControl';
+import CommunitySortControl from '@/features/community/CommunitySortControl';
 import TeamBuilder from '@/features/teams/components/TeamBuilder';
 import TeamsSavedTab from '@/features/teams/components/TeamsSavedTab';
 import TeamsViewTab from '@/features/teams/components/TeamsViewTab';
@@ -36,7 +35,6 @@ import {
   countActiveFilters,
   getPageSizeStorageKey,
   useBuilderEditState,
-  useFilters,
   useGradientAccent,
   useIsMobile,
   usePageSize,
@@ -44,19 +42,17 @@ import {
   usePoolLayout,
   useViewMode,
 } from '@/hooks';
-import { parseTabMode } from '@/utils';
+import {
+  useCommunityBrowseState,
+  useSavedItemsForMode,
+} from '@/hooks/use-community-browse-state';
+import { getLatestTimestamp, parseTabMode } from '@/utils';
 import { toEntitySlug } from '@/utils/entity-slug';
 import { showErrorToast } from '@/utils/toast';
 import { retryFailedDataSources } from '@/utils/retry-failed-data-sources';
-import {
-  Container,
-  Group,
-  SegmentedControl,
-  Stack,
-  Title,
-} from '@mantine/core';
-import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Container, SegmentedControl, Stack } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { useMemo } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 
 const TEAMS_PER_PAGE = 12;
@@ -70,20 +66,23 @@ export default function Teams() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [search, setSearch] = useState(() => {
-    if (typeof window === 'undefined') return '';
-    return window.localStorage.getItem(STORAGE_KEY.TEAMS_SEARCH) || '';
+  const {
+    search,
+    setSearch,
+    debouncedSearch,
+    sort,
+    setSort,
+    filters: viewFilters,
+    handleFilterChange,
+    clearFilters: handleClearFilters,
+  } = useCommunityBrowseState<TeamFilters>({
+    emptyFilters: EMPTY_TEAM_FILTERS,
+    storageKeys: {
+      search: STORAGE_KEY.TEAMS_SEARCH,
+      sort: STORAGE_KEY.TEAMS_SORT,
+      filters: STORAGE_KEY.TEAMS_FILTERS,
+    },
   });
-  const [debouncedSearch] = useDebouncedValue(search, 300);
-  const [sort, setSort] = useState<CommunitySort>(() => {
-    if (typeof window === 'undefined') return 'top';
-    return window.localStorage.getItem(STORAGE_KEY.TEAMS_SORT) === 'new'
-      ? 'new'
-      : 'top';
-  });
-  useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY.TEAMS_SORT, sort);
-  }, [sort]);
   const {
     data: teams,
     total: totalTeams,
@@ -106,11 +105,6 @@ export default function Teams() {
     error: wyrmspellsError,
     retry: retryWyrmspells,
   } = useWyrmspells();
-  const { filters: viewFilters, setFilters: setViewFilters } =
-    useFilters<TeamFilters>({
-      emptyFilters: EMPTY_TEAM_FILTERS,
-      storageKey: STORAGE_KEY.TEAMS_FILTERS,
-    });
   const [filterOpen, { toggle: toggleFilter }] = useDisclosure(false);
   const mode = parseTabMode(searchParams.get('mode'));
   const navigationEditTeam = (location.state as { editTeam?: Team } | null)
@@ -138,35 +132,21 @@ export default function Teams() {
     setLayout: setPoolLayout,
     canUseSideLayout: canUseSidePoolLayout,
   } = usePoolLayout();
-  const [savedTeams, setSavedTeams] = useState<Team[]>(() =>
-    mode === 'saved' ? loadSavedTeams() : [],
+  const [savedTeams, setSavedTeams] = useSavedItemsForMode(
+    mode,
+    loadSavedTeams,
   );
   const [viewMode, setViewMode] = useViewMode({
     storageKey: STORAGE_KEY.TEAMS_VIEW_MODE,
     defaultMode: 'grid',
   });
-  const loading = loadingTeams || loadingChars || loadingSpells;
-  const error = teamsError || charactersError || wyrmspellsError;
-
-  useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY.TEAMS_SEARCH, search);
-  }, [search]);
+  const loadingSupportData = loadingChars || loadingSpells;
+  const supportDataError = charactersError || wyrmspellsError;
 
   const { preferredByName: charMap, byIdentity: characterByIdentity } =
     useCharacterResolution(characters);
 
   const contentTypeOptions = useMemo(() => [...CONTENT_TYPE_OPTIONS], []);
-
-  useEffect(() => {
-    const deduped = normalizeContentTypeFilters(viewFilters.contentTypes);
-    const unchanged =
-      deduped.length === viewFilters.contentTypes.length &&
-      deduped.every(
-        (value, index) => value === viewFilters.contentTypes[index],
-      );
-    if (unchanged) return;
-    setViewFilters((prev) => ({ ...prev, contentTypes: deduped }));
-  }, [viewFilters.contentTypes, setViewFilters]);
 
   const entityFilterGroups: ChipFilterGroup[] = useMemo(
     () => [
@@ -184,18 +164,6 @@ export default function Teams() {
     mode === 'view' || mode === 'saved'
       ? countActiveFilters(viewFilters) + (search.trim() ? 1 : 0)
       : 0;
-
-  const handleFilterChange = useCallback(
-    (key: string, values: string[]) => {
-      setViewFilters((prev) => ({ ...prev, [key]: values }));
-    },
-    [setViewFilters],
-  );
-
-  const handleClearFilters = useCallback(() => {
-    setViewFilters(EMPTY_TEAM_FILTERS);
-    setSearch('');
-  }, [setViewFilters]);
 
   function deleteSavedTeam(name: string) {
     try {
@@ -239,18 +207,40 @@ export default function Teams() {
   const { page, setPage, totalPages, offset } = usePagination(
     paginationTotal,
     pageSize,
-    JSON.stringify({ search, viewFilters }),
+    JSON.stringify({ debouncedSearch, sort, viewFilters }),
   );
 
   const paginatedTeams = filteredTeams.slice(offset, offset + pageSize);
 
-  const mostRecentUpdate = useMemo(() => {
-    let latest = 0;
-    for (const t of teams) {
-      if (t.last_updated > latest) latest = t.last_updated;
-    }
-    return latest;
-  }, [teams]);
+  const mostRecentUpdate = useMemo(() => getLatestTimestamp(teams), [teams]);
+
+  const filterControls = (mode === 'view' || mode === 'saved') && (
+    <PageFilterHeaderControls
+      sticky={isMobile}
+      viewMode={viewMode}
+      onViewModeChange={setViewMode}
+      filterCount={activeFilterCount}
+      filterOpen={filterOpen}
+      onFilterToggle={toggleFilter}
+      extraControls={
+        mode === 'view' && (
+          <CommunitySortControl value={sort} onChange={setSort} />
+        )
+      }
+    >
+      <EntityFilter
+        groups={entityFilterGroups}
+        selected={viewFilters}
+        onChange={handleFilterChange}
+        onClear={handleClearFilters}
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder={
+          mode === 'saved' ? 'Search saved teams...' : 'Search teams...'
+        }
+      />
+    </PageFilterHeaderControls>
+  );
 
   const containerSize =
     mode === 'builder' && poolLayout === 'side'
@@ -260,72 +250,13 @@ export default function Teams() {
   return (
     <Container size={containerSize} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="md">
-        <Group justify="space-between" align="center" wrap="wrap" gap="sm">
-          <Group gap="sm" align="baseline">
-            <Title order={1}>Teams</Title>
-            <LastUpdated timestamp={mostRecentUpdate} />
-          </Group>
-          <Group gap="xs">
-            {!isMobile && (mode === 'view' || mode === 'saved') && (
-              <PageFilterHeaderControls
-                viewMode={viewMode}
-                onViewModeChange={setViewMode}
-                filterCount={activeFilterCount}
-                filterOpen={filterOpen}
-                onFilterToggle={toggleFilter}
-                extraControls={
-                  mode === 'view' && (
-                    <CommunitySortControl value={sort} onChange={setSort} />
-                  )
-                }
-              >
-                <EntityFilter
-                  groups={entityFilterGroups}
-                  selected={viewFilters}
-                  onChange={handleFilterChange}
-                  onClear={handleClearFilters}
-                  search={search}
-                  onSearchChange={setSearch}
-                  searchPlaceholder={
-                    mode === 'saved'
-                      ? 'Search saved teams...'
-                      : 'Search teams...'
-                  }
-                />
-              </PageFilterHeaderControls>
-            )}
-          </Group>
-        </Group>
+        <ListPageHeader title="Teams" timestamp={mostRecentUpdate}>
+          {!isMobile && filterControls}
+        </ListPageHeader>
 
-        {isMobile && (mode === 'view' || mode === 'saved') && (
-          <PageFilterHeaderControls
-            sticky
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            filterCount={activeFilterCount}
-            filterOpen={filterOpen}
-            onFilterToggle={toggleFilter}
-            extraControls={
-              mode === 'view' && (
-                <CommunitySortControl value={sort} onChange={setSort} />
-              )
-            }
-          >
-            <EntityFilter
-              groups={entityFilterGroups}
-              selected={viewFilters}
-              onChange={handleFilterChange}
-              onClear={handleClearFilters}
-              search={search}
-              onSearchChange={setSearch}
-              searchPlaceholder={
-                mode === 'saved' ? 'Search saved teams...' : 'Search teams...'
-              }
-            />
-          </PageFilterHeaderControls>
-        )}
+        {isMobile && filterControls}
 
-        {loading && (
+        {loadingSupportData && (
           <CommunityBrowseLoading
             kind="team"
             viewMode={viewMode}
@@ -333,13 +264,12 @@ export default function Teams() {
           />
         )}
 
-        {!loading && error && (
+        {!loadingSupportData && supportDataError && (
           <DataFetchError
             title="Could not load teams data"
-            message={error.message}
+            message={supportDataError.message}
             onRetry={() =>
               retryFailedDataSources(
-                [teamsError, retryTeams],
                 [charactersError, retryCharacters],
                 [wyrmspellsError, retryWyrmspells],
               )
@@ -347,7 +277,7 @@ export default function Teams() {
           />
         )}
 
-        {!loading && !error && (
+        {!loadingSupportData && !supportDataError && (
           <>
             <SegmentedControl
               fullWidth
@@ -356,43 +286,60 @@ export default function Teams() {
               value={mode}
               onChange={(val) => {
                 const newMode = val as 'view' | 'saved' | 'builder';
-                if (newMode === 'saved') {
-                  setSavedTeams(loadSavedTeams());
-                }
                 setSearchParams(newMode === 'view' ? {} : { mode: newMode });
                 if (newMode === 'view') setEditData(null);
               }}
               data={[
-                { label: 'View Teams', value: 'view' },
-                { label: 'My Saved', value: 'saved' },
-                { label: 'Create Your Own', value: 'builder' },
+                { label: isMobile ? 'Browse' : 'View Teams', value: 'view' },
+                { label: isMobile ? 'Saved' : 'My Saved', value: 'saved' },
+                {
+                  label: isMobile ? 'Create' : 'Create Your Own',
+                  value: 'builder',
+                },
               ]}
             />
 
-            {mode === 'view' && (
-              <TeamsViewTab
-                paginatedTeams={paginatedTeams}
-                filteredTeams={filteredTeams}
-                charMap={charMap}
-                characterByIdentity={characterByIdentity}
-                viewMode={viewMode}
-                search={search}
-                onClearFilters={handleClearFilters}
-                onOpenFilters={toggleFilter}
-                page={page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-                pageSize={pageSize}
-                pageSizeOptions={pageSizeOptions}
-                onPageSizeChange={setPageSize}
-                onRequestEdit={requestEditTeam}
-                hasMore={hasMoreTeams}
-                loadedCount={teams.length}
-                paginationTotal={paginationTotal}
-                loadingMore={loadingMoreTeams}
-                onLoadMore={loadMoreTeams}
-              />
-            )}
+            {mode === 'view' &&
+              (loadingTeams && teams.length === 0 ? (
+                viewMode === 'grid' ? (
+                  <CommunityCardsLoading kind="team" />
+                ) : (
+                  <ViewModeLoading
+                    viewMode={viewMode}
+                    listType="table"
+                    label="Loading teams"
+                  />
+                )
+              ) : teamsError ? (
+                <DataFetchError
+                  title="Could not load teams"
+                  message={teamsError.message}
+                  onRetry={retryTeams}
+                />
+              ) : (
+                <TeamsViewTab
+                  paginatedTeams={paginatedTeams}
+                  filteredTeams={filteredTeams}
+                  charMap={charMap}
+                  characterByIdentity={characterByIdentity}
+                  viewMode={viewMode}
+                  search={search}
+                  onClearFilters={handleClearFilters}
+                  onOpenFilters={toggleFilter}
+                  page={page}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                  pageSize={pageSize}
+                  pageSizeOptions={pageSizeOptions}
+                  onPageSizeChange={setPageSize}
+                  onRequestEdit={requestEditTeam}
+                  hasMore={hasMoreTeams}
+                  loadedCount={teams.length}
+                  paginationTotal={paginationTotal}
+                  loadingMore={loadingMoreTeams}
+                  onLoadMore={loadMoreTeams}
+                />
+              ))}
 
             {mode === 'saved' && (
               <TeamsSavedTab

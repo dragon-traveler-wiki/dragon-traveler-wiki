@@ -13,13 +13,7 @@ import {
 } from '@mantine/core';
 import SafeImage from '@/components/ui/SafeImage';
 import SafeVideo from '@/components/ui/SafeVideo';
-import {
-  type KeyboardEvent as ReactKeyboardEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import {
   IoChevronBack,
   IoChevronForward,
@@ -47,17 +41,16 @@ type TooltipInteractionProps = {
   };
 };
 
+type NavDirection = 'previous' | 'next';
+
 interface IllustrationPreviewModalProps {
   opened: boolean;
   onClose: () => void;
   entityName: string;
   illustrations: Illustration[];
-  activeIllustration: Illustration | null;
-  activeIllustrationIndex: number;
-  hasMultipleIllustrations: boolean;
-  showPreviousIllustration: () => void;
-  showNextIllustration: () => void;
-  onSelectIllustration: (illustration: Illustration) => void;
+  activeIllustrationIndex?: number;
+  /** Omit for single-media previews; navigation controls are hidden without it. */
+  onSelectIllustration?: (illustration: Illustration) => void;
   tooltipProps: TooltipInteractionProps;
   isFavorite?: boolean;
   onToggleFavorite?: () => void;
@@ -68,72 +61,47 @@ export default function IllustrationPreviewModal({
   onClose,
   entityName,
   illustrations,
-  activeIllustration,
-  activeIllustrationIndex,
-  hasMultipleIllustrations,
-  showPreviousIllustration,
-  showNextIllustration,
+  activeIllustrationIndex = 0,
   onSelectIllustration,
   tooltipProps,
   isFavorite,
   onToggleFavorite,
 }: IllustrationPreviewModalProps) {
   const { accent } = useGradientAccent();
-  const mediaContainerRef = useRef<HTMLDivElement>(null);
+  const mediaContainerRef = useRef<HTMLElement>(null);
+  const thumbnailListRef = useRef<HTMLDivElement>(null);
+  const thumbnailRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [modalHoverSide, setModalHoverSide] = useState<'left' | 'right' | null>(
-    null,
-  );
-  const thumbnailHintId = 'character-illustration-thumbnails-hint';
-  const activeIllustrationName = activeIllustration?.name;
+  const [hoveredNav, setHoveredNav] = useState<NavDirection | null>(null);
+  const thumbnailHintId = useId();
+
+  const activeIllustration = illustrations[activeIllustrationIndex] ?? null;
+  const canNavigate = Boolean(onSelectIllustration) && illustrations.length > 1;
+  const lastIndex = illustrations.length - 1;
+  const previousIndex =
+    activeIllustrationIndex <= 0 ? lastIndex : activeIllustrationIndex - 1;
+  const nextIndex =
+    activeIllustrationIndex >= lastIndex ? 0 : activeIllustrationIndex + 1;
 
   const selectIllustrationByIndex = useCallback(
     (index: number) => {
       const candidate = illustrations[index];
-      if (candidate) {
-        onSelectIllustration(candidate);
-      }
+      if (candidate) onSelectIllustration?.(candidate);
     },
     [illustrations, onSelectIllustration],
   );
 
-  const handleThumbnailKeyDown = useCallback(
-    (event: ReactKeyboardEvent<HTMLButtonElement>, index: number) => {
-      if (illustrations.length === 0) return;
-
-      if (event.key === 'ArrowRight') {
-        event.preventDefault();
-        event.stopPropagation();
-        selectIllustrationByIndex((index + 1) % illustrations.length);
-      } else if (event.key === 'ArrowLeft') {
-        event.preventDefault();
-        event.stopPropagation();
-        selectIllustrationByIndex(
-          (index - 1 + illustrations.length) % illustrations.length,
-        );
-      } else if (event.key === 'Home') {
-        event.preventDefault();
-        event.stopPropagation();
-        selectIllustrationByIndex(0);
-      } else if (event.key === 'End') {
-        event.preventDefault();
-        event.stopPropagation();
-        selectIllustrationByIndex(illustrations.length - 1);
-      }
-    },
-    [illustrations.length, selectIllustrationByIndex],
-  );
-
   const handleFullscreen = useCallback(async () => {
-    if (document.fullscreenElement) {
-      await document.exitFullscreen();
-      return;
-    }
     const el = mediaContainerRef.current;
     if (!el) return;
     try {
-      await el.requestFullscreen();
+      if (document.fullscreenElement === el) {
+        await document.exitFullscreen();
+      } else {
+        await el.requestFullscreen();
+      }
     } catch {
+      // Element fullscreen is unavailable on some mobile browsers (e.g. iOS Safari).
       if (activeIllustration?.type === 'image' && activeIllustration.src) {
         window.open(activeIllustration.src, '_blank', 'noopener,noreferrer');
       }
@@ -141,28 +109,89 @@ export default function IllustrationPreviewModal({
   }, [activeIllustration]);
 
   useEffect(() => {
-    const handleFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+    const handleFsChange = () =>
+      setIsFullscreen(
+        mediaContainerRef.current !== null &&
+          document.fullscreenElement === mediaContainerRef.current,
+      );
     document.addEventListener('fullscreenchange', handleFsChange);
     return () =>
       document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
 
   useEffect(() => {
-    if (!opened || !hasMultipleIllustrations) return;
-    const handleKey = (e: KeyboardEvent) => {
-      // Skip if a thumbnail button already handled this via onKeyDown
-      if ((e.target as HTMLElement | null)?.closest('[role="listbox"]')) return;
-      if (e.key === 'ArrowLeft') showPreviousIllustration();
-      else if (e.key === 'ArrowRight') showNextIllustration();
+    if (!opened || !canNavigate) return;
+    const handleKey = (event: KeyboardEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.shiftKey
+      ) {
+        return;
+      }
+      const target = event.target as Node | null;
+      // Leave arrow keys to a focused video so its native seeking still works.
+      if (target instanceof HTMLMediaElement) return;
+      const inThumbnails = Boolean(thumbnailListRef.current?.contains(target));
+
+      let index: number;
+      if (event.key === 'ArrowLeft') index = previousIndex;
+      else if (event.key === 'ArrowRight') index = nextIndex;
+      else if (event.key === 'Home' && inThumbnails) index = 0;
+      else if (event.key === 'End' && inThumbnails) index = lastIndex;
+      else return;
+
+      event.preventDefault();
+      selectIllustrationByIndex(index);
+      if (inThumbnails) thumbnailRefs.current[index]?.focus();
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, [
     opened,
-    hasMultipleIllustrations,
-    showPreviousIllustration,
-    showNextIllustration,
+    canNavigate,
+    previousIndex,
+    nextIndex,
+    lastIndex,
+    selectIllustrationByIndex,
   ]);
+
+  const renderNavButton = (direction: NavDirection) => {
+    const isPrevious = direction === 'previous';
+    const isHovered = hoveredNav === direction;
+    return (
+      <ActionIcon
+        onClick={() =>
+          selectIllustrationByIndex(isPrevious ? previousIndex : nextIndex)
+        }
+        onMouseEnter={() => setHoveredNav(direction)}
+        onMouseLeave={() => setHoveredNav(null)}
+        aria-label={isPrevious ? 'Previous illustration' : 'Next illustration'}
+        variant="filled"
+        color="dark"
+        radius="xl"
+        size="lg"
+        style={{
+          position: 'absolute',
+          top: '50%',
+          [isPrevious ? 'left' : 'right']: 16,
+          opacity: isHovered ? 1 : 0.55,
+          transform: `translateY(-50%) scale(${isHovered ? 1.1 : 1})`,
+          transition: `opacity ${TRANSITION.FAST} ${TRANSITION.EASE}, transform ${TRANSITION.FAST} ${TRANSITION.EASE}`,
+        }}
+      >
+        {isPrevious ? (
+          <IoChevronBack size={24} />
+        ) : (
+          <IoChevronForward size={24} />
+        )}
+      </ActionIcon>
+    );
+  };
+
+  const title = activeIllustration?.name ?? entityName;
 
   return (
     <Modal
@@ -176,21 +205,21 @@ export default function IllustrationPreviewModal({
       {activeIllustration && (
         <Stack gap="md">
           <VisuallyHidden role="status" aria-live="polite" aria-atomic="true">
-            {`Illustration ${activeIllustrationIndex + 1} of ${illustrations.length}: ${activeIllustrationName ?? entityName}`}
+            {`Illustration ${activeIllustrationIndex + 1} of ${illustrations.length}: ${title}`}
           </VisuallyHidden>
 
-          <Group justify="space-between" align="center">
+          <Group justify="space-between" align="center" wrap="nowrap">
             <Group gap="sm" align="center">
               <Text fw={600} size="lg">
-                {activeIllustrationName ?? entityName}
+                {title}
               </Text>
-              {activeIllustrationIndex >= 0 && (
+              {illustrations.length > 1 && (
                 <Badge variant="light" color="gray">
                   {activeIllustrationIndex + 1}/{illustrations.length}
                 </Badge>
               )}
             </Group>
-            <Group gap="xs">
+            <Group gap="xs" wrap="nowrap">
               {onToggleFavorite && (
                 <Tooltip
                   label={
@@ -246,7 +275,7 @@ export default function IllustrationPreviewModal({
             style={{
               position: 'relative',
               maxHeight: isFullscreen ? '100dvh' : '70vh',
-              overflow: isFullscreen ? 'hidden' : 'auto',
+              overflow: 'hidden',
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
@@ -272,116 +301,55 @@ export default function IllustrationPreviewModal({
                 fit="contain"
                 mah={isFullscreen ? '100dvh' : '70vh'}
                 radius={isFullscreen ? 0 : 'lg'}
-                loading="lazy"
               />
             )}
 
-            {hasMultipleIllustrations && (
+            {canNavigate && (
               <>
-                <Box
-                  onMouseEnter={() => setModalHoverSide('left')}
-                  onMouseLeave={() => setModalHoverSide(null)}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    bottom: 0,
-                    left: 0,
-                    width: 84,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <ActionIcon
-                    onClick={showPreviousIllustration}
-                    aria-label="Previous illustration"
-                    variant="filled"
-                    color="dark"
-                    radius="xl"
-                    size="lg"
-                    style={{
-                      opacity: modalHoverSide === 'left' ? 1 : 0.55,
-                      transition: `opacity ${TRANSITION.FAST} ${TRANSITION.EASE}, transform ${TRANSITION.FAST} ${TRANSITION.EASE}`,
-                      transform:
-                        modalHoverSide === 'left' ? 'scale(1.1)' : 'scale(1)',
-                    }}
-                  >
-                    <IoChevronBack size={24} />
-                  </ActionIcon>
-                </Box>
-                <Box
-                  onMouseEnter={() => setModalHoverSide('right')}
-                  onMouseLeave={() => setModalHoverSide(null)}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    bottom: 0,
-                    right: 0,
-                    width: 84,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <ActionIcon
-                    onClick={showNextIllustration}
-                    aria-label="Next illustration"
-                    variant="filled"
-                    color="dark"
-                    radius="xl"
-                    size="lg"
-                    style={{
-                      opacity: modalHoverSide === 'right' ? 1 : 0.55,
-                      transition: `opacity ${TRANSITION.FAST} ${TRANSITION.EASE}, transform ${TRANSITION.FAST} ${TRANSITION.EASE}`,
-                      transform:
-                        modalHoverSide === 'right' ? 'scale(1.1)' : 'scale(1)',
-                    }}
-                  >
-                    <IoChevronForward size={24} />
-                  </ActionIcon>
-                </Box>
+                {renderNavButton('previous')}
+                {renderNavButton('next')}
               </>
             )}
           </StaticSurface>
 
-          {hasMultipleIllustrations && (
+          {canNavigate && (
             <>
               <VisuallyHidden id={thumbnailHintId}>
                 Use Left and Right Arrow keys to move between thumbnails. Use
                 Home for first and End for last illustration.
               </VisuallyHidden>
               <Box
+                ref={thumbnailListRef}
                 role="listbox"
                 aria-label="Illustration thumbnails"
                 aria-describedby={thumbnailHintId}
                 style={{
                   display: 'flex',
                   gap: 8,
-                  justifyContent: 'center',
+                  justifyContent: 'safe center',
                   overflowX: 'auto',
                   paddingBottom: 4,
                   paddingTop: 4,
                 }}
               >
                 {illustrations.map((illust, index) => {
-                  const isActive = illust.name === activeIllustrationName;
+                  const isActive = index === activeIllustrationIndex;
                   return (
                     <Stack
-                      key={`thumb-${illust.name}`}
+                      key={illust.src}
                       gap={4}
                       align="center"
                       style={{ flexShrink: 0 }}
                     >
                       <UnstyledButton
-                        onClick={() => onSelectIllustration(illust)}
-                        onKeyDown={(event) =>
-                          handleThumbnailKeyDown(event, index)
-                        }
+                        ref={(el) => {
+                          thumbnailRefs.current[index] = el;
+                        }}
+                        onClick={() => selectIllustrationByIndex(index)}
                         role="option"
                         aria-selected={isActive}
-                        aria-keyshortcuts="ArrowLeft ArrowRight Home End"
-                        aria-describedby={thumbnailHintId}
-                        aria-label={`Go to ${illust.name}`}
+                        tabIndex={isActive ? 0 : -1}
+                        aria-label={illust.name}
                         style={{
                           width: 96,
                           height: 60,
@@ -409,7 +377,7 @@ export default function IllustrationPreviewModal({
                         ) : (
                           <SafeImage
                             src={illust.src}
-                            alt={illust.name}
+                            alt=""
                             w={96}
                             h={60}
                             fit="cover"
@@ -424,6 +392,7 @@ export default function IllustrationPreviewModal({
                         ta="center"
                         lineClamp={1}
                         style={{ maxWidth: 96 }}
+                        aria-hidden
                       >
                         {illust.name}
                       </Text>

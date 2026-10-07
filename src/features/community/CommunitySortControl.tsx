@@ -24,7 +24,8 @@ export default function CommunitySortControl({
       onChange={(next) => onChange(next === 'new' ? 'new' : 'top')}
       data={SORT_OPTIONS}
       allowDeselect={false}
-      w={130}
+      miw={130}
+      style={{ flex: 1 }}
       color={accent.primary}
       aria-label="Sort by"
     />

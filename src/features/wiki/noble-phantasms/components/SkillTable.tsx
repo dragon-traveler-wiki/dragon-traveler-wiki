@@ -28,6 +28,8 @@ export default function SkillTable({
     );
   });
 
+  const hasTiers = sortedSkills.some((skill) => skill.tier);
+
   if (sortedSkills.length === 0) {
     return (
       <Text c="dimmed" size="sm">
@@ -42,7 +44,7 @@ export default function SkillTable({
         <Table.Thead>
           <Table.Tr>
             <Table.Th style={COMPACT_COL_STYLE}>Level</Table.Th>
-            <Table.Th style={COMPACT_COL_STYLE}>Tier</Table.Th>
+            {hasTiers && <Table.Th style={COMPACT_COL_STYLE}>Tier</Table.Th>}
             <Table.Th>Description</Table.Th>
           </Table.Tr>
         </Table.Thead>
@@ -56,21 +58,23 @@ export default function SkillTable({
                     {skill.level}
                   </Text>
                 </Table.Td>
-                <Table.Td style={COMPACT_COL_STYLE}>
-                  {skill.tier ? (
-                    <Badge
-                      size="sm"
-                      variant="light"
-                      color={tierDetail?.color ?? 'gray'}
-                    >
-                      {skill.tier}
-                    </Badge>
-                  ) : (
-                    <Text size="sm" c="dimmed">
-                      —
-                    </Text>
-                  )}
-                </Table.Td>
+                {hasTiers && (
+                  <Table.Td style={COMPACT_COL_STYLE}>
+                    {skill.tier ? (
+                      <Badge
+                        size="sm"
+                        variant="light"
+                        color={tierDetail?.color ?? 'gray'}
+                      >
+                        {skill.tier}
+                      </Badge>
+                    ) : (
+                      <Text size="sm" c="dimmed">
+                        —
+                      </Text>
+                    )}
+                  </Table.Td>
+                )}
                 <Table.Td>
                   <RichText
                     text={skill.description}

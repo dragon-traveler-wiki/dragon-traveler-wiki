@@ -8,9 +8,10 @@ import {
   Text,
   Timeline,
 } from '@mantine/core';
-import { IoCheckmarkCircle } from 'react-icons/io5';
+import { IoCheckmarkCircle, IoChevronDown, IoChevronUp } from 'react-icons/io5';
 import { ViewModeLoading } from '@/components/layout/PageLoadingSkeleton';
 import { formatIsoDate } from '@/utils/timestamps';
+import DataFetchError from '@/components/ui/DataFetchError';
 import PaginationControl from '@/components/ui/PaginationControl';
 import { IMAGE_SIZE } from '@/constants/ui';
 import type { GradientPaletteAccents } from '@/contexts';
@@ -29,6 +30,8 @@ function capitalize(s: string): string {
 
 interface SiteUpdatesTabProps {
   loading: boolean;
+  error: Error | null;
+  onRetry: () => void;
   changelog: ChangelogEntry[];
   paginatedChangelog: ChangelogEntry[];
   offset: number;
@@ -46,6 +49,8 @@ interface SiteUpdatesTabProps {
 
 export default function SiteUpdatesTab({
   loading,
+  error,
+  onRetry,
   changelog,
   paginatedChangelog,
   offset,
@@ -70,13 +75,21 @@ export default function SiteUpdatesTab({
         />
       )}
 
-      {!loading && changelog.length === 0 && (
+      {!loading && error && (
+        <DataFetchError
+          title="Could not load changelog"
+          message={error.message}
+          onRetry={onRetry}
+        />
+      )}
+
+      {!loading && !error && changelog.length === 0 && (
         <Text c="dimmed" ta="center" py="lg">
           No changelog entries available yet.
         </Text>
       )}
 
-      {!loading && changelog.length > 0 && (
+      {!loading && !error && changelog.length > 0 && (
         <>
           <Timeline active={-1} bulletSize={28} lineWidth={2}>
             {paginatedChangelog.map((entry, entryIndex) => {
@@ -100,11 +113,16 @@ export default function SiteUpdatesTab({
                   title={
                     <Group
                       justify="space-between"
-                      wrap="wrap"
+                      wrap="nowrap"
                       gap="xs"
-                      align="center"
+                      align="flex-start"
                     >
-                      <Group gap="xs" wrap="wrap" align="center">
+                      <Group
+                        gap="xs"
+                        wrap="wrap"
+                        align="center"
+                        style={{ flex: 1, minWidth: 0 }}
+                      >
                         <Text fw={600} size="sm">
                           {formatIsoDate(entry.date)}
                         </Text>
@@ -127,6 +145,15 @@ export default function SiteUpdatesTab({
                         variant="subtle"
                         color={accent.primary}
                         onClick={() => onToggleEntry(entryId)}
+                        aria-expanded={isExpanded}
+                        rightSection={
+                          isExpanded ? (
+                            <IoChevronUp size={12} />
+                          ) : (
+                            <IoChevronDown size={12} />
+                          )
+                        }
+                        style={{ flexShrink: 0 }}
                       >
                         {isExpanded ? 'Minimize' : 'Expand'}
                       </Button>

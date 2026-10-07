@@ -163,44 +163,45 @@ export function useCommunityItemsFull<T>(kind: CommunityKind) {
  * page load or a shared link).
  */
 export function useCommunityItem<T>(kind: CommunityKind, id: string | null) {
-  const [data, setData] = useState<CommunityPayload<T> | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  // Results are tagged with the request they belong to so a stale item is
+  // never returned for a new id while its fetch is still in flight.
+  const [result, setResult] = useState<{
+    key: string;
+    data: CommunityPayload<T> | null;
+    error: Error | null;
+  } | null>(null);
+  const [requestVersion, setRequestVersion] = useState(0);
+  const requestKey = id ? `${kind}:${id}:${requestVersion}` : null;
 
   useEffect(() => {
-    if (!id) {
-      queueMicrotask(() => {
-        setData(null);
-        setLoading(false);
-        setError(null);
-      });
-      return;
-    }
+    if (!id) return;
     let cancelled = false;
-    queueMicrotask(() => {
-      if (!cancelled) {
-        setLoading(true);
-        setError(null);
-      }
-    });
+    const key = `${kind}:${id}:${requestVersion}`;
     getCommunityItem<T>(kind, id)
-      .then((result) => {
+      .then((response) => {
         if (cancelled) return;
-        const { payload, ...community } = result.item;
-        setData({ ...payload, community } as CommunityPayload<T>);
+        const { payload, ...community } = response.item;
+        setResult({
+          key,
+          data: { ...payload, community } as CommunityPayload<T>,
+          error: null,
+        });
       })
       .catch((reason: unknown) => {
         if (cancelled) return;
-        setData(null);
-        setError(toError(reason));
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+        setResult({ key, data: null, error: toError(reason) });
       });
     return () => {
       cancelled = true;
     };
-  }, [kind, id]);
+  }, [kind, id, requestVersion]);
 
-  return { data, loading, error };
+  const retry = useCallback(() => setRequestVersion((value) => value + 1), []);
+  const settled = requestKey !== null && result?.key === requestKey;
+  return {
+    data: settled ? result.data : null,
+    loading: requestKey !== null && !settled,
+    error: settled ? result.error : null,
+    retry,
+  };
 }

@@ -8,6 +8,7 @@ import HowlkinBadge from '@/features/wiki/howlkins/components/HowlkinBadge';
 import type { GoldenAlliance, Howlkin } from '@/features/wiki/howlkins/types';
 import { LINK_BLOCK_RESET_STYLE } from '@/constants/styles';
 import type { GradientPaletteAccents } from '@/contexts';
+import { useIsMobile } from '@/hooks';
 import { compareQuality } from '@/utils/quality';
 
 interface GoldenAlliancesTabProps {
@@ -47,6 +48,8 @@ export default function GoldenAlliancesTab({
   howlkinMap,
   accent,
 }: GoldenAlliancesTabProps) {
+  const isMobile = useIsMobile();
+
   return (
     <ListPageShell
       loading={loading}
@@ -79,7 +82,7 @@ export default function GoldenAlliancesTab({
               key={alliance.slug}
               component={Link}
               to={`/howlkins/${alliance.slug}`}
-              p="md"
+              p={{ base: 'sm', sm: 'md' }}
               style={LINK_BLOCK_RESET_STYLE}
             >
               <Stack gap="sm">
@@ -109,6 +112,7 @@ export default function GoldenAlliancesTab({
                             key={howlkinSlug}
                             name={howlkin.name}
                             howlkin={howlkin}
+                            interactive={false}
                           />
                         );
                       })}
@@ -119,43 +123,78 @@ export default function GoldenAlliancesTab({
                   <Text size="xs" c="dimmed" fw={600} mb={4}>
                     ALLIANCE EFFECTS
                   </Text>
-                  <Table withTableBorder withColumnBorders>
-                    <Table.Thead>
-                      <Table.Tr>
-                        <Table.Th style={{ width: 70 }}>Level</Table.Th>
-                        <Table.Th>Stats</Table.Th>
-                      </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
+                  {isMobile ? (
+                    <Stack gap={6}>
                       {alliance.effects.map((effect) => (
-                        <Table.Tr key={effect.level}>
-                          <Table.Td>
-                            <Badge
-                              variant="light"
-                              size="sm"
-                              color={accent.secondary}
-                            >
-                              {effect.level}
-                            </Badge>
-                          </Table.Td>
-                          <Table.Td>
-                            <Group gap={4} wrap="wrap">
-                              {effect.stats.map((stat, i) => (
-                                <Badge
-                                  key={i}
-                                  variant="outline"
-                                  size="sm"
-                                  color={accent.secondary}
-                                >
-                                  {stat}
-                                </Badge>
-                              ))}
-                            </Group>
-                          </Table.Td>
-                        </Table.Tr>
+                        <Group
+                          key={effect.level}
+                          gap="xs"
+                          wrap="nowrap"
+                          align="flex-start"
+                        >
+                          <Badge
+                            variant="light"
+                            size="sm"
+                            color={accent.secondary}
+                            w={36}
+                            style={{ flexShrink: 0 }}
+                          >
+                            {effect.level}
+                          </Badge>
+                          <Group gap={4} wrap="wrap">
+                            {effect.stats.map((stat, i) => (
+                              <Badge
+                                key={i}
+                                variant="outline"
+                                size="sm"
+                                color={accent.secondary}
+                              >
+                                {stat}
+                              </Badge>
+                            ))}
+                          </Group>
+                        </Group>
                       ))}
-                    </Table.Tbody>
-                  </Table>
+                    </Stack>
+                  ) : (
+                    <Table withTableBorder withColumnBorders>
+                      <Table.Thead>
+                        <Table.Tr>
+                          <Table.Th style={{ width: 70 }}>Level</Table.Th>
+                          <Table.Th>Stats</Table.Th>
+                        </Table.Tr>
+                      </Table.Thead>
+                      <Table.Tbody>
+                        {alliance.effects.map((effect) => (
+                          <Table.Tr key={effect.level}>
+                            <Table.Td>
+                              <Badge
+                                variant="light"
+                                size="sm"
+                                color={accent.secondary}
+                              >
+                                {effect.level}
+                              </Badge>
+                            </Table.Td>
+                            <Table.Td>
+                              <Group gap={4} wrap="wrap">
+                                {effect.stats.map((stat, i) => (
+                                  <Badge
+                                    key={i}
+                                    variant="outline"
+                                    size="sm"
+                                    color={accent.secondary}
+                                  >
+                                    {stat}
+                                  </Badge>
+                                ))}
+                              </Group>
+                            </Table.Td>
+                          </Table.Tr>
+                        ))}
+                      </Table.Tbody>
+                    </Table>
+                  )}
                 </div>
               </Stack>
             </InteractiveSurface>

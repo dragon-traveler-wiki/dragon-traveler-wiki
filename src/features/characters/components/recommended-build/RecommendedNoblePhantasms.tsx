@@ -45,9 +45,10 @@ export default function RecommendedNoblePhantasms({
                       h={IMAGE_SIZE.CARD_ICON_SM}
                       fit="contain"
                       loading="lazy"
+                      style={{ flexShrink: 0 }}
                     />
                   )}
-                  <Stack gap={2} style={{ minWidth: 0 }}>
+                  <Stack gap={2} style={{ flex: 1, minWidth: 0 }}>
                     <Text size="sm" fw={600} truncate>
                       {noblePhantasm.name}
                     </Text>

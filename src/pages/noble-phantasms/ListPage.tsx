@@ -57,7 +57,7 @@ export default function NoblePhantasms() {
             <Group gap="xs">
               <ExportButton
                 data={noblePhantasms}
-                filename="noble-phantasm.json"
+                filename="noble-phantasms.json"
               />
               <DataCorrectionButton entityType="noble phantasm" />
             </Group>

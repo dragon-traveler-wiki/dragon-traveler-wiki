@@ -43,6 +43,7 @@ export default function CharacterRecommendedBuildSection({
 
   return (
     <CollapsibleSectionCard
+      id="build-section"
       color={accent.primary}
       header={
         <Group align="flex-start" gap="sm">

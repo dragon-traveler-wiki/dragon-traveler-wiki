@@ -2,15 +2,17 @@
 import ChangeHistory from '@/components/common/ChangeHistory';
 import DetailPageHero from '@/components/common/DetailPageHero';
 import DetailPageNavigation from '@/components/common/DetailPageNavigation';
+import DetailPageTitle from '@/components/common/DetailPageTitle';
 import LastUpdated from '@/components/common/LastUpdated';
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
+import DataFetchError from '@/components/ui/DataFetchError';
 import EntityNotFound from '@/components/ui/EntityNotFound';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import QualityIcon from '@/components/ui/QualityIcon';
 import { GEAR_TYPE_ORDER } from '@/constants/gear-colors';
 import { QUALITY_COLOR } from '@/constants/quality';
 import { getLoreGlassStyles } from '@/constants/glass';
 import { StaticSurface } from '@/components/ui/Surface';
-import { CURSOR_POINTER_STYLE } from '@/constants/styles';
 import CharacterPortrait from '@/features/characters/components/CharacterPortrait';
 import {
   getCharacterRouteSlug,
@@ -25,7 +27,12 @@ import {
   useGearSets,
   useStatusEffects,
 } from '@/features/wiki/hooks/use-wiki-data';
-import { useDarkMode, useGradientAccent, useMobileTooltip } from '@/hooks';
+import {
+  useAdjacentItems,
+  useDarkMode,
+  useGradientAccent,
+  useMobileTooltip,
+} from '@/hooks';
 import type { Quality } from '@/types/quality';
 import {
   findEntityByParam,
@@ -35,17 +42,18 @@ import { compareQualityThenName } from '@/utils/quality';
 import {
   Badge,
   Box,
+  Button,
   Container,
   Group,
   SimpleGrid,
   Stack,
   Text,
-  Title,
 } from '@mantine/core';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
 const SSR_AND_ABOVE: Quality[] = ['UR+', 'UR', 'SSR EX', 'SSR+', 'SSR'];
+const GEAR_SETS_LIST_PATH = '/gear?tab=gear-sets';
 
 export default function GearSetPage() {
   const { accent } = useGradientAccent();
@@ -53,8 +61,20 @@ export default function GearSetPage() {
   const navigate = useNavigate();
   const isDark = useDarkMode();
   const tooltipProps = useMobileTooltip();
-  const { data: gear, loading } = useGear();
-  const { data: gearSets } = useGearSets();
+  const {
+    data: gear,
+    loading: gearLoading,
+    error: gearError,
+    retry: retryGear,
+  } = useGear();
+  const {
+    data: gearSets,
+    loading: gearSetsLoading,
+    error: gearSetsError,
+    retry: retryGearSets,
+  } = useGearSets();
+  const loading = gearLoading || gearSetsLoading;
+  const error = gearError ?? gearSetsError;
   const { data: characters } = useCharacters();
   const { data: changesData } = useGearSetChanges();
   const { data: gearChangesData } = useGearChanges();
@@ -132,6 +152,11 @@ export default function GearSetPage() {
   }, [characters, recommendedCharacters]);
 
   const [showAllCharacters, setShowAllCharacters] = useState(false);
+  const [expandedForSlug, setExpandedForSlug] = useState(decodedSetSlug);
+  if (decodedSetSlug !== expandedForSlug) {
+    setExpandedForSlug(decodedSetSlug);
+    setShowAllCharacters(false);
+  }
 
   // Match list page: sort by slug
   const orderedSets = useMemo(
@@ -142,19 +167,32 @@ export default function GearSetPage() {
     [gearSets],
   );
 
-  const setIndex = useMemo(() => {
-    if (!decodedSetSlug) return -1;
-    return orderedSets.findIndex((s) => s.slug === decodedSetSlug);
-  }, [decodedSetSlug, orderedSets]);
-
-  const previousSet = setIndex > 0 ? orderedSets[setIndex - 1] : null;
-  const nextSet =
-    setIndex >= 0 && setIndex < orderedSets.length - 1
-      ? orderedSets[setIndex + 1]
-      : null;
+  const { previousItem, nextItem } = useAdjacentItems(
+    orderedSets,
+    setData,
+    (entry) => ({
+      label: `${entry.name} Set`,
+      path: `/gear-sets/${entry.slug}`,
+    }),
+  );
 
   if (loading) {
     return <DetailPageLoading />;
+  }
+
+  if (error) {
+    return (
+      <Container size="lg" py="xl">
+        <DataFetchError
+          title="Could not load gear"
+          message={error.message}
+          onRetry={() => {
+            if (gearError) retryGear();
+            if (gearSetsError) retryGearSets();
+          }}
+        />
+      </Container>
+    );
   }
 
   if (!decodedSetSlug || setItems.length === 0) {
@@ -162,8 +200,8 @@ export default function GearSetPage() {
       <EntityNotFound
         entityType="Gear Set"
         name={setName}
-        backLabel="Back to Gear"
-        backPath="/gear"
+        backLabel="Back to Gear Sets"
+        backPath={GEAR_SETS_LIST_PATH}
       />
     );
   }
@@ -190,35 +228,21 @@ export default function GearSetPage() {
         qualityColor={qualityColor}
         breadcrumbItems={[
           { label: 'Gear', path: '/gear' },
+          { label: 'Gear Sets', path: GEAR_SETS_LIST_PATH },
           { label: setData?.name ?? decodedSetSlug },
         ]}
-        py={{ base: 'lg', sm: 'xl' }}
       >
         <Stack gap={6}>
           <Group gap="sm" align="center" wrap="wrap">
-            <Title
-              order={1}
-              c={isDark ? 'white' : 'dark'}
-              fz={{ base: '1.5rem', sm: '2.125rem' }}
-              style={{ wordBreak: 'break-word' }}
-            >
+            <DetailPageTitle>
               {setData?.name ?? decodedSetSlug} Set
-            </Title>
+            </DetailPageTitle>
             <QualityIcon quality={setItems[0].quality} size={32} />
             <Badge variant="light" color={accent.secondary} size="lg">
               {setItems.length} item{setItems.length !== 1 ? 's' : ''}
             </Badge>
           </Group>
           <LastUpdated timestamp={lastUpdatedTimestamp} />
-          {setBonus && setBonus.quantity > 0 && (
-            <Text c="dimmed" size="sm">
-              {setBonus.quantity}-piece set bonus:{' '}
-              <RichText
-                text={setBonus.description}
-                statusEffects={statusEffects}
-              />
-            </Text>
-          )}
           {recommendedStats !== null && (
             <Text size="sm" c="dimmed">
               Recommended for{' '}
@@ -273,26 +297,24 @@ export default function GearSetPage() {
                 );
               })}
               {!showAllCharacters && remainingRecommendedCount > 0 && (
-                <Badge
-                  variant="light"
+                <Button
+                  variant="subtle"
                   color="gray"
-                  size="sm"
-                  style={CURSOR_POINTER_STYLE}
+                  size="compact-xs"
                   onClick={() => setShowAllCharacters(true)}
                 >
                   +{remainingRecommendedCount} more
-                </Badge>
+                </Button>
               )}
               {showAllCharacters && recommendedCharacters.length > 4 && (
-                <Badge
-                  variant="light"
+                <Button
+                  variant="subtle"
                   color="gray"
-                  size="sm"
-                  style={CURSOR_POINTER_STYLE}
+                  size="compact-xs"
                   onClick={() => setShowAllCharacters(false)}
                 >
                   Show less
-                </Badge>
+                </Button>
               )}
             </Group>
           </Stack>
@@ -300,42 +322,31 @@ export default function GearSetPage() {
       </DetailPageHero>
 
       <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
-        <Stack gap="lg">
-          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-            {setItems.map((item) => (
-              <GearSetItemCard
-                key={item.name}
-                item={item}
-                isDark={isDark}
-                statusEffects={statusEffects}
-              />
-            ))}
-          </SimpleGrid>
-        </Stack>
+        <ErrorBoundary
+          scope="section"
+          name="gear set details"
+          resetKeys={[decodedSetSlug]}
+        >
+          <Stack gap="lg">
+            <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+              {setItems.map((item) => (
+                <GearSetItemCard
+                  key={item.name}
+                  item={item}
+                  isDark={isDark}
+                  statusEffects={statusEffects}
+                />
+              ))}
+            </SimpleGrid>
+          </Stack>
+        </ErrorBoundary>
 
         <ChangeHistory
           history={setData ? changesData[setData.slug] : undefined}
           extraHistories={gearItemHistories}
         />
 
-        <DetailPageNavigation
-          previousItem={
-            previousSet
-              ? {
-                  label: `${previousSet.name} Set`,
-                  path: `/gear-sets/${previousSet.slug}`,
-                }
-              : null
-          }
-          nextItem={
-            nextSet
-              ? {
-                  label: `${nextSet.name} Set`,
-                  path: `/gear-sets/${nextSet.slug}`,
-                }
-              : null
-          }
-        />
+        <DetailPageNavigation previousItem={previousItem} nextItem={nextItem} />
       </Container>
     </Box>
   );

@@ -69,7 +69,7 @@ export default function PaginationControl({
 
   const selectProps = {
     allowDeselect: false as const,
-    size: 'xs' as const,
+    size: 'sm' as const,
     radius: 'md' as const,
     comboboxProps: { position: 'bottom-end' as const },
     styles: { input: { fontWeight: 600 } },
@@ -78,7 +78,7 @@ export default function PaginationControl({
   const actionIconProps = {
     variant: 'subtle' as const,
     color: 'gray' as const,
-    size: 'sm' as const,
+    size: 'lg' as const,
     radius: 'md' as const,
   };
 
@@ -98,7 +98,7 @@ export default function PaginationControl({
                 disabled={currentPage <= 1}
                 aria-label="Previous page"
               >
-                <IoChevronBack size={12} />
+                <IoChevronBack size={16} />
               </ActionIcon>
 
               <Select
@@ -108,7 +108,7 @@ export default function PaginationControl({
                 data={pageNumberData}
                 onChange={(value) => value && handleChange(Number(value))}
                 searchable={totalPages > 12}
-                w={58}
+                w={64}
                 styles={{ input: { fontWeight: 600, textAlign: 'center' } }}
               />
 
@@ -122,7 +122,7 @@ export default function PaginationControl({
                 disabled={currentPage >= totalPages}
                 aria-label="Next page"
               >
-                <IoChevronForward size={12} />
+                <IoChevronForward size={16} />
               </ActionIcon>
             </Group>
           )}
@@ -142,7 +142,7 @@ export default function PaginationControl({
               value={pageSize === undefined ? null : String(pageSize)}
               data={pageSizeData}
               onChange={(value) => value && onPageSizeChange?.(Number(value))}
-              w={100}
+              w={112}
             />
           )}
         </Group>

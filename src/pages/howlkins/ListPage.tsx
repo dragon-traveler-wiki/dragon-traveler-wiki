@@ -7,7 +7,7 @@ import ListPageHeader from '@/components/layout/ListPageHeader';
 import ExportButton from '@/components/tools/ExportButton';
 import DataCorrectionButton from '@/components/tools/DataCorrectionButton';
 import { QUALITY_ORDER } from '@/constants/quality';
-import { PAGE_SIZE, STORAGE_KEY } from '@/constants/ui';
+import { BREAKPOINTS, PAGE_SIZE, STORAGE_KEY } from '@/constants/ui';
 
 import HowlkinsTab from '@/features/wiki/howlkins/components/HowlkinsTab';
 import GoldenAlliancesTab from '@/features/wiki/howlkins/components/GoldenAlliancesTab';
@@ -31,10 +31,17 @@ import {
 import { getLatestTimestamp } from '@/utils';
 import { retryFailedDataSources } from '@/utils/retry-failed-data-sources';
 import { Container, Group, Stack, Tabs } from '@mantine/core';
+import { useMediaQuery } from '@mantine/hooks';
 import { useCallback, useMemo } from 'react';
+
+// Alliance cards are tall on phones, so start with fewer per page there.
+const MOBILE_ALLIANCE_PAGE_SIZE = 10;
 
 export default function Howlkins() {
   const { accent } = useGradientAccent();
+  const isMobile = useMediaQuery(BREAKPOINTS.MOBILE, undefined, {
+    getInitialValueInEffect: false,
+  });
   const [activeTab, handleTabChange] = useTabParam('tab', 'howlkins', [
     'howlkins',
     'golden-alliances',
@@ -131,8 +138,10 @@ export default function Howlkins() {
   const allianceSearchFn = useCallback(
     (alliance: GoldenAlliance, query: string) =>
       alliance.name.toLowerCase().includes(query) ||
-      alliance.howlkins.some((h) => h.toLowerCase().includes(query)),
-    [],
+      alliance.howlkins.some((slug) =>
+        (howlkinMap.get(slug)?.name ?? slug).toLowerCase().includes(query),
+      ),
+    [howlkinMap],
   );
 
   const {
@@ -149,7 +158,7 @@ export default function Howlkins() {
   } = useSecondaryTabList(goldenAlliances, {
     searchFn: allianceSearchFn,
     storageKeys: { search: STORAGE_KEY.GOLDEN_ALLIANCE_SEARCH },
-    pageSize: PAGE_SIZE,
+    pageSize: isMobile ? MOBILE_ALLIANCE_PAGE_SIZE : PAGE_SIZE,
   });
 
   return (
@@ -217,7 +226,6 @@ export default function Howlkins() {
               onSort={handleSort}
               pageItems={howlkinPageItems}
               howlkinToAlliance={howlkinToAlliance}
-              accent={accent}
             />
           </Tabs.Panel>
 

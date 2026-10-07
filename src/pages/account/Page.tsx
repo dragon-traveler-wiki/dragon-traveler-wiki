@@ -4,7 +4,6 @@ import {
   Avatar,
   Badge,
   Button,
-  Card,
   Container,
   Group,
   SimpleGrid,
@@ -20,8 +19,10 @@ import {
   IoPersonOutline,
 } from 'react-icons/io5';
 import { Link, useSearchParams } from 'react-router';
+import ListPageHeader from '@/components/layout/ListPageHeader';
 import { AccountPageLoading } from '@/components/layout/PageLoadingSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
+import { StaticSurface } from '@/components/ui/Surface';
 import { getMyItems, getMyReports } from '@/features/community/api';
 import MyPublications from '@/features/community/MyPublications';
 import MyReports from '@/features/community/MyReports';
@@ -32,6 +33,17 @@ import { useCommunityAuth } from '@/features/community/auth-context';
 import type { CommunityItem, MyReport } from '@/features/community/types';
 import { useGradientAccent } from '@/hooks';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
+
+type IdentityProvider = 'discord' | 'github';
+
+const PROVIDER_LABELS: Record<IdentityProvider, string> = {
+  discord: 'Discord',
+  github: 'GitHub',
+};
+
+const UNCONFIGURED_MESSAGE = import.meta.env.DEV
+  ? 'Set VITE_API_BASE_URL and restart the frontend to enable sign-in and public publishing. Browsing and local drafts remain available.'
+  : 'Sign-in and public publishing are currently unavailable. Browsing and local drafts remain available.';
 
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
   link_conflict:
@@ -58,10 +70,13 @@ export default function AccountPage() {
   const [itemsLoading, setItemsLoading] = useState(false);
   const [reports, setReports] = useState<MyReport[]>([]);
   const [reportsLoading, setReportsLoading] = useState(false);
-  const [unlinking, setUnlinking] = useState<'discord' | 'github' | null>(null);
-  const [settingPrimary, setSettingPrimary] = useState<
-    'discord' | 'github' | null
-  >(null);
+  const [unlinking, setUnlinking] = useState<IdentityProvider | null>(null);
+  const [pendingUnlink, setPendingUnlink] = useState<IdentityProvider | null>(
+    null,
+  );
+  const [settingPrimary, setSettingPrimary] = useState<IdentityProvider | null>(
+    null,
+  );
   const [deleting, setDeleting] = useState(false);
   const [confirmDeleteAccountOpen, setConfirmDeleteAccountOpen] =
     useState(false);
@@ -98,7 +113,8 @@ export default function AccountPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleUnlink = async (provider: 'discord' | 'github') => {
+  const handleUnlink = async (provider: IdentityProvider) => {
+    setPendingUnlink(null);
     setUnlinking(provider);
     await runAction(() => unlink(provider), {
       errorTitle: 'Could not unlink identity',
@@ -106,7 +122,7 @@ export default function AccountPage() {
     setUnlinking(null);
   };
 
-  const handleSetPrimary = async (provider: 'discord' | 'github') => {
+  const handleSetPrimary = async (provider: IdentityProvider) => {
     setSettingPrimary(provider);
     await runAction(() => setPrimary(provider), {
       errorTitle: 'Could not set primary identity',
@@ -142,7 +158,10 @@ export default function AccountPage() {
         });
       })
       .finally(() => setItemsLoading(false));
-  }, [user]);
+    // Only re-run when the logged-in user changes, not on every auth
+    // context refresh.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   useEffect(() => {
     if (!user) return;
@@ -173,8 +192,8 @@ export default function AccountPage() {
     return (
       <Container size="sm" py={{ base: 'lg', sm: 'xl' }}>
         <Stack gap="lg">
-          <Title order={1}>Account</Title>
-          <Card withBorder>
+          <ListPageHeader title="Account" />
+          <StaticSurface p="md">
             <Stack>
               <Alert
                 color={accent.primary}
@@ -188,7 +207,7 @@ export default function AccountPage() {
               >
                 {configured
                   ? 'Sign in to manage linked identities and public teams or tier lists. Browsing and local drafts do not require an account.'
-                  : 'Set VITE_API_BASE_URL and restart the frontend to enable sign-in and public publishing. Browsing and local drafts remain available.'}
+                  : UNCONFIGURED_MESSAGE}
               </Alert>
               {configured && (
                 <SimpleGrid cols={{ base: 1, xs: 2 }}>
@@ -210,7 +229,7 @@ export default function AccountPage() {
                 </SimpleGrid>
               )}
             </Stack>
-          </Card>
+          </StaticSurface>
         </Stack>
       </Container>
     );
@@ -222,7 +241,7 @@ export default function AccountPage() {
   return (
     <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
-        <Group>
+        <Group wrap="nowrap">
           <Avatar
             src={user.avatarUrl}
             size="lg"
@@ -231,8 +250,14 @@ export default function AccountPage() {
           >
             <IoPersonOutline />
           </Avatar>
-          <div>
-            <Title order={1}>{user.displayName}</Title>
+          <div style={{ minWidth: 0 }}>
+            <Title
+              order={1}
+              fz={{ base: '1.5rem', sm: '2.125rem' }}
+              style={{ wordBreak: 'break-word' }}
+            >
+              {user.displayName}
+            </Title>
             <Text c="dimmed">
               {user.role === 'moderator' ? 'Moderator' : 'Community member'}
             </Text>
@@ -256,7 +281,7 @@ export default function AccountPage() {
         <Anchor component={Link} to={`/profile/${user.id}`} size="sm">
           View your public profile
         </Anchor>
-        <Card withBorder>
+        <StaticSurface p="md">
           <Stack>
             <Title order={2} size="h3">
               Linked identities
@@ -277,7 +302,7 @@ export default function AccountPage() {
                   )}
                   <Text>{identity.username}</Text>
                   <Badge variant="light" color={accent.primary}>
-                    {identity.provider === 'discord' ? 'Discord' : 'GitHub'}
+                    {PROVIDER_LABELS[identity.provider]}
                   </Badge>
                 </Group>
                 <Group gap="xs">
@@ -304,7 +329,7 @@ export default function AccountPage() {
                       color="red"
                       loading={unlinking === identity.provider}
                       disabled={unlinking !== null}
-                      onClick={() => handleUnlink(identity.provider)}
+                      onClick={() => setPendingUnlink(identity.provider)}
                     >
                       Unlink
                     </Button>
@@ -335,7 +360,7 @@ export default function AccountPage() {
               )}
             </Group>
           </Stack>
-        </Card>
+        </StaticSurface>
         <MyPublications
           items={items}
           loading={itemsLoading}
@@ -350,7 +375,7 @@ export default function AccountPage() {
             setReports((current) => current.filter((r) => r.id !== id))
           }
         />
-        <Card withBorder>
+        <StaticSurface p="md">
           <Stack>
             <Title order={2} size="h3" c="red">
               Danger zone
@@ -371,8 +396,19 @@ export default function AccountPage() {
               </Button>
             </Group>
           </Stack>
-        </Card>
+        </StaticSurface>
       </Stack>
+      <ConfirmActionModal
+        opened={pendingUnlink !== null}
+        onCancel={() => setPendingUnlink(null)}
+        title="Unlink this identity?"
+        message="You will no longer be able to sign in with this identity unless you link it again."
+        confirmLabel="Unlink"
+        confirmColor="red"
+        onConfirm={() => {
+          if (pendingUnlink) void handleUnlink(pendingUnlink);
+        }}
+      />
       <ConfirmActionModal
         opened={confirmDeleteAccountOpen}
         onCancel={() => setConfirmDeleteAccountOpen(false)}

@@ -33,7 +33,11 @@ import {
   type ContentType,
 } from '@/constants/content-types';
 import { StaticSurface } from '@/components/ui/Surface';
-import { CHARACTER_GRID_SPACING, TRANSITION } from '@/constants/ui';
+import {
+  BUILDER_GRID_COLS,
+  CHARACTER_GRID_SPACING,
+  TRANSITION,
+} from '@/constants/ui';
 import type { Character } from '@/features/characters/types';
 import { FACTION_SLUG_TO_NAME } from '@/types/faction';
 import type { FactionSlug } from '@/types/faction';
@@ -73,6 +77,7 @@ export const TeamMetaFields = memo(function TeamMetaFields({
     description,
     onDescriptionCommit,
   );
+  const isMobile = useIsMobile();
 
   return (
     <>
@@ -81,7 +86,7 @@ export const TeamMetaFields = memo(function TeamMetaFields({
           placeholder="Team name..."
           value={nameInput}
           onChange={(e) => setNameInput(e.currentTarget.value)}
-          style={{ flex: 1, minWidth: 150 }}
+          style={{ flex: isMobile ? '1 1 100%' : 1, minWidth: 150 }}
         />
         <Select
           placeholder="Content type..."
@@ -111,7 +116,7 @@ export const TeamMetaFields = memo(function TeamMetaFields({
               <SafeImage src={iconSrc} alt="" w={16} h={16} fit="contain" />
             ) : undefined;
           })()}
-          style={{ minWidth: 160 }}
+          style={{ flex: 1, minWidth: 140 }}
         />
       </Group>
 
@@ -604,7 +609,7 @@ export function AvailablePool({
           </Text>
         )}
         <SimpleGrid
-          cols={cols ?? { base: 2, xs: 3, sm: 4, md: 6 }}
+          cols={cols ?? BUILDER_GRID_COLS}
           spacing={CHARACTER_GRID_SPACING}
           style={{ minHeight: 40 }}
         >
@@ -734,7 +739,7 @@ export function WyrmspellSelector({
   }
 
   return (
-    <Paper p="md" radius="md" withBorder>
+    <Paper p={{ base: 'sm', sm: 'md' }} radius="md" withBorder>
       <Stack gap="sm">
         <Text size="sm" fw={600}>
           Wyrmspells
@@ -742,7 +747,7 @@ export function WyrmspellSelector({
         <SimpleGrid cols={{ base: 2, xs: 4 }} spacing="sm">
           <Select
             label="Breach"
-            placeholder="Select breach wyrmspell"
+            placeholder="Select..."
             data={breachOptions}
             renderOption={renderWyrmspellOption}
             leftSection={leftIcon(teamWyrmspells.breach)}
@@ -753,7 +758,7 @@ export function WyrmspellSelector({
           />
           <Select
             label="Refuge"
-            placeholder="Select refuge wyrmspell"
+            placeholder="Select..."
             data={refugeOptions}
             renderOption={renderWyrmspellOption}
             leftSection={leftIcon(teamWyrmspells.refuge)}
@@ -764,7 +769,7 @@ export function WyrmspellSelector({
           />
           <Select
             label="Wildcry"
-            placeholder="Select wildcry wyrmspell"
+            placeholder="Select..."
             data={wildcryOptions}
             renderOption={renderWyrmspellOption}
             leftSection={leftIcon(teamWyrmspells.wildcry)}
@@ -775,7 +780,7 @@ export function WyrmspellSelector({
           />
           <Select
             label="Dragon's Call"
-            placeholder="Select dragon's call wyrmspell"
+            placeholder="Select..."
             data={dragonsCallOptions}
             renderOption={renderWyrmspellOption}
             leftSection={leftIcon(teamWyrmspells.dragons_call)}
@@ -821,7 +826,7 @@ export function BenchPool({
     >
       <Stack gap="sm">
         <SimpleGrid
-          cols={{ base: 2, xs: 3, sm: 4, md: 6 }}
+          cols={BUILDER_GRID_COLS}
           spacing={CHARACTER_GRID_SPACING}
           style={{ minHeight: 72 }}
         >

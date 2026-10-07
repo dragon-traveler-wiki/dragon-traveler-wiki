@@ -31,7 +31,7 @@ export default function CollapsibleSectionCard({
   return (
     <StaticSurface
       id={id}
-      p="lg"
+      p={{ base: 'sm', sm: 'lg' }}
       style={{ position: 'relative', overflow: 'hidden' }}
     >
       {color && (

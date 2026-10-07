@@ -1,5 +1,7 @@
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router';
 import { Badge, Group, SimpleGrid, Stack, Text } from '@mantine/core';
+import { useInViewport, useMergedRef, useReducedMotion } from '@mantine/hooks';
 import { InteractiveSurface } from '@/components/ui/Surface';
 import SafeImage from '@/components/ui/SafeImage';
 import SafeVideo from '@/components/ui/SafeVideo';
@@ -29,6 +31,47 @@ interface OracleScrollsTabProps {
   onPageSizeChange: (pageSize: number) => void;
   relicsByOracle: Map<string, Relic[]>;
   accent: GradientPaletteAccents;
+}
+
+const VIDEO_HEIGHT = 130;
+
+function OracleScrollVideo({ src }: { src: string }) {
+  const { ref: viewportRef, inViewport } = useInViewport<HTMLVideoElement>();
+  const reduceMotion = useReducedMotion();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const mergedRef = useMergedRef(viewportRef, videoRef);
+  const shouldPlay = inViewport && !reduceMotion;
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (!shouldPlay) {
+      video.pause();
+      return;
+    }
+    video.play()?.catch(() => {
+      // Autoplay can be blocked by the browser (e.g. data saver modes).
+    });
+  }, [shouldPlay]);
+
+  return (
+    <SafeVideo
+      ref={mergedRef}
+      src={src}
+      muted
+      loop
+      preload="metadata"
+      style={{
+        display: 'block',
+        width: '100%',
+        height: VIDEO_HEIGHT,
+        objectFit: 'cover',
+        objectPosition: 'center',
+        borderTopLeftRadius: 'var(--mantine-radius-md)',
+        borderTopRightRadius: 'var(--mantine-radius-md)',
+      }}
+    />
+  );
 }
 
 export default function OracleScrollsTab({
@@ -88,23 +131,7 @@ export default function OracleScrollsTab({
                 style={{ ...LINK_BLOCK_RESET_STYLE, overflow: 'hidden' }}
               >
                 <Stack gap={0}>
-                  {videoSrc && (
-                    <SafeVideo
-                      src={videoSrc}
-                      autoPlay
-                      muted
-                      loop
-                      style={{
-                        display: 'block',
-                        width: '100%',
-                        height: 130,
-                        objectFit: 'cover',
-                        objectPosition: 'center',
-                        borderTopLeftRadius: 'var(--mantine-radius-md)',
-                        borderTopRightRadius: 'var(--mantine-radius-md)',
-                      }}
-                    />
-                  )}
+                  {videoSrc && <OracleScrollVideo src={videoSrc} />}
                   <Stack gap="xs" p="md">
                     <Group justify="space-between" align="center">
                       <Text
@@ -144,10 +171,16 @@ export default function OracleScrollsTab({
                                 radius="sm"
                               />
                             )}
-                            <Text size="sm" fw={500} style={{ flex: 1 }}>
-                              {relic.name}
-                            </Text>
-                            <RelicTypeTag type={relic.type} />
+                            <Stack
+                              gap={2}
+                              align="flex-start"
+                              style={{ flex: 1, minWidth: 0 }}
+                            >
+                              <Text size="sm" fw={500}>
+                                {relic.name}
+                              </Text>
+                              <RelicTypeTag type={relic.type} />
+                            </Stack>
                           </Group>
                         );
                       })}

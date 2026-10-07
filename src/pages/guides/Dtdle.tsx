@@ -1,4 +1,6 @@
-import { Card, Container, Stack, Tabs, Text, Title } from '@mantine/core';
+import { Container, Stack, Tabs } from '@mantine/core';
+import ListPageHeader from '@/components/layout/ListPageHeader';
+import { StaticSurface } from '@/components/ui/Surface';
 import AbilityMode from '@/features/dtdle/components/AbilityMode';
 import ClassicMode from '@/features/dtdle/components/ClassicMode';
 import IllustrationMode from '@/features/dtdle/components/IllustrationMode';
@@ -17,16 +19,20 @@ export default function Dtdle() {
   return (
     <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
-        <Stack gap={2}>
-          <Title order={1}>DTdle</Title>
-          <Text size="sm" c="dimmed">
-            Guess today&apos;s mystery character. One character a day, unlimited
-            guesses.
-          </Text>
-        </Stack>
+        <ListPageHeader
+          title="DTdle"
+          description="Guess today's mystery character. One character a day, unlimited guesses."
+        />
 
-        <Tabs value={activeMode} onChange={setActiveMode}>
-          <Tabs.List>
+        {/* Each mode persists its daily progress to storage, so unmounting
+            hidden modes only drops transient input state. */}
+        <Tabs
+          value={activeMode}
+          onChange={setActiveMode}
+          keepMounted={false}
+          styles={{ tab: { paddingInline: 'var(--mantine-spacing-xs)' } }}
+        >
+          <Tabs.List grow>
             <Tabs.Tab value="classic">Classic</Tabs.Tab>
             <Tabs.Tab value="quote">Quote</Tabs.Tab>
             <Tabs.Tab value="ability">Ability</Tabs.Tab>
@@ -34,24 +40,24 @@ export default function Dtdle() {
           </Tabs.List>
 
           <Tabs.Panel value="classic" pt="md">
-            <Card withBorder radius="md" p="lg">
+            <StaticSurface p={{ base: 'sm', sm: 'lg' }}>
               <ClassicMode />
-            </Card>
+            </StaticSurface>
           </Tabs.Panel>
           <Tabs.Panel value="quote" pt="md">
-            <Card withBorder radius="md" p="lg">
+            <StaticSurface p={{ base: 'sm', sm: 'lg' }}>
               <QuoteMode />
-            </Card>
+            </StaticSurface>
           </Tabs.Panel>
           <Tabs.Panel value="ability" pt="md">
-            <Card withBorder radius="md" p="lg">
+            <StaticSurface p={{ base: 'sm', sm: 'lg' }}>
               <AbilityMode />
-            </Card>
+            </StaticSurface>
           </Tabs.Panel>
           <Tabs.Panel value="illustration" pt="md">
-            <Card withBorder radius="md" p="lg">
+            <StaticSurface p={{ base: 'sm', sm: 'lg' }}>
               <IllustrationMode />
-            </Card>
+            </StaticSurface>
           </Tabs.Panel>
         </Tabs>
       </Stack>

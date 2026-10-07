@@ -8,7 +8,7 @@ import DataCorrectionButton from '@/components/tools/DataCorrectionButton';
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import type { Character } from '@/features/characters/types';
 import { GEAR_TYPE_ORDER } from '@/constants/gear-colors';
-import { STORAGE_KEY, PAGE_SIZE } from '@/constants/ui';
+import { IMAGE_SIZE, STORAGE_KEY, PAGE_SIZE } from '@/constants/ui';
 import GearTab from '@/features/wiki/gear/components/GearTab';
 import GearSetsTab from '@/features/wiki/gear/components/GearSetsTab';
 import GearUsageTab from '@/features/wiki/gear/components/GearUsageTab';
@@ -63,13 +63,17 @@ const FILTER_GROUPS: ChipFilterGroup[] = [
       const iconSrc = GEAR_TYPE_ICON_MAP[value as GearType];
       if (!iconSrc) return null;
       return (
-        <SafeImage src={iconSrc} alt={value} w={14} h={14} fit="contain" />
+        <SafeImage
+          src={iconSrc}
+          alt={value}
+          w={IMAGE_SIZE.ICON_SM}
+          h={IMAGE_SIZE.ICON_SM}
+          fit="contain"
+        />
       );
     },
   },
-  {
-    ...createQualityFilterGroup(),
-  },
+  createQualityFilterGroup(),
 ];
 
 export default function GearPage() {
@@ -326,7 +330,6 @@ export default function GearPage() {
               onPageSizeChange={setGearPageSize}
               filters={filters}
               onFiltersChange={setFilters}
-              emptyFilters={EMPTY_GEAR_FILTERS}
               filterGroups={FILTER_GROUPS}
               sortCol={sortCol}
               sortDir={sortDir}

@@ -1,3 +1,6 @@
+import TranslationNote from '@/components/common/TranslationNote';
+import ListPageHeader from '@/components/layout/ListPageHeader';
+import SectionJumpNav from '@/components/layout/SectionJumpNav';
 import ResolvedHowlkinBadge from '@/components/ui/ResolvedHowlkinBadge';
 import ResourceBadge from '@/components/ui/ResourceBadge';
 import WyrmspellBadge from '@/components/ui/WyrmspellBadge';
@@ -5,8 +8,7 @@ import { StaticSurface } from '@/components/ui/Surface';
 import { getMinWidthStyle } from '@/constants/styles';
 import CharacterTag from '@/features/characters/components/CharacterTag';
 import {
-  Alert,
-  Anchor,
+  Box,
   Container,
   Group,
   ScrollArea,
@@ -15,7 +17,6 @@ import {
   Text,
   Title,
 } from '@mantine/core';
-import { IoInformationCircleOutline } from 'react-icons/io5';
 
 const FACTION_GIFTS: {
   faction: string;
@@ -86,7 +87,8 @@ const GUILD_EXPEDITION_PRIORITIES: {
     objective: 'Bosses',
     reward: (
       <>
-        Chance for key, <ResourceBadge slug="leaf_of_the_world_tree" />, Auction
+        Chance for key,{' '}
+        <ResourceBadge size="xs" slug="leaf_of_the_world_tree" />, Auction
         addition
       </>
     ),
@@ -96,8 +98,8 @@ const GUILD_EXPEDITION_PRIORITIES: {
     objective: 'Normal enemies/ locked chests',
     reward: (
       <>
-        Key, <ResourceBadge slug="leaf_of_the_world_tree" /> / Gems, Faction
-        Runes, <ResourceBadge slug="dragonblood" />
+        Key, <ResourceBadge size="xs" slug="leaf_of_the_world_tree" /> / Gems,
+        Faction Runes, <ResourceBadge size="xs" slug="dragonblood" />
       </>
     ),
   },
@@ -117,7 +119,7 @@ const GUILD_EXPEDITION_PRIORITIES: {
     objective: 'Cart Full of Dragon Souls',
     reward: (
       <>
-        1x <ResourceBadge slug="wyrm_essence" /> Pack (1 hr)
+        1x <ResourceBadge size="xs" slug="wyrm_essence" /> Pack (1 hr)
       </>
     ),
   },
@@ -126,7 +128,7 @@ const GUILD_EXPEDITION_PRIORITIES: {
     objective: 'Dragon Soul Stone',
     reward: (
       <>
-        5x <ResourceBadge slug="wyrm_essence" />
+        5x <ResourceBadge size="xs" slug="wyrm_essence" />
       </>
     ),
   },
@@ -135,7 +137,7 @@ const GUILD_EXPEDITION_PRIORITIES: {
     objective: 'Ancient Tree',
     reward: (
       <>
-        1x <ResourceBadge slug="luminary_exp" /> Pack (1 hr)
+        1x <ResourceBadge size="xs" slug="luminary_exp" /> Pack (1 hr)
       </>
     ),
   },
@@ -144,7 +146,7 @@ const GUILD_EXPEDITION_PRIORITIES: {
     objective: 'Cart Full of Gold',
     reward: (
       <>
-        1x <ResourceBadge slug="gold" /> Pack (1 hr)
+        1x <ResourceBadge size="xs" slug="gold" /> Pack (1 hr)
       </>
     ),
   },
@@ -153,15 +155,29 @@ const GUILD_EXPEDITION_PRIORITIES: {
     objective: 'Gold',
     reward: (
       <>
-        7500 <ResourceBadge slug="gold" />
+        7500 <ResourceBadge size="xs" slug="gold" />
       </>
     ),
   },
 ];
 
+const JUMP_SECTIONS = [
+  { id: 'beginner-summoning', label: 'Summoning' },
+  { id: 'beginner-economy', label: 'Economy' },
+  { id: 'beginner-progression', label: 'Progression' },
+  { id: 'beginner-events', label: 'Events & Guilds' },
+  { id: 'beginner-affection', label: 'Affection Gifts' },
+  { id: 'beginner-combat', label: 'Combat' },
+];
+
+/** Keeps an inline chip and its trailing punctuation on the same line. */
+function NoWrap({ children }: { children: React.ReactNode }) {
+  return <span style={{ whiteSpace: 'nowrap' }}>{children}</span>;
+}
+
 function QA({ q, children }: { q: string; children: React.ReactNode }) {
   return (
-    <StaticSurface p="md">
+    <StaticSurface p={{ base: 'sm', sm: 'md' }}>
       <Stack gap="xs">
         <Group align="flex-start" gap={6} wrap="nowrap">
           <Text fw={700}>Q:</Text>
@@ -189,37 +205,25 @@ function QA({ q, children }: { q: string; children: React.ReactNode }) {
 
 export default function BeginnerQA() {
   return (
-    <Container size="xl" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
-        <Stack gap={2}>
-          <Title order={1}>Beginner Q&amp;A</Title>
-          <Text size="sm" c="dimmed">
-            Fast answers for early progression, spending priorities, and event
-            planning.
-          </Text>
-        </Stack>
+        <ListPageHeader
+          title="Beginner Q&A"
+          description="Fast answers for early progression, spending priorities, and event planning."
+        />
 
-        <Alert
-          variant="light"
-          color="yellow"
-          title="Translation note"
-          icon={<IoInformationCircleOutline />}
-        >
-          This section is translated and adapted from a Chinese community guide
-          on GameKee:{' '}
-          <Anchor
-            href="https://www.gamekee.com/lhlr/670682.html"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            萌新Q&A / Beginner Q&A
-          </Anchor>
-          . Source terms may contain typos or naming differences.
-        </Alert>
+        <TranslationNote
+          sourceHref="https://www.gamekee.com/lhlr/670682.html"
+          sourceLabel="萌新Q&A / Beginner Q&A"
+        />
 
-        <StaticSurface p="lg">
+        <SectionJumpNav sections={JUMP_SECTIONS} />
+
+        <StaticSurface id="beginner-summoning" p={{ base: 'sm', sm: 'lg' }}>
           <Stack gap="sm">
-            <Title order={2}>Summoning &amp; Characters</Title>
+            <Title order={2} size="h3">
+              Summoning &amp; Characters
+            </Title>
 
             <QA q="Which characters should I prioritize summoning?">
               Go for at least 8 copies of <CharacterTag slug="ifrit_ssr_plus" />{' '}
@@ -238,29 +242,58 @@ export default function BeginnerQA() {
 
             <QA q="How should I set my Wishlist?">
               Fill all 8 slots or it will not activate. For SSR+, take up to two{' '}
-              <CharacterTag slug="titania_ssr_plus" />, then prioritize{' '}
-              <CharacterTag slug="scheherazade_ssr_plus" />,{' '}
-              <CharacterTag slug="huginn_muninn_ssr_plus" />,{' '}
-              <CharacterTag slug="gullveig_ssr_plus" />, and{' '}
-              <CharacterTag slug="anubis_ssr_plus" />. Also, try to acquire one
-              copy of each SSR+ Luminary.
+              <NoWrap>
+                <CharacterTag slug="titania_ssr_plus" />,
+              </NoWrap>{' '}
+              then prioritize{' '}
+              <NoWrap>
+                <CharacterTag slug="scheherazade_ssr_plus" />,
+              </NoWrap>{' '}
+              <NoWrap>
+                <CharacterTag slug="huginn_muninn_ssr_plus" />,
+              </NoWrap>{' '}
+              <NoWrap>
+                <CharacterTag slug="gullveig_ssr_plus" />,
+              </NoWrap>{' '}
+              and{' '}
+              <NoWrap>
+                <CharacterTag slug="anubis_ssr_plus" />.
+              </NoWrap>{' '}
+              Also, try to acquire one copy of each SSR+ Luminary.
               <br />
-              For SSR, prioritize <CharacterTag slug="atanith_ssr" />,{' '}
-              <CharacterTag slug="lorilin_ssr" />,{' '}
-              <CharacterTag slug="nemesis_ssr" />,{' '}
-              <CharacterTag slug="chiron_ssr" />,{' '}
-              <CharacterTag slug="caligula_ssr" />, and{' '}
-              <CharacterTag slug="herman_ssr" />.<br />
-              Note that this is just the reccommended order for F2P and new
+              For SSR, prioritize{' '}
+              <NoWrap>
+                <CharacterTag slug="atanith_ssr" />,
+              </NoWrap>{' '}
+              <NoWrap>
+                <CharacterTag slug="lorilin_ssr" />,
+              </NoWrap>{' '}
+              <NoWrap>
+                <CharacterTag slug="nemesis_ssr" />,
+              </NoWrap>{' '}
+              <NoWrap>
+                <CharacterTag slug="chiron_ssr" />,
+              </NoWrap>{' '}
+              <NoWrap>
+                <CharacterTag slug="caligula_ssr" />,
+              </NoWrap>{' '}
+              and{' '}
+              <NoWrap>
+                <CharacterTag slug="herman_ssr" />.
+              </NoWrap>
+              <br />
+              Note that this is just the recommended order for F2P and new
               players; if you have a specific team composition in mind, you may
               want to prioritize different characters.
             </QA>
           </Stack>
         </StaticSurface>
 
-        <StaticSurface p="lg">
+        <StaticSurface id="beginner-economy" p={{ base: 'sm', sm: 'lg' }}>
           <Stack gap="sm">
-            <Title order={2}>Economy &amp; Shopping</Title>
+            <Title order={2} size="h3">
+              Economy &amp; Shopping
+            </Title>
 
             <QA q="What is the best way to spend Diamonds?">
               Priority path: shop essentials &gt; sweeps (except Wyrm Essence)
@@ -272,12 +305,13 @@ export default function BeginnerQA() {
 
             <QA q="Which shops should I buy from?">
               • Mystery Shop: <ResourceBadge slug="exploration_guide" />{' '}
-              (daily), <ResourceBadge slug="primal_amber" />
-              (monthly).
+              (daily), <ResourceBadge slug="primal_amber" /> (monthly).
               <br />• Arena Shop: discounted{' '}
               <ResourceBadge slug="mythic_summoning_ticket" /> &gt;{' '}
               <ResourceBadge slug="primal_amber" /> &gt; full-price{' '}
-              <ResourceBadge slug="mythic_summoning_ticket" />.
+              <NoWrap>
+                <ResourceBadge slug="mythic_summoning_ticket" />.
+              </NoWrap>
               <br />• God Realm Shop: <ResourceBadge slug="fate_horn" />{' '}
               (weekly) &gt; <ResourceBadge slug="aurora_dust" /> (daily) &gt;{' '}
               <CharacterTag slug="medusa_ssr" /> (SSR, one copy first, then
@@ -292,7 +326,7 @@ export default function BeginnerQA() {
               <br />• 1 <ResourceBadge slug="soul_elixir" /> (up to 3 if needed)
               <br />• 1 <ResourceBadge slug="legacy_dragon_crystal" /> (up to 5
               if needed)
-              <br />• 5-10 <ResourceBadge slug="golden_horn" /> (reccommended to
+              <br />• 5-10 <ResourceBadge slug="golden_horn" /> (recommended to
               stop buying after core artifacts are unlocked)
               <br />
               Save everything until the matching event starts. Buy ALL fate
@@ -301,9 +335,11 @@ export default function BeginnerQA() {
           </Stack>
         </StaticSurface>
 
-        <StaticSurface p="lg">
+        <StaticSurface id="beginner-progression" p={{ base: 'sm', sm: 'lg' }}>
           <Stack gap="sm">
-            <Title order={2}>Progression &amp; Mechanics</Title>
+            <Title order={2} size="h3">
+              Progression &amp; Mechanics
+            </Title>
 
             <QA q="What is the level cap for Luminaries?">
               After level 100, the cap increases by 50 each stage (150, 200,
@@ -313,15 +349,19 @@ export default function BeginnerQA() {
             <QA q="How do I evolve Dragons?">
               Dragon star-up uses Dragon Souls. If you lack the exact soul, you
               can substitute lower-tier souls or{' '}
-              <ResourceBadge slug="dragonblood" />. Conversion: 3 Small = 1
-              Medium, and 4 Medium = 1 Large.
+              <NoWrap>
+                <ResourceBadge slug="dragonblood" />.
+              </NoWrap>{' '}
+              Conversion: 3 Small = 1 Medium, and 4 Medium = 1 Large.
             </QA>
 
             <QA q="What should I prioritize in Dispatch?">
               <ResourceBadge slug="luminary_exp" /> ≥{' '}
               <ResourceBadge slug="gold" /> &gt;{' '}
               <ResourceBadge slug="leaf_of_the_world_tree" /> ≥{' '}
-              <ResourceBadge slug="diamond" />.
+              <NoWrap>
+                <ResourceBadge slug="diamond" />.
+              </NoWrap>
             </QA>
 
             <QA q="What attributes are best for equipment?">
@@ -333,9 +373,11 @@ export default function BeginnerQA() {
           </Stack>
         </StaticSurface>
 
-        <StaticSurface p="lg">
+        <StaticSurface id="beginner-events" p={{ base: 'sm', sm: 'lg' }}>
           <Stack gap="sm">
-            <Title order={2}>Events &amp; Guilds</Title>
+            <Title order={2} size="h3">
+              Events &amp; Guilds
+            </Title>
 
             <QA q="How do Golden Leaf events work?">
               Events rotate weekly (Howlkins → Wyrmspells → Artifacts).
@@ -359,22 +401,22 @@ export default function BeginnerQA() {
             <QA q="What are the Guild priorities?">
               Always do Guild Wars (losses still give points). Always hit the
               Guild Dragon (primary{' '}
-              <ResourceBadge slug="leaf_of_the_world_tree" />
-              source). In Exploration, prioritize Limited Resources &gt; Rune
-              Crystals &gt; Dragon Soul Statues.
+              <ResourceBadge slug="leaf_of_the_world_tree" /> source). In
+              Exploration, prioritize Limited Resources &gt; Rune Crystals &gt;
+              Dragon Soul Statues.
               <br />
               <br />
               Guild Expedition priority:
-              <ScrollArea type="auto" scrollbarSize={6} offsetScrollbars>
+              <Box mt="xs">
                 <Table
                   striped
                   withTableBorder
                   withColumnBorders
-                  style={getMinWidthStyle(700)}
+                  horizontalSpacing={6}
                 >
                   <Table.Thead>
                     <Table.Tr>
-                      <Table.Th>Priority</Table.Th>
+                      <Table.Th aria-label="Priority">#</Table.Th>
                       <Table.Th>Objective</Table.Th>
                       <Table.Th>Reward</Table.Th>
                     </Table.Tr>
@@ -401,14 +443,16 @@ export default function BeginnerQA() {
                     )}
                   </Table.Tbody>
                 </Table>
-              </ScrollArea>
+              </Box>
             </QA>
           </Stack>
         </StaticSurface>
 
-        <StaticSurface p="lg">
+        <StaticSurface id="beginner-affection" p={{ base: 'sm', sm: 'lg' }}>
           <Stack gap="sm">
-            <Title order={2}>Affection Gifts</Title>
+            <Title order={2} size="h3">
+              Affection Gifts
+            </Title>
             <Text size="sm" c="dimmed">
               Each faction has one preferred gift per quality tier. Faction
               gifts give the listed affection points to Luminaries of that
@@ -464,17 +508,22 @@ export default function BeginnerQA() {
           </Stack>
         </StaticSurface>
 
-        <StaticSurface p="lg">
+        <StaticSurface id="beginner-combat" p={{ base: 'sm', sm: 'lg' }}>
           <Stack gap="sm">
-            <Title order={2}>Combat Strategy</Title>
+            <Title order={2} size="h3">
+              Combat Strategy
+            </Title>
 
             <QA q="Why is Physical Defense usually prioritized over Magic Defense?">
               Most magic damage comes from Mages and Priests; Priests are
               commonly support-focused with lower output. Many meta Mages are
               currently utility-focused, with fewer high-damage exceptions (such
               as <CharacterTag slug="gabriele_ssr_plus" /> or{' '}
-              <CharacterTag slug="poseidon_ssr_ex" />
-              ), so physical pressure is often more common.
+              <NoWrap>
+                <CharacterTag slug="poseidon_ssr_ex" />
+                ),
+              </NoWrap>{' '}
+              so physical pressure is often more common.
             </QA>
           </Stack>
         </StaticSurface>

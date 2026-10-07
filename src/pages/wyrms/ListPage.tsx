@@ -24,7 +24,7 @@ import { FACTION_SLUGS } from '@/constants/faction-colors';
 import { QUALITY_ORDER } from '@/constants/quality';
 import { getMinWidthStyle } from '@/constants/styles';
 import { IMAGE_SIZE, STORAGE_KEY } from '@/constants/ui';
-import type { WyrmPhase } from '@/features/wiki/wyrms/types';
+import { WYRM_PHASE_COLOR } from '@/constants/wyrm-colors';
 import { WYRM_PHASE_ORDER } from '@/features/wiki/wyrms/types';
 import {
   compareWyrms,
@@ -48,12 +48,6 @@ import {
   Table,
 } from '@mantine/core';
 import { useMemo } from 'react';
-
-const WYRM_PHASE_COLOR: Record<WyrmPhase, string> = {
-  'Juvenile Phase': 'violet',
-  'Growth Phase': 'yellow',
-  'Final Phase': 'orange',
-};
 
 export default function WyrmsListPage() {
   const { data: statusEffects } = useStatusEffects();

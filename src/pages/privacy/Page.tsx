@@ -1,17 +1,16 @@
 import { Anchor, Container, List, Stack, Text, Title } from '@mantine/core';
 import { Link } from 'react-router';
+import ListPageHeader from '@/components/layout/ListPageHeader';
 import { GITHUB_REPO_URL } from '@/constants/github';
 
 export default function PrivacyPage() {
   return (
     <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
-        <Title order={1}>Privacy Policy</Title>
-        <Text c="dimmed">
-          This page covers the community account system (sign-in, publishing,
-          voting, reporting). Browsing the wiki itself and using local, saved
-          drafts don't require an account and aren't covered here.
-        </Text>
+        <ListPageHeader
+          title="Privacy Policy"
+          description="This page covers the community account system (sign-in, publishing, voting, reporting). Browsing the wiki itself and using local, saved drafts don't require an account and aren't covered here."
+        />
 
         <Stack gap="xs">
           <Title order={2} size="h3">

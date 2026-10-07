@@ -253,7 +253,12 @@ export default function StatusEffects() {
                           </Table.Td>
                           <Table.Td>
                             {effect.remark ? (
-                              <Text size="xs" c="dimmed" fs="italic">
+                              <Text
+                                size="xs"
+                                c="dimmed"
+                                fs="italic"
+                                lineClamp={3}
+                              >
                                 {effect.remark}
                               </Text>
                             ) : (

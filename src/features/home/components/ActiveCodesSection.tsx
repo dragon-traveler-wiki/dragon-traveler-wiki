@@ -14,11 +14,12 @@ import { LoadingRegion } from '@/components/layout/PageLoadingSkeleton';
 import { useCodes } from '@/features/wiki/hooks/use-wiki-data';
 import { useGradientAccent, useMobileTooltip } from '@/hooks';
 import { isCodeActive } from '@/utils';
+import HomeSectionError from './HomeSectionError';
 
 export default function ActiveCodesSection() {
   const tooltipProps = useMobileTooltip();
   const { accent } = useGradientAccent();
-  const { data: codes, loading } = useCodes();
+  const { data: codes, loading, error, retry } = useCodes();
   const activeCodes = codes.filter(isCodeActive).reverse().slice(0, 5);
 
   if (loading) {
@@ -40,6 +41,10 @@ export default function ActiveCodesSection() {
         </Stack>
       </LoadingRegion>
     );
+  }
+
+  if (error) {
+    return <HomeSectionError message="Could not load codes." onRetry={retry} />;
   }
 
   if (activeCodes.length === 0) {

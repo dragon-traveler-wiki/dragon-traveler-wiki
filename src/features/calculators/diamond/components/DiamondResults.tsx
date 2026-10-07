@@ -40,12 +40,12 @@ export default function DiamondResults({
   runOutDate,
 }: DiamondResultsProps) {
   return (
-    <StaticSurface p="lg">
+    <StaticSurface p={{ base: 'sm', sm: 'lg' }}>
       <Stack gap="md">
         <Title order={2} size="h3">
           Results
         </Title>
-        <SimpleGrid cols={{ base: 1, sm: 2, md: 4 }} spacing="sm">
+        <SimpleGrid cols={{ base: 2, md: 4 }} spacing="sm">
           <StatCard
             icon={<IoTrendingUp size={16} />}
             title="Avg Gain / Day"

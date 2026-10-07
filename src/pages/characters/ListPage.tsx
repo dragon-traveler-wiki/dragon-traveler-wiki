@@ -1,6 +1,5 @@
 import {
   CharacterListLoading,
-  EmptyState,
   ListPageHeader,
   ListPageShell,
 } from '@/components';
@@ -96,25 +95,18 @@ export default function Characters() {
           onRetry={retry}
           errorTitle="Could not load characters"
           hasData={characters.length > 0}
-          emptyMessage="No character data available yet."
+          emptyMessage="No characters yet"
+          emptyDescription="Character data will appear here once available."
+          emptyIcon={<IoPeople size={32} />}
           loadingFallback={
             <CharacterListLoading viewMode={listData.viewMode} />
           }
         >
-          {characters.length === 0 ? (
-            <EmptyState
-              icon={<IoPeople size={32} />}
-              title="No characters yet"
-              description="Character data will appear here once available."
-              color={accent.primary}
-            />
-          ) : (
-            <CharacterList
-              data={listData}
-              newCharacterKeys={newCharacterKeys}
-              updatedCharacterKeys={updatedCharacterKeys}
-            />
-          )}
+          <CharacterList
+            data={listData}
+            newCharacterKeys={newCharacterKeys}
+            updatedCharacterKeys={updatedCharacterKeys}
+          />
         </ListPageShell>
       </Stack>
     </Container>

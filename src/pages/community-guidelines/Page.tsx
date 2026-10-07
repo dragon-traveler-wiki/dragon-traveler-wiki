@@ -1,4 +1,5 @@
 import { Anchor, Container, List, Stack, Text, Title } from '@mantine/core';
+import ListPageHeader from '@/components/layout/ListPageHeader';
 import { GITHUB_REPO_URL } from '@/constants/github';
 import { Link } from 'react-router';
 
@@ -6,13 +7,10 @@ export default function CommunityGuidelinesPage() {
   return (
     <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
-        <Title order={1}>Community Guidelines</Title>
-        <Text c="dimmed">
-          These apply to anything you publish publicly through an account —
-          teams, tier lists, and any other community content the wiki adds in
-          the future. Local drafts saved only in your browser aren't public and
-          aren't covered by these guidelines.
-        </Text>
+        <ListPageHeader
+          title="Community Guidelines"
+          description="These apply to anything you publish publicly through an account — teams, tier lists, and any other community content the wiki adds in the future. Local drafts saved only in your browser aren't public and aren't covered by these guidelines."
+        />
 
         <Stack gap="xs">
           <Title order={2} size="h3">

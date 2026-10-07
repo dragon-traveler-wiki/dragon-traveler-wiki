@@ -1,7 +1,8 @@
 import { useChangelog } from '@/features/wiki/hooks/use-wiki-data';
 import { useGradientAccent, usePageSize, useTabParam } from '@/hooks';
 import { getPageSizeStorageKey, usePagination } from '@/hooks/use-pagination';
-import { Container, Stack, Tabs, Text, Title } from '@mantine/core';
+import ListPageHeader from '@/components/layout/ListPageHeader';
+import { Container, Stack, Tabs } from '@mantine/core';
 import SiteUpdatesTab from './SiteUpdatesTab';
 import DataHistoryTab from './DataHistoryTab';
 import { useToggleSet } from './use-toggle-set';
@@ -11,7 +12,7 @@ const SITE_PAGE_SIZE = 10;
 
 export default function Changelog() {
   const { accent } = useGradientAccent();
-  const { data: changelog, loading } = useChangelog();
+  const { data: changelog, loading, error, retry } = useChangelog();
   const [activeTab, handleTabChange] = useTabParam('tab', 'site', [
     'site',
     'data',
@@ -40,14 +41,12 @@ export default function Changelog() {
   return (
     <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
-        <div>
-          <Title order={1}>Changelog</Title>
-          <Text size="sm" c="dimmed" mt="xs">
-            Track updates to the Dragon Traveler Wiki
-          </Text>
-        </div>
+        <ListPageHeader
+          title="Changelog"
+          description="Track updates to the Dragon Traveler Wiki"
+        />
 
-        <Tabs value={activeTab} onChange={handleTabChange}>
+        <Tabs value={activeTab} onChange={handleTabChange} keepMounted={false}>
           <Tabs.List>
             <Tabs.Tab value="site">Site Updates</Tabs.Tab>
             <Tabs.Tab value="data">Data History</Tabs.Tab>
@@ -56,6 +55,8 @@ export default function Changelog() {
           <Tabs.Panel value="site" pt="md">
             <SiteUpdatesTab
               loading={loading}
+              error={error}
+              onRetry={retry}
               changelog={changelog}
               paginatedChangelog={paginatedChangelog}
               offset={offset}

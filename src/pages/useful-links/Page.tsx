@@ -1,18 +1,14 @@
-﻿import {
-  Anchor,
-  Badge,
-  Box,
-  Container,
-  Group,
-  Stack,
-  Text,
-  Title,
-} from '@mantine/core';
+﻿import { Anchor, Badge, Container, Group, Stack, Text } from '@mantine/core';
 import type { IconType } from 'react-icons';
 import { FaDiscord } from 'react-icons/fa';
 import { IoBookOutline, IoLinkOutline } from 'react-icons/io5';
 import { SiGooglesheets } from 'react-icons/si';
-import { ListPageShell, SuggestModal, type FieldDef } from '@/components';
+import {
+  ListPageHeader,
+  ListPageShell,
+  SuggestModal,
+  type FieldDef,
+} from '@/components';
 import { ViewModeLoading } from '@/components/layout/PageLoadingSkeleton';
 import { StaticSurface } from '@/components/ui/Surface';
 import { getStableTagColor } from '@/constants/tag-colors';
@@ -76,21 +72,17 @@ export default function UsefulLinks() {
   return (
     <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="md">
-        <Group justify="space-between" align="flex-start">
-          <Stack gap={2}>
-            <Title order={1}>Useful Links</Title>
-            <Text size="sm" c="dimmed">
-              Curated official and community resources for guides, tools, and
-              reference material.
-            </Text>
-          </Stack>
+        <ListPageHeader
+          title="Useful Links"
+          description="Curated official and community resources for guides, tools, and reference material."
+        >
           <SuggestModal
             buttonLabel="Suggest a Link"
             modalTitle="Suggest a New Link"
             issueTitle="[Link] New link suggestion"
             fields={LINK_FIELDS}
           />
-        </Group>
+        </ListPageHeader>
 
         <ListPageShell
           loading={loading}
@@ -107,35 +99,31 @@ export default function UsefulLinks() {
               <StaticSurface
                 key={link.link}
                 id={toEntitySlug(link.name)}
-                p="lg"
+                p={{ base: 'sm', sm: 'lg' }}
               >
-                <Group>
-                  <Text size="xl" lh={1}>
-                    <Icon />
-                  </Text>
-                  <Box style={{ flex: 1 }}>
-                    <Group gap="xs" mb={4}>
-                      <Anchor
-                        href={link.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        fw={600}
-                      >
-                        {link.name}
-                      </Anchor>
-                      <Badge
-                        variant="light"
-                        size="sm"
-                        color={getStableTagColor(link.application)}
-                      >
-                        {link.application}
-                      </Badge>
-                    </Group>
-                    <Text size="sm" c="dimmed">
-                      {link.description}
-                    </Text>
-                  </Box>
+                <Group gap="xs" mb={4} wrap="nowrap" align="center">
+                  <Icon size={18} aria-hidden style={{ flexShrink: 0 }} />
+                  <Group gap="xs" style={{ flex: 1, minWidth: 0 }}>
+                    <Anchor
+                      href={link.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      fw={600}
+                    >
+                      {link.name}
+                    </Anchor>
+                    <Badge
+                      variant="light"
+                      size="sm"
+                      color={getStableTagColor(link.application)}
+                    >
+                      {link.application}
+                    </Badge>
+                  </Group>
                 </Group>
+                <Text size="sm" c="dimmed">
+                  {link.description}
+                </Text>
               </StaticSurface>
             );
           })}

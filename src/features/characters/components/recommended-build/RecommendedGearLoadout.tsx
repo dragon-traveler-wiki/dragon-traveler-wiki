@@ -49,7 +49,7 @@ export default function RecommendedGearLoadout({
         </Text>
         {recommendedGearLoadouts.length > 1 && (
           <SegmentedControl
-            size="xs"
+            size="sm"
             value={String(selectedLoadoutIndex)}
             onChange={(val) => onSelectLoadoutIndex(Number(val))}
             data={recommendedGearLoadouts.map((l, i) => ({

@@ -1,10 +1,12 @@
 import LastUpdated from '@/components/common/LastUpdated';
-import { Group, Title } from '@mantine/core';
+import { Group, Stack, Text, Title } from '@mantine/core';
 import type { ReactNode } from 'react';
 
 interface ListPageHeaderProps {
   title: string;
   timestamp?: number | null;
+  /** Optional subtitle shown under the title */
+  description?: ReactNode;
   /** Right-side content, typically a SuggestModal */
   children?: ReactNode;
 }
@@ -12,9 +14,10 @@ interface ListPageHeaderProps {
 export default function ListPageHeader({
   title,
   timestamp,
+  description,
   children,
 }: ListPageHeaderProps) {
-  return (
+  const header = (
     <Group justify="space-between" align="center" wrap="wrap" gap="sm">
       <Group gap="sm" align="baseline">
         <Title
@@ -28,5 +31,16 @@ export default function ListPageHeader({
       </Group>
       {children}
     </Group>
+  );
+
+  if (!description) return header;
+
+  return (
+    <Stack gap={4}>
+      {header}
+      <Text c="dimmed" size="sm">
+        {description}
+      </Text>
+    </Stack>
   );
 }

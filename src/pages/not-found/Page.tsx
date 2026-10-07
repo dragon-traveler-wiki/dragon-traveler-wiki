@@ -37,7 +37,9 @@ export default function NotFound() {
         </Text>
 
         <Stack align="center" gap="sm">
-          <Title order={2}>Page Not Found</Title>
+          <Title order={1} size="h2">
+            Page Not Found
+          </Title>
           <Text c="dimmed" ta="center" maw={360}>
             The page you're looking for doesn't exist or has been moved.
           </Text>

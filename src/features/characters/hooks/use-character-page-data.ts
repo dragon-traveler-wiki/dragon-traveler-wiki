@@ -90,6 +90,8 @@ const GEAR_SLOT_CONFIG: Array<{
 
 export interface CharacterPageData {
   loading: boolean;
+  error: Error | null;
+  retry: () => void;
   character: Character | null | undefined;
   sameNameVariants: Character[];
   routeBaseSlug: string | null;
@@ -120,7 +122,7 @@ export function useCharacterPageData(
   const selectedTierListName = referenceTierList?.name ?? null;
   const { showCharacterTiers } = useContext(CharacterOwnershipContext);
 
-  const { data: characters, loading } = useCharacters();
+  const { data: characters, loading, error, retry } = useCharacters();
   const { data: statusEffects } = useStatusEffects();
   const { data: noblePhantasms } = useNoblePhantasms();
   const { data: subclasses } = useSubclasses();
@@ -423,6 +425,8 @@ export function useCharacterPageData(
 
   return {
     loading,
+    error,
+    retry,
     character,
     sameNameVariants,
     routeBaseSlug: routeMatch.baseSlug,

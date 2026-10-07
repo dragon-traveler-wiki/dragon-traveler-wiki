@@ -12,31 +12,38 @@ interface BreadcrumbsProps {
 
 export default function Breadcrumbs({ items }: BreadcrumbsProps) {
   return (
-    <MantineBreadcrumbs mb="md" style={{ flexWrap: 'wrap' }}>
-      {items.map((item, index) => {
-        const isLast = index === items.length - 1;
+    <nav aria-label="Breadcrumb">
+      <MantineBreadcrumbs mb="md" style={{ flexWrap: 'wrap' }}>
+        {items.map((item, index) => {
+          const isLast = index === items.length - 1;
 
-        if (isLast || !item.path) {
+          if (isLast || !item.path) {
+            return (
+              <Text
+                key={index}
+                size="sm"
+                c="dimmed"
+                aria-current={isLast ? 'page' : undefined}
+              >
+                {item.label}
+              </Text>
+            );
+          }
+
           return (
-            <Text key={index} size="sm" c="dimmed">
+            <Anchor
+              key={index}
+              component={Link}
+              to={item.path}
+              size="sm"
+              c="dimmed"
+              underline="hover"
+            >
               {item.label}
-            </Text>
+            </Anchor>
           );
-        }
-
-        return (
-          <Anchor
-            key={index}
-            component={Link}
-            to={item.path}
-            size="sm"
-            c="dimmed"
-            underline="hover"
-          >
-            {item.label}
-          </Anchor>
-        );
-      })}
-    </MantineBreadcrumbs>
+        })}
+      </MantineBreadcrumbs>
+    </nav>
   );
 }

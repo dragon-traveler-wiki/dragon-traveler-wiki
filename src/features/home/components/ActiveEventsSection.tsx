@@ -10,13 +10,11 @@ import type { GameEvent } from '@/features/wiki/events/types';
 import { getEventTypeColor, isGameEventActive } from '@/utils/event-utils';
 import { Badge, Card, Group, SimpleGrid, Stack, Text } from '@mantine/core';
 import { useMemo } from 'react';
+import HomeSectionError from './HomeSectionError';
 
 export default function ActiveEventsSection() {
   const { accent } = useGradientAccent();
-  const { data: events, loading } = useEvents() as {
-    data: GameEvent[];
-    loading: boolean;
-  };
+  const { data: events, loading, error, retry } = useEvents();
 
   const activeEvents = useMemo<GameEvent[]>(() => {
     return events
@@ -27,6 +25,12 @@ export default function ActiveEventsSection() {
 
   if (loading) {
     return <EventCardsLoading cards={3} bannerHeight={130} spacing="sm" />;
+  }
+
+  if (error) {
+    return (
+      <HomeSectionError message="Could not load events." onRetry={retry} />
+    );
   }
 
   if (activeEvents.length === 0) {
@@ -73,7 +77,7 @@ export default function ActiveEventsSection() {
                 alt={event.name}
               />
             </Card.Section>
-            <Stack gap="xs" p="md" style={{ flex: 1 }}>
+            <Stack gap="xs" p={{ base: 'sm', sm: 'md' }} style={{ flex: 1 }}>
               <Group gap="xs" wrap="wrap">
                 <GlobalBadge isGlobal={event.is_global} size="sm" />
                 {event.type && (

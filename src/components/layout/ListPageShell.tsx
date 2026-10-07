@@ -1,5 +1,6 @@
 import DataFetchError from '@/components/ui/DataFetchError';
-import { Stack, Text } from '@mantine/core';
+import EmptyState from '@/components/ui/EmptyState';
+import { useGradientAccent } from '@/hooks';
 import type { ReactNode } from 'react';
 
 interface ListPageShellProps {
@@ -8,6 +9,8 @@ interface ListPageShellProps {
   onRetry: () => void;
   hasData: boolean;
   emptyMessage: string;
+  emptyDescription?: string;
+  emptyIcon?: ReactNode;
   errorTitle?: string;
   loadingFallback: ReactNode;
   children: ReactNode;
@@ -19,10 +22,14 @@ export default function ListPageShell({
   onRetry,
   hasData,
   emptyMessage,
+  emptyDescription,
+  emptyIcon,
   errorTitle = 'Could not load data',
   loadingFallback,
   children,
 }: ListPageShellProps) {
+  const { accent } = useGradientAccent();
+
   if (loading) {
     return <>{loadingFallback}</>;
   }
@@ -37,9 +44,12 @@ export default function ListPageShell({
   }
   if (!hasData) {
     return (
-      <Stack align="center" py="xl">
-        <Text c="dimmed">{emptyMessage}</Text>
-      </Stack>
+      <EmptyState
+        icon={emptyIcon}
+        title={emptyMessage}
+        description={emptyDescription}
+        color={accent.primary}
+      />
     );
   }
   return <>{children}</>;

@@ -4,6 +4,7 @@ import { useIsMobile } from '@/hooks';
 import type { ViewMode } from '@/hooks/use-filters';
 import { Box, Group, Text } from '@mantine/core';
 import { type ReactNode } from 'react';
+import { pluralize } from '@/utils/string';
 import FilterPopoverButton from './FilterPopoverButton';
 
 interface FilterToolbarProps {
@@ -47,8 +48,7 @@ export default function FilterToolbar({
     >
       <Group justify="space-between" align="center" wrap="wrap" gap="xs">
         <Text size="sm" c="dimmed">
-          {count} {noun}
-          {count !== 1 ? 's' : ''}
+          {count} {count === 1 ? noun : pluralize(noun)}
         </Text>
         <Group gap="xs">
           <ViewToggle viewMode={viewMode} onChange={onViewModeChange} />

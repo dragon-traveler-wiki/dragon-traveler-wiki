@@ -51,7 +51,7 @@ export default function AllianceMemberCard({
             ))}
           </Stack>
         </Group>
-        <HowlkinStats stats={howlkin.basic_stats} size="xs" />
+        <HowlkinStats stats={howlkin.basic_stats} />
       </Stack>
     </StaticSurface>
   );

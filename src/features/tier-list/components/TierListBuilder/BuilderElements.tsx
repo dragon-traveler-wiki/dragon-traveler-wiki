@@ -14,7 +14,7 @@ import {
   TextInput,
   Tooltip,
 } from '@mantine/core';
-import { useInputCommit, useMobileTooltip } from '@/hooks';
+import { useInputCommit, useIsMobile, useMobileTooltip } from '@/hooks';
 import type { CSSProperties } from 'react';
 import { memo, useEffect, useRef, useState } from 'react';
 import {
@@ -28,7 +28,11 @@ import {
   type ContentType,
 } from '@/constants/content-types';
 import { StaticSurface } from '@/components/ui/Surface';
-import { CHARACTER_GRID_SPACING, TRANSITION } from '@/constants/ui';
+import {
+  BUILDER_GRID_COLS,
+  CHARACTER_GRID_SPACING,
+  TRANSITION,
+} from '@/constants/ui';
 import { useGradientAccent } from '@/hooks';
 import TierListEntityCard from '@/features/tier-list/components/TierListEntityCard';
 import type {
@@ -258,6 +262,8 @@ export function TierDropZone({
   const { setNodeRef, isOver } = useDroppable({ id });
   const { accent } = useGradientAccent();
   const mobileTooltip = useMobileTooltip();
+  const isMobile = useIsMobile();
+  const actionSize = isMobile ? 'lg' : 'sm';
 
   return (
     <StaticSurface
@@ -285,14 +291,14 @@ export function TierDropZone({
               align="left"
             />
           </Stack>
-          <Group gap={2} wrap="nowrap" style={{ flexShrink: 0 }}>
+          <Group gap={isMobile ? 6 : 2} wrap="nowrap" style={{ flexShrink: 0 }}>
             <Tooltip
               label={isFirst ? 'Already at top tier' : 'Move tier up'}
               withinPortal
               {...mobileTooltip}
             >
               <ActionIcon
-                size="sm"
+                size={actionSize}
                 radius="md"
                 variant="light"
                 color={accent.primary}
@@ -309,7 +315,7 @@ export function TierDropZone({
               {...mobileTooltip}
             >
               <ActionIcon
-                size="sm"
+                size={actionSize}
                 radius="md"
                 variant="light"
                 color={accent.primary}
@@ -328,7 +334,7 @@ export function TierDropZone({
               {...mobileTooltip}
             >
               <ActionIcon
-                size="sm"
+                size={actionSize}
                 radius="md"
                 variant="light"
                 color="red"
@@ -342,7 +348,7 @@ export function TierDropZone({
           </Group>
         </Group>
         <SimpleGrid
-          cols={{ base: 2, xs: 3, sm: 4, md: 6 }}
+          cols={BUILDER_GRID_COLS}
           spacing={CHARACTER_GRID_SPACING}
           style={{ minHeight: 40 }}
         >
@@ -547,7 +553,7 @@ export function UnrankedPool({
           </Text>
         )}
         <SimpleGrid
-          cols={cols ?? { base: 2, xs: 3, sm: 4, md: 6 }}
+          cols={cols ?? BUILDER_GRID_COLS}
           spacing={CHARACTER_GRID_SPACING}
           style={{ minHeight: 40 }}
         >

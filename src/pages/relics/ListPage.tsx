@@ -50,9 +50,7 @@ const FILTER_GROUPS: ChipFilterGroup[] = [
       />
     ),
   },
-  {
-    ...createQualityFilterGroup(),
-  },
+  createQualityFilterGroup(),
 ];
 
 export default function RelicPage() {
@@ -162,10 +160,20 @@ export default function RelicPage() {
     <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="md">
         <ListPageHeader title="Relics" timestamp={mostRecentUpdate}>
-          <Group gap="xs">
-            <ExportButton data={relics} filename="relic.json" />
-            <DataCorrectionButton entityType="relic" />
-          </Group>
+          {activeTab === 'oracle-scrolls' ? (
+            <Group gap="xs">
+              <ExportButton
+                data={oracleScrolls}
+                filename="oracle-scrolls.json"
+              />
+              <DataCorrectionButton entityType="oracle scroll" />
+            </Group>
+          ) : (
+            <Group gap="xs">
+              <ExportButton data={relics} filename="relics.json" />
+              <DataCorrectionButton entityType="relic" />
+            </Group>
+          )}
         </ListPageHeader>
 
         <Tabs value={activeTab} onChange={handleTabChange}>
@@ -195,7 +203,6 @@ export default function RelicPage() {
               onPageSizeChange={setRelicPageSize}
               filters={filters}
               onFiltersChange={setFilters}
-              emptyFilters={EMPTY_RELIC_FILTERS}
               filterGroups={FILTER_GROUPS}
               sortCol={sortCol}
               sortDir={sortDir}

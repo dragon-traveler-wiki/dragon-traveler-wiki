@@ -12,12 +12,15 @@ interface HowlkinBadgeProps {
   name: string;
   howlkin?: Howlkin;
   size?: MantineSize;
+  /** Set false when rendered inside another interactive element, e.g. a link card. */
+  interactive?: boolean;
 }
 
 export default function HowlkinBadge({
   name,
   howlkin,
   size = 'md',
+  interactive = true,
 }: HowlkinBadgeProps) {
   const { accent } = useGradientAccent();
   const iconSrc = howlkin
@@ -36,7 +39,7 @@ export default function HowlkinBadge({
       size={size}
       iconSrc={iconSrc ?? undefined}
       popoverContent={
-        howlkin ? (
+        interactive && howlkin ? (
           <Stack gap="xs">
             <Group gap="xs" wrap="nowrap">
               {iconSrc && (

@@ -9,10 +9,10 @@ import {
   Stack,
   Tabs,
   Text,
-  Title,
 } from '@mantine/core';
 import { IoCalendarOutline, IoInformationCircleOutline } from 'react-icons/io5';
-import LastUpdated from '@/components/common/LastUpdated';
+import FilterToolbar from '@/components/layout/FilterToolbar';
+import ListPageHeader from '@/components/layout/ListPageHeader';
 import PageFilterHeaderControls from '@/components/layout/PageFilterHeaderControls';
 import { EventCardsLoading } from '@/components/layout/PageLoadingSkeleton';
 import DataFetchError from '@/components/ui/DataFetchError';
@@ -60,11 +60,7 @@ export default function EventsPageContent({
   return (
     <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="md">
-        <Group justify="space-between" align="center" wrap="wrap" gap="sm">
-          <Group gap="sm" align="baseline">
-            <Title order={1}>Events</Title>
-            <LastUpdated timestamp={pageState.mostRecentUpdate} />
-          </Group>
+        <ListPageHeader title="Events" timestamp={pageState.mostRecentUpdate}>
           {!isMobile && !loading && !error ? (
             <PageFilterHeaderControls
               viewMode={pageState.viewMode}
@@ -82,14 +78,15 @@ export default function EventsPageContent({
               <Skeleton height={30} width={36} radius="md" />
             </Group>
           ) : null}
-        </Group>
+        </ListPageHeader>
 
         {isMobile && loading ? (
           <Skeleton height={38} radius="md" aria-hidden="true" />
         ) : null}
         {isMobile && !loading && !error ? (
-          <PageFilterHeaderControls
-            sticky
+          <FilterToolbar
+            count={pageState.filtered.length}
+            noun="event"
             viewMode={pageState.viewMode}
             onViewModeChange={pageState.setViewMode}
             filterCount={pageState.activeFilterCount}
@@ -97,7 +94,7 @@ export default function EventsPageContent({
             onFilterToggle={pageState.toggleFilter}
           >
             {filter}
-          </PageFilterHeaderControls>
+          </FilterToolbar>
         ) : null}
 
         <Alert

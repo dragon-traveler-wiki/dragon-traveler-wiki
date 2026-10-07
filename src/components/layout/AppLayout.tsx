@@ -71,7 +71,7 @@ export default function AppLayout() {
         breakpoint: 'sm',
         collapsed: { mobile: !mobileOpened, desktop: useHeaderNav },
       }}
-      padding={{ base: 'sm', sm: 'md' }}
+      padding={{ base: '0px', sm: 'md' }}
       transitionDuration={parseInt(TRANSITION.NORMAL)}
       transitionTimingFunction={TRANSITION.EASE}
       style={{ minHeight: '100dvh' }}

@@ -6,15 +6,16 @@ import {
   createFactionFilterGroup,
   createQualityFilterGroup,
 } from '@/components/common/EntityFilterGroups';
-import LastUpdated from '@/components/common/LastUpdated';
+import ListPageHeader from '@/components/layout/ListPageHeader';
 import PageFilterHeaderControls from '@/components/layout/PageFilterHeaderControls';
-import { CommunityBrowseLoading } from '@/components/layout/PageLoadingSkeleton';
+import {
+  CommunityBrowseLoading,
+  CommunityCardsLoading,
+  ViewModeLoading,
+} from '@/components/layout/PageLoadingSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import DataFetchError from '@/components/ui/DataFetchError';
-import {
-  CONTENT_TYPE_OPTIONS,
-  normalizeContentTypeFilters,
-} from '@/constants/content-types';
+import { CONTENT_TYPE_OPTIONS } from '@/constants/content-types';
 import {
   BUILDER_SIDE_LAYOUT_CONTAINER_SIZE,
   STORAGE_KEY,
@@ -22,9 +23,7 @@ import {
 import type { Character } from '@/features/characters/types';
 import { useCharacterResolution } from '@/features/characters/hooks/use-character-resolution';
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
-import CommunitySortControl, {
-  type CommunitySort,
-} from '@/features/community/CommunitySortControl';
+import CommunitySortControl from '@/features/community/CommunitySortControl';
 import TierListBuilder from '@/features/tier-list/components/TierListBuilder';
 import TierListSavedTab from '@/features/tier-list/components/TierListSavedTab';
 import TierListViewTab from '@/features/tier-list/components/TierListViewTab';
@@ -49,30 +48,27 @@ import {
   getPageSizeStorageKey,
   useBuilderEditState,
   useDarkMode,
-  useFilters,
   useGradientAccent,
   useIsMobile,
   usePageSize,
   usePagination,
   usePoolLayout,
+  useSearchParamText,
   useViewMode,
 } from '@/hooks';
-import { parseTabMode } from '@/utils';
+import {
+  useCommunityBrowseState,
+  useSavedItemsForMode,
+} from '@/hooks/use-community-browse-state';
+import { getLatestTimestamp, parseTabMode } from '@/utils';
 import { toEntitySlug } from '@/utils/entity-slug';
 import { downloadElementAsImage } from '@/utils/export-image';
 import { showErrorToast } from '@/utils/toast';
 import { retryFailedDataSources } from '@/utils/retry-failed-data-sources';
-import {
-  Container,
-  Group,
-  SegmentedControl,
-  Stack,
-  Title,
-} from '@mantine/core';
-import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Container, SegmentedControl, Stack } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
-import { useSearchParamText } from '@/hooks';
 
 const TIER_LIST_PAGE_SIZE_OPTIONS = [6, 12, 18, 24] as const;
 
@@ -80,23 +76,25 @@ export default function TierList() {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [search, setSearch] = useState(() => {
-    const destinationSearch = searchParams.get('search');
-    if (destinationSearch !== null) return destinationSearch;
-    if (typeof window === 'undefined') return '';
-    return window.localStorage.getItem(STORAGE_KEY.TIER_LIST_SEARCH) || '';
+  const {
+    search,
+    setSearch,
+    debouncedSearch,
+    sort,
+    setSort,
+    filters: viewFilters,
+    handleFilterChange,
+    clearFilters: handleClearFilters,
+  } = useCommunityBrowseState<TierListViewFilters>({
+    emptyFilters: EMPTY_TIER_LIST_VIEW_FILTERS,
+    storageKeys: {
+      search: STORAGE_KEY.TIER_LIST_SEARCH,
+      sort: STORAGE_KEY.TIER_LIST_SORT,
+      filters: STORAGE_KEY.TIER_LIST_FILTERS,
+    },
+    initialSearch: searchParams.get('search'),
   });
   useSearchParamText(setSearch);
-  const [debouncedSearch] = useDebouncedValue(search, 300);
-  const [sort, setSort] = useState<CommunitySort>(() => {
-    if (typeof window === 'undefined') return 'top';
-    return window.localStorage.getItem(STORAGE_KEY.TIER_LIST_SORT) === 'new'
-      ? 'new'
-      : 'top';
-  });
-  useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY.TIER_LIST_SORT, sort);
-  }, [sort]);
   const {
     data: tierLists,
     total: totalTierLists,
@@ -119,11 +117,6 @@ export default function TierList() {
     error: noblePhantasmsError,
     retry: retryNoblePhantasms,
   } = useNoblePhantasms();
-  const { filters: viewFilters, setFilters: setViewFilters } =
-    useFilters<TierListViewFilters>({
-      emptyFilters: EMPTY_TIER_LIST_VIEW_FILTERS,
-      storageKey: STORAGE_KEY.TIER_LIST_FILTERS,
-    });
   const [filterOpen, { toggle: toggleFilter }] = useDisclosure(false);
   const mode = parseTabMode(searchParams.get('mode'));
   const navigationEditTierList = (
@@ -146,8 +139,9 @@ export default function TierList() {
     navigationInitialItem: navigationEditTierList,
     navigate,
   });
-  const [savedTierLists, setSavedTierLists] = useState<TierListType[]>(() =>
-    mode === 'saved' ? loadSavedTierLists() : [],
+  const [savedTierLists, setSavedTierLists] = useSavedItemsForMode(
+    mode,
+    loadSavedTierLists,
   );
   const [viewMode, setViewMode] = useViewMode({
     storageKey: STORAGE_KEY.TIER_LIST_VIEW_MODE,
@@ -165,8 +159,8 @@ export default function TierList() {
     setLayout: setPoolLayout,
     canUseSideLayout: canUseSidePoolLayout,
   } = usePoolLayout();
-  const loading = loadingTiers || loadingChars || loadingNoblePhantasms;
-  const error = tierListsError || charactersError || noblePhantasmsError;
+  const loadingSupportData = loadingChars || loadingNoblePhantasms;
+  const supportDataError = charactersError || noblePhantasmsError;
 
   const {
     preferredByName: preferredCharacterByName,
@@ -240,17 +234,6 @@ export default function TierList() {
     ],
   );
 
-  useEffect(() => {
-    const deduped = normalizeContentTypeFilters(viewFilters.contentTypes);
-    const unchanged =
-      deduped.length === viewFilters.contentTypes.length &&
-      deduped.every(
-        (value, index) => value === viewFilters.contentTypes[index],
-      );
-    if (unchanged) return;
-    setViewFilters((prev) => ({ ...prev, contentTypes: deduped }));
-  }, [viewFilters.contentTypes, setViewFilters]);
-
   const entityFilterGroups: ChipFilterGroup[] = useMemo(
     () => [
       {
@@ -277,38 +260,6 @@ export default function TierList() {
       ? countActiveFilters(viewFilters) + (search.trim() ? 1 : 0)
       : 0;
 
-  const handleFilterChange = useCallback(
-    (key: string, values: string[]) => {
-      setViewFilters((prev) => ({ ...prev, [key]: values }));
-    },
-    [setViewFilters],
-  );
-
-  const handleClearFilters = useCallback(() => {
-    setViewFilters({
-      contentTypes: [],
-      entityTypes: [],
-      factions: [],
-      classes: [],
-      qualities: [],
-    });
-    setSearch('');
-  }, [setViewFilters]);
-
-  useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY.TIER_LIST_SEARCH, search);
-  }, [search]);
-
-  const refreshSavedTierLists = useCallback(() => {
-    setSavedTierLists(loadSavedTierLists());
-  }, []);
-
-  const [prevMode, setPrevMode] = useState(mode);
-  if (mode !== prevMode) {
-    setPrevMode(mode);
-    if (mode === 'saved') refreshSavedTierLists();
-  }
-
   function deleteSavedTierList(name: string) {
     try {
       removeSavedTierList(toEntitySlug(name));
@@ -322,13 +273,10 @@ export default function TierList() {
     }
   }
 
-  const mostRecentUpdate = useMemo(() => {
-    let latest = 0;
-    for (const tl of tierLists) {
-      if (tl.last_updated > latest) latest = tl.last_updated;
-    }
-    return latest;
-  }, [tierLists]);
+  const mostRecentUpdate = useMemo(
+    () => getLatestTimestamp(tierLists),
+    [tierLists],
+  );
 
   const visibleTierLists = useMemo(() => {
     // Text search already happened server-side in useTierLists(debouncedSearch);
@@ -386,7 +334,7 @@ export default function TierList() {
   const { page, setPage, totalPages, offset } = usePagination(
     paginationTotal,
     pageSize,
-    JSON.stringify({ debouncedSearch, viewFilters }),
+    JSON.stringify({ debouncedSearch, sort, viewFilters }),
   );
   const paginatedTierLists = visibleTierLists.slice(offset, offset + pageSize);
 
@@ -412,6 +360,36 @@ export default function TierList() {
     [],
   );
 
+  const filterControls = (mode === 'view' || mode === 'saved') && (
+    <PageFilterHeaderControls
+      sticky={isMobile}
+      viewMode={viewMode}
+      onViewModeChange={setViewMode}
+      filterCount={activeFilterCount}
+      filterOpen={filterOpen}
+      onFilterToggle={toggleFilter}
+      extraControls={
+        mode === 'view' && (
+          <CommunitySortControl value={sort} onChange={setSort} />
+        )
+      }
+    >
+      <EntityFilter
+        groups={entityFilterGroups}
+        selected={viewFilters}
+        onChange={handleFilterChange}
+        onClear={handleClearFilters}
+        search={search}
+        onSearchChange={setSearch}
+        searchPlaceholder={
+          mode === 'saved'
+            ? 'Search saved tier lists...'
+            : 'Search tier lists...'
+        }
+      />
+    </PageFilterHeaderControls>
+  );
+
   const containerSize =
     mode === 'builder' && poolLayout === 'side'
       ? BUILDER_SIDE_LAYOUT_CONTAINER_SIZE
@@ -420,74 +398,13 @@ export default function TierList() {
   return (
     <Container size={containerSize} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="md">
-        <Group justify="space-between" align="center" wrap="wrap" gap="sm">
-          <Group gap="sm" align="baseline">
-            <Title order={1}>Tier List</Title>
-            <LastUpdated timestamp={mostRecentUpdate} />
-          </Group>
-          <Group gap="xs">
-            {!isMobile && (mode === 'view' || mode === 'saved') && (
-              <PageFilterHeaderControls
-                viewMode={viewMode}
-                onViewModeChange={setViewMode}
-                filterCount={activeFilterCount}
-                filterOpen={filterOpen}
-                onFilterToggle={toggleFilter}
-                extraControls={
-                  mode === 'view' && (
-                    <CommunitySortControl value={sort} onChange={setSort} />
-                  )
-                }
-              >
-                <EntityFilter
-                  groups={entityFilterGroups}
-                  selected={viewFilters}
-                  onChange={handleFilterChange}
-                  onClear={handleClearFilters}
-                  search={search}
-                  onSearchChange={setSearch}
-                  searchPlaceholder={
-                    mode === 'saved'
-                      ? 'Search saved tier lists...'
-                      : 'Search tier lists...'
-                  }
-                />
-              </PageFilterHeaderControls>
-            )}
-          </Group>
-        </Group>
+        <ListPageHeader title="Tier List" timestamp={mostRecentUpdate}>
+          {!isMobile && filterControls}
+        </ListPageHeader>
 
-        {isMobile && (mode === 'view' || mode === 'saved') && (
-          <PageFilterHeaderControls
-            sticky
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            filterCount={activeFilterCount}
-            filterOpen={filterOpen}
-            onFilterToggle={toggleFilter}
-            extraControls={
-              mode === 'view' && (
-                <CommunitySortControl value={sort} onChange={setSort} />
-              )
-            }
-          >
-            <EntityFilter
-              groups={entityFilterGroups}
-              selected={viewFilters}
-              onChange={handleFilterChange}
-              onClear={handleClearFilters}
-              search={search}
-              onSearchChange={setSearch}
-              searchPlaceholder={
-                mode === 'saved'
-                  ? 'Search saved tier lists...'
-                  : 'Search tier lists...'
-              }
-            />
-          </PageFilterHeaderControls>
-        )}
+        {isMobile && filterControls}
 
-        {loading && (
+        {loadingSupportData && (
           <CommunityBrowseLoading
             kind="tierList"
             viewMode={viewMode}
@@ -495,13 +412,12 @@ export default function TierList() {
           />
         )}
 
-        {!loading && error && (
+        {!loadingSupportData && supportDataError && (
           <DataFetchError
-            title="Could not load tier lists"
-            message={error.message}
+            title="Could not load tier list data"
+            message={supportDataError.message}
             onRetry={() =>
               retryFailedDataSources(
-                [tierListsError, retryTierLists],
                 [charactersError, retryCharacters],
                 [noblePhantasmsError, retryNoblePhantasms],
               )
@@ -509,7 +425,7 @@ export default function TierList() {
           />
         )}
 
-        {!loading && !error && (
+        {!loadingSupportData && !supportDataError && (
           <>
             <SegmentedControl
               fullWidth
@@ -522,36 +438,59 @@ export default function TierList() {
                 if (newMode === 'view') setEditData(null);
               }}
               data={[
-                { label: 'View Tier Lists', value: 'view' },
-                { label: 'My Saved', value: 'saved' },
-                { label: 'Create Your Own', value: 'builder' },
+                {
+                  label: isMobile ? 'Browse' : 'View Tier Lists',
+                  value: 'view',
+                },
+                { label: isMobile ? 'Saved' : 'My Saved', value: 'saved' },
+                {
+                  label: isMobile ? 'Create' : 'Create Your Own',
+                  value: 'builder',
+                },
               ]}
             />
 
-            {mode === 'view' && (
-              <TierListViewTab
-                visibleTierLists={visibleTierLists}
-                paginatedTierLists={paginatedTierLists}
-                charMap={charMap}
-                characterByIdentity={characterByIdentity}
-                viewMode={viewMode}
-                search={search}
-                onClearFilters={handleClearFilters}
-                onOpenFilters={toggleFilter}
-                onRequestEdit={requestEditTierList}
-                page={page}
-                totalPages={totalPages}
-                onPageChange={setPage}
-                pageSize={pageSize}
-                pageSizeOptions={pageSizeOptions}
-                onPageSizeChange={setPageSize}
-                hasMore={hasMoreTierLists}
-                loadedCount={tierLists.length}
-                paginationTotal={paginationTotal}
-                loadingMore={loadingMoreTierLists}
-                onLoadMore={loadMoreTierLists}
-              />
-            )}
+            {mode === 'view' &&
+              (loadingTiers && tierLists.length === 0 ? (
+                viewMode === 'grid' ? (
+                  <CommunityCardsLoading kind="tierList" />
+                ) : (
+                  <ViewModeLoading
+                    viewMode={viewMode}
+                    listType="table"
+                    label="Loading tier lists"
+                  />
+                )
+              ) : tierListsError ? (
+                <DataFetchError
+                  title="Could not load tier lists"
+                  message={tierListsError.message}
+                  onRetry={retryTierLists}
+                />
+              ) : (
+                <TierListViewTab
+                  visibleTierLists={visibleTierLists}
+                  paginatedTierLists={paginatedTierLists}
+                  charMap={charMap}
+                  characterByIdentity={characterByIdentity}
+                  viewMode={viewMode}
+                  search={search}
+                  onClearFilters={handleClearFilters}
+                  onOpenFilters={toggleFilter}
+                  onRequestEdit={requestEditTierList}
+                  page={page}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                  pageSize={pageSize}
+                  pageSizeOptions={pageSizeOptions}
+                  onPageSizeChange={setPageSize}
+                  hasMore={hasMoreTierLists}
+                  loadedCount={tierLists.length}
+                  paginationTotal={paginationTotal}
+                  loadingMore={loadingMoreTierLists}
+                  onLoadMore={loadMoreTierLists}
+                />
+              ))}
 
             {mode === 'saved' && (
               <TierListSavedTab
