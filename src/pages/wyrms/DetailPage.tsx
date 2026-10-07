@@ -225,16 +225,6 @@ export default function WyrmPage() {
                         type: 'image',
                       } satisfies Illustration,
                     ]}
-                    activeIllustration={{
-                      name: wyrm.name,
-                      src: illustrationSrc,
-                      type: 'image',
-                    }}
-                    activeIllustrationIndex={0}
-                    hasMultipleIllustrations={false}
-                    showPreviousIllustration={() => {}}
-                    showNextIllustration={() => {}}
-                    onSelectIllustration={() => {}}
                     tooltipProps={tooltipProps}
                   />
                 </>

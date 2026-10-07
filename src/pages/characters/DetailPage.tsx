@@ -320,11 +320,7 @@ export default function CharacterPage() {
           onClose={() => setPreviewOpen(false)}
           entityName={character.name}
           illustrations={illustrations}
-          activeIllustration={activeIllustration}
           activeIllustrationIndex={activeIllustrationIndex}
-          hasMultipleIllustrations={hasMultipleIllustrations}
-          showPreviousIllustration={showPreviousIllustration}
-          showNextIllustration={showNextIllustration}
           onSelectIllustration={setSelectedIllustration}
           tooltipProps={tooltipProps}
           isFavorite={isActiveIllustrationFavorite}

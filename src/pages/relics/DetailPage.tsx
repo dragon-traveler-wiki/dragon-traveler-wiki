@@ -185,16 +185,6 @@ export default function OracleScrollPage() {
               type: 'video',
             } satisfies Illustration,
           ]}
-          activeIllustration={{
-            name: currentScroll.name,
-            src: illustrationSrc,
-            type: 'video',
-          }}
-          activeIllustrationIndex={0}
-          hasMultipleIllustrations={false}
-          showPreviousIllustration={() => {}}
-          showNextIllustration={() => {}}
-          onSelectIllustration={() => {}}
           tooltipProps={tooltipProps}
         />
       )}
