@@ -11,13 +11,13 @@ import {
 import { useParams } from 'react-router';
 import ChangeHistory from '@/components/common/ChangeHistory';
 import DetailPageNavigation from '@/components/common/DetailPageNavigation';
-import DataFetchError from '@/components/ui/DataFetchError';
+import PageFetchError from '@/components/ui/PageFetchError';
 import EntityNotFound from '@/components/ui/EntityNotFound';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { CharacterDetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
 import FullBleedSection from '@/components/layout/FullBleedSection';
 import SectionJumpNav from '@/components/layout/SectionJumpNav';
-import { BREAKPOINTS } from '@/constants/ui';
+import { BREAKPOINTS, PAGE_WIDTH } from '@/constants/ui';
 import { useCharacterAssets } from '@/features/characters/hooks/use-character-assets';
 import { useStarLevels } from '@/features/wiki/hooks/use-wiki-data';
 import { useMobileTooltip } from '@/hooks';
@@ -161,13 +161,11 @@ export default function CharacterPage() {
 
   if (charactersError) {
     return (
-      <Container size="lg" py="xl">
-        <DataFetchError
-          title="Could not load characters"
-          message={charactersError.message}
-          onRetry={retryCharacters}
-        />
-      </Container>
+      <PageFetchError
+        title="Could not load characters"
+        message={charactersError.message}
+        onRetry={retryCharacters}
+      />
     );
   }
 
@@ -232,7 +230,7 @@ export default function CharacterPage() {
       </FullBleedSection>
 
       {/* Main Content */}
-      <Container size="xl" py={{ base: 'lg', sm: 'xl' }}>
+      <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
         <SectionJumpNav sections={CHARACTER_SECTIONS} hiddenFrom="md" />
         <Grid gap="xl">
           {/* Left Column - Illustration */}

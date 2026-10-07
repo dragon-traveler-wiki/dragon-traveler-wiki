@@ -22,7 +22,7 @@ import HowlkinStats from '@/features/wiki/howlkins/components/HowlkinStats';
 import type { HowlkinFilters } from '@/features/wiki/howlkins/filters';
 import type { Howlkin } from '@/features/wiki/howlkins/types';
 import { LINK_BLOCK_RESET_STYLE, getMinWidthStyle } from '@/constants/styles';
-import { IMAGE_SIZE } from '@/constants/ui';
+import { IMAGE_SIZE, CARD_GRID_COLS } from '@/constants/ui';
 import type { ViewMode } from '@/hooks';
 import { useIsMobile } from '@/hooks';
 import {
@@ -163,7 +163,7 @@ export default function HowlkinsTab({
           />
         }
         gridContent={
-          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+          <SimpleGrid cols={CARD_GRID_COLS} spacing="md">
             {pageItems.map((howlkin) => {
               const iconSrc = getHowlkinIcon(howlkin.slug, howlkin.quality);
               const allianceSlug = howlkinToAlliance.get(howlkin.slug);

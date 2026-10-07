@@ -8,7 +8,6 @@ export { useAssetManifest } from './use-asset-manifest';
 export { useFilteredPageData } from './use-filtered-page-data';
 export {
   countActiveFilters,
-  getInitialViewMode,
   useFilterPanel,
   useFilteredData,
   useFilters,

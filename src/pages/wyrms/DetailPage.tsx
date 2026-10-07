@@ -14,7 +14,7 @@ import DetailPageTitle from '@/components/common/DetailPageTitle';
 import LastUpdated from '@/components/common/LastUpdated';
 import RichText from '@/components/common/RichText';
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
-import DataFetchError from '@/components/ui/DataFetchError';
+import PageFetchError from '@/components/ui/PageFetchError';
 import EntityNotFound from '@/components/ui/EntityNotFound';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import FactionTag from '@/components/ui/FactionTag';
@@ -23,7 +23,7 @@ import { QUALITY_COLOR } from '@/constants/quality';
 import { getLoreGlassStyles } from '@/constants/glass';
 import { getHeroIconBoxStyles } from '@/constants/detail-styles';
 import { StaticSurface } from '@/components/ui/Surface';
-import { BREAKPOINTS, IMAGE_SIZE } from '@/constants/ui';
+import { BREAKPOINTS, IMAGE_SIZE, PAGE_WIDTH } from '@/constants/ui';
 import { WYRM_PHASE_COLOR } from '@/constants/wyrm-colors';
 import type { WyrmPhase } from '@/features/wiki/wyrms/types';
 import { WYRM_PHASE_ORDER } from '@/features/wiki/wyrms/types';
@@ -113,13 +113,11 @@ export default function WyrmPage() {
 
   if (error) {
     return (
-      <Container size="lg" py="xl">
-        <DataFetchError
-          title="Could not load wyrms"
-          message={error.message}
-          onRetry={retry}
-        />
-      </Container>
+      <PageFetchError
+        title="Could not load wyrms"
+        message={error.message}
+        onRetry={retry}
+      />
     );
   }
 
@@ -147,7 +145,6 @@ export default function WyrmPage() {
         isDark={isDark}
         qualityColor={qualityColor}
         secondaryColor={accent.secondary}
-        size="xl"
         breadcrumbItems={[
           { label: 'Wyrms', path: '/wyrms' },
           { label: wyrm.name },
@@ -202,7 +199,7 @@ export default function WyrmPage() {
         )}
       </DetailPageHero>
 
-      <Container size="xl" py={{ base: 'lg', sm: 'xl' }}>
+      <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
         <ErrorBoundary
           scope="section"
           name="wyrm details"

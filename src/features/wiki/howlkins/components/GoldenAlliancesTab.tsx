@@ -7,9 +7,9 @@ import SearchableGridPanel from '@/components/layout/SearchableGridPanel';
 import HowlkinBadge from '@/features/wiki/howlkins/components/HowlkinBadge';
 import type { GoldenAlliance, Howlkin } from '@/features/wiki/howlkins/types';
 import { LINK_BLOCK_RESET_STYLE } from '@/constants/styles';
-import type { GradientPaletteAccents } from '@/contexts';
-import { useIsMobile } from '@/hooks';
+import { useGradientAccent, useIsMobile } from '@/hooks';
 import { compareQuality } from '@/utils/quality';
+import { CARD_GRID_COLS } from '@/constants/ui';
 
 interface GoldenAlliancesTabProps {
   loading: boolean;
@@ -27,7 +27,6 @@ interface GoldenAlliancesTabProps {
   pageSizeOptions: number[];
   onPageSizeChange: (pageSize: number) => void;
   howlkinMap: Map<string, Howlkin>;
-  accent: GradientPaletteAccents;
 }
 
 export default function GoldenAlliancesTab({
@@ -46,9 +45,19 @@ export default function GoldenAlliancesTab({
   pageSizeOptions,
   onPageSizeChange,
   howlkinMap,
-  accent,
 }: GoldenAlliancesTabProps) {
   const isMobile = useIsMobile();
+  const { accent } = useGradientAccent();
+
+  const renderEffectStats = (stats: string[]) => (
+    <Group gap={4} wrap="wrap">
+      {stats.map((stat, i) => (
+        <Badge key={i} variant="outline" size="sm" color={accent.secondary}>
+          {stat}
+        </Badge>
+      ))}
+    </Group>
+  );
 
   return (
     <ListPageShell
@@ -76,7 +85,7 @@ export default function GoldenAlliancesTab({
         pageSizeOptions={pageSizeOptions}
         onPageSizeChange={onPageSizeChange}
       >
-        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+        <SimpleGrid cols={CARD_GRID_COLS} spacing="md">
           {pageItems.map((alliance) => (
             <InteractiveSurface
               key={alliance.slug}
@@ -141,18 +150,7 @@ export default function GoldenAlliancesTab({
                           >
                             {effect.level}
                           </Badge>
-                          <Group gap={4} wrap="wrap">
-                            {effect.stats.map((stat, i) => (
-                              <Badge
-                                key={i}
-                                variant="outline"
-                                size="sm"
-                                color={accent.secondary}
-                              >
-                                {stat}
-                              </Badge>
-                            ))}
-                          </Group>
+                          {renderEffectStats(effect.stats)}
                         </Group>
                       ))}
                     </Stack>
@@ -177,18 +175,7 @@ export default function GoldenAlliancesTab({
                               </Badge>
                             </Table.Td>
                             <Table.Td>
-                              <Group gap={4} wrap="wrap">
-                                {effect.stats.map((stat, i) => (
-                                  <Badge
-                                    key={i}
-                                    variant="outline"
-                                    size="sm"
-                                    color={accent.secondary}
-                                  >
-                                    {stat}
-                                  </Badge>
-                                ))}
-                              </Group>
+                              {renderEffectStats(effect.stats)}
                             </Table.Td>
                           </Table.Tr>
                         ))}

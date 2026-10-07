@@ -19,13 +19,13 @@ import {
   IoSearch,
 } from 'react-icons/io5';
 import ListPageHeader from '@/components/layout/ListPageHeader';
+import ListPageShell from '@/components/layout/ListPageShell';
 import { ViewModeLoading } from '@/components/layout/PageLoadingSkeleton';
 import SuggestModal from '@/components/tools/SuggestModal';
-import DataFetchError from '@/components/ui/DataFetchError';
 import EmptyState from '@/components/ui/EmptyState';
 import PaginationControl from '@/components/ui/PaginationControl';
 import ViewToggle from '@/components/ui/ViewToggle';
-import { IMAGE_SIZE } from '@/constants/ui';
+import { CODE_GRID_COLS, IMAGE_SIZE, PAGE_WIDTH } from '@/constants/ui';
 import CodeBulkModals from '@/features/wiki/codes/components/CodeBulkModals';
 import CodeCollection from '@/features/wiki/codes/components/CodeCollection';
 import CodeRewardSummary from '@/features/wiki/codes/components/CodeRewardSummary';
@@ -37,6 +37,7 @@ import {
 import { useGradientAccent, useIsMobile, useMobileTooltip } from '@/hooks';
 import type { Code } from '@/features/wiki/codes/types';
 import type { Resource } from '@/features/wiki/resources/types';
+import { pluralize } from '@/utils/string';
 import { useMemo } from 'react';
 
 export default function CodesPageContent({
@@ -56,6 +57,7 @@ export default function CodesPageContent({
   const tooltipProps = useMobileTooltip();
   const isMobile = useIsMobile();
   const page = useCodesPage(codes);
+  const showCodeControls = !loading && !error;
   const rewardFields = useMemo(
     () => buildCodeRewardFields(resources),
     [resources],
@@ -75,7 +77,7 @@ export default function CodesPageContent({
   );
 
   return (
-    <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="md">
         <ListPageHeader title="Codes" timestamp={page.mostRecentUpdate}>
           <SuggestModal
@@ -119,41 +121,45 @@ export default function CodesPageContent({
           <Stack gap="xs">
             {viewFilter}
             <Group justify="space-between" align="center" wrap="nowrap">
-              <Text size="sm" c="dimmed">
-                {page.filtered.length} code
-                {page.filtered.length === 1 ? '' : 's'}
-              </Text>
-              <Group gap="xs" wrap="nowrap">
+              {showCodeControls ? (
+                <Text size="sm" c="dimmed">
+                  {page.filtered.length}{' '}
+                  {page.filtered.length === 1 ? 'code' : pluralize('code')}
+                </Text>
+              ) : null}
+              <Group gap="xs" wrap="nowrap" ml="auto">
                 <ViewToggle
                   viewMode={page.viewMode}
                   onChange={page.setViewMode}
                 />
-                <Menu position="bottom-end" shadow="md" withinPortal>
-                  <Menu.Target>
-                    <ActionIcon
-                      variant="default"
-                      size="lg"
-                      aria-label="Bulk actions"
-                    >
-                      <IoEllipsisHorizontal size={IMAGE_SIZE.ICON_MD} />
-                    </ActionIcon>
-                  </Menu.Target>
-                  <Menu.Dropdown>
-                    <Menu.Item
-                      leftSection={<IoCheckmark size={14} />}
-                      onClick={page.openMarkAll}
-                    >
-                      Mark All Redeemed
-                    </Menu.Item>
-                    <Menu.Item
-                      color="red"
-                      leftSection={<IoCloseCircleOutline size={14} />}
-                      onClick={page.openClearAll}
-                    >
-                      Clear All Redeemed
-                    </Menu.Item>
-                  </Menu.Dropdown>
-                </Menu>
+                {showCodeControls ? (
+                  <Menu position="bottom-end" shadow="md" withinPortal>
+                    <Menu.Target>
+                      <ActionIcon
+                        variant="default"
+                        size="lg"
+                        aria-label="Bulk actions"
+                      >
+                        <IoEllipsisHorizontal size={IMAGE_SIZE.ICON_MD} />
+                      </ActionIcon>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      <Menu.Item
+                        leftSection={<IoCheckmark size={14} />}
+                        onClick={page.openMarkAll}
+                      >
+                        Mark All Redeemed
+                      </Menu.Item>
+                      <Menu.Item
+                        color="red"
+                        leftSection={<IoCloseCircleOutline size={14} />}
+                        onClick={page.openClearAll}
+                      >
+                        Clear All Redeemed
+                      </Menu.Item>
+                    </Menu.Dropdown>
+                  </Menu>
+                ) : null}
               </Group>
             </Group>
           </Stack>
@@ -189,14 +195,24 @@ export default function CodesPageContent({
           </Group>
         )}
 
-        {!loading && error ? (
-          <DataFetchError
-            title="Could not load codes"
-            message={error.message}
-            onRetry={onRetry}
-          />
-        ) : null}
-        {!loading && !error ? (
+        <ListPageShell
+          loading={loading}
+          error={error}
+          onRetry={onRetry}
+          hasData={codes.length > 0}
+          emptyMessage="No codes have been added yet."
+          errorTitle="Could not load codes"
+          loadingFallback={
+            <ViewModeLoading
+              viewMode={page.viewMode}
+              cards={9}
+              cardHeight={180}
+              gridCols={CODE_GRID_COLS}
+              showPagination
+              label="Loading codes"
+            />
+          }
+        >
           <CodeRewardSummary
             tab={page.tab}
             view={page.view}
@@ -206,56 +222,43 @@ export default function CodesPageContent({
             claimedRewards={page.claimedRewards}
             accentColor={accent.primary}
           />
-        ) : null}
-        {loading ? (
-          <ViewModeLoading
-            viewMode={page.viewMode}
-            cards={9}
-            cardHeight={180}
-            gridCols={{ base: 1, xs: 2, sm: 3 }}
-            showPagination
-            label="Loading codes"
-          />
-        ) : null}
-        {!loading && !error && page.filtered.length === 0 ? (
-          <EmptyState
-            icon={<IoSearch size={32} />}
-            title={page.emptyState.title}
-            description={page.emptyState.message}
-            color={accent.primary}
-            action={
-              <Group>
-                <Button
-                  size="xs"
-                  variant="outline"
-                  color={accent.primary}
-                  onClick={() => page.setSearch('')}
-                >
-                  Clear search
-                </Button>
-                <Button
-                  size="xs"
-                  variant="light"
-                  color={accent.primary}
-                  onClick={() => page.setView('all')}
-                >
-                  Show all
-                </Button>
-              </Group>
-            }
-          />
-        ) : null}
-        {!loading && !error && page.pageItems.length > 0 ? (
-          <CodeCollection
-            codes={page.pageItems}
-            viewMode={page.viewMode}
-            redeemed={page.redeemed}
-            onToggleRedeemed={page.toggleRedeemed}
-            accentColor={accent.primary}
-            tooltipProps={tooltipProps}
-          />
-        ) : null}
-        {!loading && !error ? (
+          {page.filtered.length === 0 ? (
+            <EmptyState
+              icon={<IoSearch size={32} />}
+              title={page.emptyState.title}
+              description={page.emptyState.message}
+              color={accent.primary}
+              action={
+                <Group>
+                  <Button
+                    size="xs"
+                    variant="outline"
+                    color={accent.primary}
+                    onClick={() => page.setSearch('')}
+                  >
+                    Clear search
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant="light"
+                    color={accent.primary}
+                    onClick={() => page.setView('all')}
+                  >
+                    Show all
+                  </Button>
+                </Group>
+              }
+            />
+          ) : (
+            <CodeCollection
+              codes={page.pageItems}
+              viewMode={page.viewMode}
+              redeemed={page.redeemed}
+              onToggleRedeemed={page.toggleRedeemed}
+              accentColor={accent.primary}
+              tooltipProps={tooltipProps}
+            />
+          )}
           <PaginationControl
             currentPage={page.page}
             totalPages={page.totalPages}
@@ -266,7 +269,7 @@ export default function CodesPageContent({
             onPageSizeChange={page.setPageSize}
             scrollToTop
           />
-        ) : null}
+        </ListPageShell>
         <CodeBulkModals page={page} accentColor={accent.primary} />
       </Stack>
     </Container>

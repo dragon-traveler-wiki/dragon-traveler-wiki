@@ -2,10 +2,11 @@ import { Anchor, Container, List, Stack, Text, Title } from '@mantine/core';
 import ListPageHeader from '@/components/layout/ListPageHeader';
 import { GITHUB_REPO_URL } from '@/constants/github';
 import { Link } from 'react-router';
+import { PAGE_WIDTH } from '@/constants/ui';
 
 export default function CommunityGuidelinesPage() {
   return (
-    <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.READING} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
         <ListPageHeader
           title="Community Guidelines"

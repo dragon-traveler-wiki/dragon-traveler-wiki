@@ -5,6 +5,7 @@ import {
   STATIC_SURFACE_CLASS_NAME,
   StaticSurface,
 } from '@/components/ui/Surface';
+import { EVENT_GRID_COLS } from '@/constants/ui';
 import type { Character } from '@/features/characters/types';
 import EventBanner from '@/features/wiki/events/components/EventBanner';
 import { EventCharacterAvatarList } from '@/features/wiki/events/components/EventCharacterAvatars';
@@ -196,7 +197,7 @@ export default function EventCollection({
   }
 
   return (
-    <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="md">
+    <SimpleGrid cols={EVENT_GRID_COLS} spacing="md">
       {entries.map((entry) => (
         <EventCard
           key={entry.id}

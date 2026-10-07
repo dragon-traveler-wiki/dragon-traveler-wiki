@@ -19,6 +19,7 @@ import { CONTENT_TYPE_OPTIONS } from '@/constants/content-types';
 import {
   BUILDER_SIDE_LAYOUT_CONTAINER_SIZE,
   STORAGE_KEY,
+  PAGE_WIDTH,
 } from '@/constants/ui';
 import type { Character } from '@/features/characters/types';
 import { useCharacterResolution } from '@/features/characters/hooks/use-character-resolution';
@@ -70,6 +71,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router';
 
+const TIER_LISTS_PER_PAGE = 12;
 const TIER_LIST_PAGE_SIZE_OPTIONS = [6, 12, 18, 24] as const;
 
 export default function TierList() {
@@ -98,7 +100,7 @@ export default function TierList() {
   const {
     data: tierLists,
     total: totalTierLists,
-    loading: loadingTiers,
+    loading: loadingTierLists,
     loadingMore: loadingMoreTierLists,
     hasMore: hasMoreTierLists,
     loadMore: loadMoreTierLists,
@@ -162,15 +164,11 @@ export default function TierList() {
   const loadingSupportData = loadingChars || loadingNoblePhantasms;
   const supportDataError = charactersError || noblePhantasmsError;
 
-  const {
-    preferredByName: preferredCharacterByName,
-    byIdentity: characterByIdentity,
-  } = useCharacterResolution(characters);
-
-  const charMap = preferredCharacterByName;
+  const { preferredByName: charMap, byIdentity: characterByIdentity } =
+    useCharacterResolution(characters);
 
   const resolveTierEntryEntity = useResolveTierEntryEntity(
-    preferredCharacterByName,
+    charMap,
     characterByIdentity,
     noblePhantasms,
   );
@@ -278,7 +276,7 @@ export default function TierList() {
     [tierLists],
   );
 
-  const visibleTierLists = useMemo(() => {
+  const filteredTierLists = useMemo(() => {
     // Text search already happened server-side in useTierLists(debouncedSearch);
     // only the content-type/entity filters need to be applied here.
     return tierLists.filter((tierList) => {
@@ -298,7 +296,7 @@ export default function TierList() {
     matchesEntityViewFilters,
   ]);
 
-  const visibleSavedTierLists = useMemo(() => {
+  const filteredSavedTierLists = useMemo(() => {
     return savedTierLists.filter((tierList) => {
       if (!matchesTierListFilters(tierList, search, viewFilters)) return false;
       if (!hasEntityFilters) return true;
@@ -320,12 +318,12 @@ export default function TierList() {
   const { pageSize, setPageSize, pageSizeOptions } = usePageSize(
     TIER_LIST_PAGE_SIZE_OPTIONS,
     {
-      defaultSize: 12,
+      defaultSize: TIER_LISTS_PER_PAGE,
       storageKey: getPageSizeStorageKey(STORAGE_KEY.TIER_LIST_VIEW_MODE),
     },
   );
   const paginationTotal = getCommunityPaginationTotal({
-    visibleCount: visibleTierLists.length,
+    visibleCount: filteredTierLists.length,
     loadedCount: tierLists.length,
     total: totalTierLists,
     hasMore: hasMoreTierLists,
@@ -336,7 +334,7 @@ export default function TierList() {
     pageSize,
     JSON.stringify({ debouncedSearch, sort, viewFilters }),
   );
-  const paginatedTierLists = visibleTierLists.slice(offset, offset + pageSize);
+  const paginatedTierLists = filteredTierLists.slice(offset, offset + pageSize);
 
   const handleRequestExport = useCallback(
     async (name: string) => {
@@ -393,7 +391,7 @@ export default function TierList() {
   const containerSize =
     mode === 'builder' && poolLayout === 'side'
       ? BUILDER_SIDE_LAYOUT_CONTAINER_SIZE
-      : 'lg';
+      : PAGE_WIDTH.WIDE;
 
   return (
     <Container size={containerSize} py={{ base: 'lg', sm: 'xl' }}>
@@ -451,7 +449,7 @@ export default function TierList() {
             />
 
             {mode === 'view' &&
-              (loadingTiers && tierLists.length === 0 ? (
+              (loadingTierLists && tierLists.length === 0 ? (
                 viewMode === 'grid' ? (
                   <CommunityCardsLoading kind="tierList" />
                 ) : (
@@ -461,41 +459,46 @@ export default function TierList() {
                     label="Loading tier lists"
                   />
                 )
-              ) : tierListsError ? (
-                <DataFetchError
-                  title="Could not load tier lists"
-                  message={tierListsError.message}
-                  onRetry={retryTierLists}
-                />
               ) : (
-                <TierListViewTab
-                  visibleTierLists={visibleTierLists}
-                  paginatedTierLists={paginatedTierLists}
-                  charMap={charMap}
-                  characterByIdentity={characterByIdentity}
-                  viewMode={viewMode}
-                  search={search}
-                  onClearFilters={handleClearFilters}
-                  onOpenFilters={toggleFilter}
-                  onRequestEdit={requestEditTierList}
-                  page={page}
-                  totalPages={totalPages}
-                  onPageChange={setPage}
-                  pageSize={pageSize}
-                  pageSizeOptions={pageSizeOptions}
-                  onPageSizeChange={setPageSize}
-                  hasMore={hasMoreTierLists}
-                  loadedCount={tierLists.length}
-                  paginationTotal={paginationTotal}
-                  loadingMore={loadingMoreTierLists}
-                  onLoadMore={loadMoreTierLists}
-                />
+                <Stack gap="md">
+                  {tierListsError && (
+                    <DataFetchError
+                      title="Could not load tier lists"
+                      message={tierListsError.message}
+                      onRetry={retryTierLists}
+                    />
+                  )}
+                  {!(tierListsError && tierLists.length === 0) && (
+                    <TierListViewTab
+                      filteredTierLists={filteredTierLists}
+                      paginatedTierLists={paginatedTierLists}
+                      charMap={charMap}
+                      characterByIdentity={characterByIdentity}
+                      viewMode={viewMode}
+                      search={search}
+                      onClearFilters={handleClearFilters}
+                      onOpenFilters={toggleFilter}
+                      onRequestEdit={requestEditTierList}
+                      page={page}
+                      totalPages={totalPages}
+                      onPageChange={setPage}
+                      pageSize={pageSize}
+                      pageSizeOptions={pageSizeOptions}
+                      onPageSizeChange={setPageSize}
+                      hasMore={hasMoreTierLists}
+                      loadedCount={tierLists.length}
+                      paginationTotal={paginationTotal}
+                      loadingMore={loadingMoreTierLists}
+                      onLoadMore={loadMoreTierLists}
+                    />
+                  )}
+                </Stack>
               ))}
 
             {mode === 'saved' && (
               <TierListSavedTab
                 savedTierLists={savedTierLists}
-                visibleSavedTierLists={visibleSavedTierLists}
+                filteredSavedTierLists={filteredSavedTierLists}
                 resolveTierEntryEntity={resolveTierEntryEntity}
                 viewMode={viewMode}
                 search={search}

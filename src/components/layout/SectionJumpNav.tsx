@@ -1,6 +1,12 @@
 import { Box, Group, ScrollArea, UnstyledButton } from '@mantine/core';
 import { useReducedMotion } from '@mantine/hooks';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { TRANSITION, Z_INDEX } from '@/constants/ui';
 import { useGradientAccent } from '@/hooks';
 
@@ -30,11 +36,14 @@ export default function SectionJumpNav({
   const navRef = useRef<HTMLElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const chipRefs = useRef(new Map<string, HTMLButtonElement>());
+  const pendingCorrectionRef = useRef<AbortController | null>(null);
   const [available, setAvailable] = useState<JumpSection[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const sectionsKey = sections.map((s) => s.id).join('|');
-  useEffect(() => {
+  // Layout effect so the nav is in place before first paint instead of
+  // pushing the content down a frame later.
+  useLayoutEffect(() => {
     // Sections render conditionally (and some only after data loads), so
     // re-check which targets exist whenever the DOM settles.
     const update = () =>
@@ -52,10 +61,15 @@ export default function SectionJumpNav({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sectionsKey]);
 
-  const getOffset = useCallback(
-    () => navRef.current?.getBoundingClientRect().bottom ?? 0,
-    [],
-  );
+  // Where the nav's bottom edge sits once it's stuck under the header. Using
+  // its current position would be wrong while it's still below the hero.
+  const getOffset = useCallback(() => {
+    const nav = navRef.current;
+    if (!nav) return 0;
+    return parseFloat(getComputedStyle(nav).top) + nav.offsetHeight;
+  }, []);
+
+  useEffect(() => () => pendingCorrectionRef.current?.abort(), []);
 
   useEffect(() => {
     if (available.length === 0) return;
@@ -109,18 +123,24 @@ export default function SectionJumpNav({
         el.getBoundingClientRect().top + window.scrollY - getOffset() - 8,
         document.documentElement.scrollHeight - window.innerHeight,
       );
-    window.scrollTo({ top: getTargetTop(), behavior });
+    pendingCorrectionRef.current?.abort();
+    const top = getTargetTop();
+    if (Math.abs(top - window.scrollY) <= 2) return;
+    window.scrollTo({ top, behavior });
     // Lazy-loaded media above the target can shift it mid-scroll; correct
     // once the scroll settles.
+    const controller = new AbortController();
+    pendingCorrectionRef.current = controller;
     window.addEventListener(
       'scrollend',
       () => {
-        const top = getTargetTop();
-        if (Math.abs(top - window.scrollY) > 2) {
-          window.scrollTo({ top, behavior });
+        pendingCorrectionRef.current = null;
+        const corrected = getTargetTop();
+        if (Math.abs(corrected - window.scrollY) > 2) {
+          window.scrollTo({ top: corrected, behavior });
         }
       },
-      { once: true },
+      { once: true, signal: controller.signal },
     );
   };
 
@@ -143,7 +163,15 @@ export default function SectionJumpNav({
       }}
     >
       <ScrollArea type="never" scrollbars="x" viewportRef={viewportRef}>
-        <Group gap={6} wrap="nowrap" px="md" py={8}>
+        {/* Size the row to its chips so the trailing padding scrolls with them
+            instead of staying pinned to the viewport edge. */}
+        <Group
+          gap={6}
+          wrap="nowrap"
+          px="md"
+          py={8}
+          style={{ width: 'max-content', minWidth: '100%' }}
+        >
           {available.map(({ id, label }) => {
             const isActive = id === activeId;
             return (

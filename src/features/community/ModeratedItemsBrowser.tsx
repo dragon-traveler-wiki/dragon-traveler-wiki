@@ -1,6 +1,5 @@
 import {
   Button,
-  Card,
   Group,
   SegmentedControl,
   Stack,
@@ -22,6 +21,7 @@ import { useGradientAccent } from '@/hooks';
 import SuspendUserModal from '@/features/community/SuspendUserModal';
 import { CommunityCardsLoading } from '@/components/layout/PageLoadingSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
+import { StaticSurface } from '@/components/ui/Surface';
 import { runAction } from '@/features/community/run-action';
 
 type Kind = 'team' | 'tier_list';
@@ -117,7 +117,7 @@ export default function ModeratedItemsBrowser({
                 : getTierListRoutePath(item as TierList);
             const id = item.community!.id;
             return (
-              <Card withBorder key={id}>
+              <StaticSurface p="md" key={id}>
                 <Group justify="space-between" wrap="wrap">
                   <Stack gap={4}>
                     <Text
@@ -184,7 +184,7 @@ export default function ModeratedItemsBrowser({
                     </Button>
                   </Group>
                 </Group>
-              </Card>
+              </StaticSurface>
             );
           })}
         </Stack>

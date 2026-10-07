@@ -11,7 +11,7 @@ import SafeImage from '@/components/ui/SafeImage';
 import SortableTh from '@/components/ui/SortableTh';
 import RichText from '@/components/common/RichText';
 import { getMinWidthStyle } from '@/constants/styles';
-import { IMAGE_SIZE } from '@/constants/ui';
+import { IMAGE_SIZE, CARD_GRID_COLS } from '@/constants/ui';
 import type { GradientPaletteAccents } from '@/contexts';
 import CharacterTag from '@/features/characters/components/CharacterTag';
 import type { Character } from '@/features/characters/types';
@@ -102,7 +102,7 @@ export default function NoblePhantasmCatalogTab({
         pageSizeOptions={pageSizeOptions}
         onPageSizeChange={setPageSize}
         gridContent={
-          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+          <SimpleGrid cols={CARD_GRID_COLS} spacing="md">
             {pageItems.map((item) => {
               const linkedCharacter = item.character_slug
                 ? characterByIdentity.get(item.character_slug)

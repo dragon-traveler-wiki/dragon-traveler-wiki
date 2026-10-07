@@ -6,7 +6,7 @@ import ListPageHeader from '@/components/layout/ListPageHeader';
 import ExportButton from '@/components/tools/ExportButton';
 import DataCorrectionButton from '@/components/tools/DataCorrectionButton';
 import { RELIC_TYPE_ORDER } from '@/constants/relic-colors';
-import { IMAGE_SIZE, PAGE_SIZE, STORAGE_KEY } from '@/constants/ui';
+import { IMAGE_SIZE, PAGE_SIZE, STORAGE_KEY, PAGE_WIDTH } from '@/constants/ui';
 import RelicsTab from '@/features/wiki/relics/components/RelicsTab';
 import OracleScrollsTab from '@/features/wiki/relics/components/OracleScrollsTab';
 import type {
@@ -26,7 +26,6 @@ import {
 } from '@/features/wiki/hooks/use-wiki-data';
 import {
   useFilteredPageData,
-  useGradientAccent,
   useSearchParamFilter,
   useSecondaryTabList,
   useTabParam,
@@ -54,7 +53,6 @@ const FILTER_GROUPS: ChipFilterGroup[] = [
 ];
 
 export default function RelicPage() {
-  const { accent } = useGradientAccent();
   const [activeTab, handleTabChange] = useTabParam('tab', 'relics', [
     'relics',
     'oracle-scrolls',
@@ -157,7 +155,7 @@ export default function RelicPage() {
   const mostRecentUpdate = useMemo(() => getLatestTimestamp(relics), [relics]);
 
   return (
-    <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="md">
         <ListPageHeader title="Relics" timestamp={mostRecentUpdate}>
           {activeTab === 'oracle-scrolls' ? (
@@ -208,7 +206,6 @@ export default function RelicPage() {
               sortDir={sortDir}
               onSort={handleSort}
               pageItems={relicPageItems}
-              accent={accent}
               statusEffects={statusEffects}
             />
           </Tabs.Panel>
@@ -230,7 +227,6 @@ export default function RelicPage() {
               pageSizeOptions={oraclePageSizeOptions}
               onPageSizeChange={setOraclePageSize}
               relicsByOracle={relicsByOracle}
-              accent={accent}
             />
           </Tabs.Panel>
         </Tabs>

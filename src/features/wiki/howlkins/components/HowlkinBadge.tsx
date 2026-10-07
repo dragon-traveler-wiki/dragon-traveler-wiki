@@ -2,10 +2,10 @@
 import IconBadge from '@/components/ui/IconBadge';
 import QualityIcon from '@/components/ui/QualityIcon';
 import { QUALITY_COLOR } from '@/constants/quality';
+import HowlkinStats from '@/features/wiki/howlkins/components/HowlkinStats';
 import type { Howlkin } from '@/features/wiki/howlkins/types';
-import { useGradientAccent } from '@/hooks';
 import type { MantineSize } from '@mantine/core';
-import { Badge, Group, Stack, Text } from '@mantine/core';
+import { Group, Stack, Text } from '@mantine/core';
 import SafeImage from '@/components/ui/SafeImage';
 
 interface HowlkinBadgeProps {
@@ -22,15 +22,10 @@ export default function HowlkinBadge({
   size = 'md',
   interactive = true,
 }: HowlkinBadgeProps) {
-  const { accent } = useGradientAccent();
   const iconSrc = howlkin
     ? getHowlkinIcon(howlkin.slug, howlkin.quality)
     : undefined;
   const color = howlkin ? QUALITY_COLOR[howlkin.quality] : 'gray';
-
-  const statsEntries = Object.entries(howlkin?.basic_stats ?? {}).sort(
-    ([a], [b]) => a.localeCompare(b),
-  );
 
   return (
     <IconBadge
@@ -70,27 +65,7 @@ export default function HowlkinBadge({
               </Stack>
             )}
 
-            {statsEntries.length > 0 && (
-              <Group gap={4} wrap="wrap">
-                {statsEntries.map(([stat, value]) => (
-                  <Badge
-                    key={stat}
-                    variant="light"
-                    color={accent.secondary}
-                    size="xs"
-                  >
-                    {stat}:{' '}
-                    {typeof value === 'number'
-                      ? value.toLocaleString(undefined, {
-                          maximumFractionDigits: Number.isInteger(value)
-                            ? 0
-                            : 2,
-                        })
-                      : String(value)}
-                  </Badge>
-                ))}
-              </Group>
-            )}
+            <HowlkinStats stats={howlkin.basic_stats} size="xs" />
           </Stack>
         ) : undefined
       }

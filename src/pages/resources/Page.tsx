@@ -1,7 +1,6 @@
 ﻿import SafeImage from '@/components/ui/SafeImage';
 import {
   Badge,
-  Box,
   Container,
   Group,
   ScrollArea,
@@ -12,6 +11,7 @@ import {
 } from '@mantine/core';
 import { useContext, useMemo } from 'react';
 import { getResourceIcon } from '@/assets';
+import EntitySummaryCard from '@/components/common/EntitySummaryCard';
 import {
   EntityFilter,
   FilteredListShell,
@@ -30,8 +30,12 @@ import {
   RESOURCE_CATEGORY_ORDER,
 } from '@/constants/resource-colors';
 import { getMinWidthStyle } from '@/constants/styles';
-import { StaticSurface } from '@/components/ui/Surface';
-import { STORAGE_KEY } from '@/constants/ui';
+import {
+  STORAGE_KEY,
+  PAGE_WIDTH,
+  CARD_GRID_COLS,
+  IMAGE_SIZE,
+} from '@/constants/ui';
 import { ResourcesContext } from '@/contexts';
 import { useFilteredPageData, useSearchParamFilter } from '@/hooks';
 import {
@@ -94,7 +98,7 @@ export default function Resources() {
   );
 
   return (
-    <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="md">
         <ListPageHeader title="Resources" timestamp={mostRecentUpdate}>
           <Group gap="xs">
@@ -161,51 +165,40 @@ export default function Resources() {
             pageSizeOptions={pageSizeOptions}
             onPageSizeChange={setPageSize}
             gridContent={
-              <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+              <SimpleGrid cols={CARD_GRID_COLS} spacing="sm">
                 {pageItems.map((resource) => {
                   const iconSrc = getResourceIcon(
                     resource.slug,
                     resource.category,
                   );
                   return (
-                    <StaticSurface key={resource.slug} p="sm">
-                      <Stack gap="xs">
-                        <Group gap="sm" wrap="nowrap">
-                          {iconSrc && (
-                            <SafeImage
-                              src={iconSrc}
-                              alt={resource.name}
-                              w={28}
-                              h={28}
-                              fit="contain"
-                            />
-                          )}
-                          <Text fw={600} style={{ flex: 1, minWidth: 0 }}>
-                            {resource.name}
-                          </Text>
-                          {resource.quality && (
-                            <Box style={{ flexShrink: 0 }}>
-                              <QualityIcon quality={resource.quality} />
-                            </Box>
-                          )}
-                        </Group>
-                        <Group gap={4}>
-                          <Badge
-                            variant="light"
-                            color={
-                              RESOURCE_CATEGORY_COLOR[resource.category] ??
-                              'gray'
-                            }
-                            size="sm"
-                          >
-                            {resource.category}
-                          </Badge>
-                        </Group>
+                    <EntitySummaryCard
+                      key={resource.slug}
+                      title={resource.name}
+                      imageSrc={iconSrc}
+                      titleAccessory={
+                        resource.quality && (
+                          <QualityIcon quality={resource.quality} />
+                        )
+                      }
+                      metadata={
+                        <Badge
+                          variant="light"
+                          color={
+                            RESOURCE_CATEGORY_COLOR[resource.category] ?? 'gray'
+                          }
+                          size="sm"
+                          w="fit-content"
+                        >
+                          {resource.category}
+                        </Badge>
+                      }
+                      description={
                         <Text size="sm" c="dimmed">
                           <InlineMarkup text={resource.description} />
                         </Text>
-                      </Stack>
-                    </StaticSurface>
+                      }
+                    />
                   );
                 })}
               </SimpleGrid>
@@ -256,8 +249,8 @@ export default function Resources() {
                               <SafeImage
                                 src={iconSrc}
                                 alt={resource.name}
-                                w={32}
-                                h={32}
+                                w={IMAGE_SIZE.PORTRAIT_SM}
+                                h={IMAGE_SIZE.PORTRAIT_SM}
                                 fit="contain"
                               />
                             )}

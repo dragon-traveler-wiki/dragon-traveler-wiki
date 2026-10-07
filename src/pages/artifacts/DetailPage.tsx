@@ -8,7 +8,7 @@ import LastUpdated from '@/components/common/LastUpdated';
 import RichText from '@/components/common/RichText';
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
 import SectionJumpNav from '@/components/layout/SectionJumpNav';
-import DataFetchError from '@/components/ui/DataFetchError';
+import PageFetchError from '@/components/ui/PageFetchError';
 import EntityNotFound from '@/components/ui/EntityNotFound';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import FactionTag from '@/components/ui/FactionTag';
@@ -17,7 +17,7 @@ import { QUALITY_COLOR } from '@/constants/quality';
 import { getLoreGlassStyles } from '@/constants/glass';
 import { getHeroIconBoxStyles } from '@/constants/detail-styles';
 import { StaticSurface } from '@/components/ui/Surface';
-import { IMAGE_SIZE } from '@/constants/ui';
+import { IMAGE_SIZE, PAGE_WIDTH } from '@/constants/ui';
 import EffectTable from '@/features/wiki/artifacts/components/EffectTable';
 import TreasureCard from '@/features/wiki/artifacts/components/TreasureCard';
 import {
@@ -118,13 +118,11 @@ export default function ArtifactPage() {
 
   if (error) {
     return (
-      <Container size="lg" py="xl">
-        <DataFetchError
-          title="Could not load artifacts"
-          message={error.message}
-          onRetry={retry}
-        />
-      </Container>
+      <PageFetchError
+        title="Could not load artifacts"
+        message={error.message}
+        onRetry={retry}
+      />
     );
   }
 
@@ -204,7 +202,7 @@ export default function ArtifactPage() {
         </StaticSurface>
       </DetailPageHero>
 
-      <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+      <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
         <SectionJumpNav sections={jumpSections} hiddenFrom="md" />
         <ErrorBoundary
           scope="section"

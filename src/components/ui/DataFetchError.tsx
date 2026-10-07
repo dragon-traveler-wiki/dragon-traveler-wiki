@@ -2,7 +2,7 @@ import { Alert, Button, Group, Text } from '@mantine/core';
 import { IoAlertCircleOutline, IoRefresh } from 'react-icons/io5';
 import { IMAGE_SIZE } from '@/constants/ui';
 
-interface DataFetchErrorProps {
+export interface DataFetchErrorProps {
   title?: string;
   message?: string;
   onRetry: () => void;

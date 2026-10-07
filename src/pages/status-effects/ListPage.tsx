@@ -11,6 +11,7 @@
 import { useMemo } from 'react';
 import { getStatusEffectIcon } from '@/assets';
 import EntityFilter from '@/components/common/EntityFilter';
+import EntitySummaryCard from '@/components/common/EntitySummaryCard';
 import RichText from '@/components/common/RichText';
 import SafeImage from '@/components/ui/SafeImage';
 import SortableTh from '@/components/ui/SortableTh';
@@ -22,8 +23,12 @@ import ExportButton from '@/components/tools/ExportButton';
 import DataCorrectionButton from '@/components/tools/DataCorrectionButton';
 import { STATE_COLOR, STATE_ORDER } from '@/constants/status-effect-colors';
 import { getMinWidthStyle } from '@/constants/styles';
-import { StaticSurface } from '@/components/ui/Surface';
-import { STORAGE_KEY } from '@/constants/ui';
+import {
+  STORAGE_KEY,
+  PAGE_WIDTH,
+  CARD_GRID_COLS,
+  IMAGE_SIZE,
+} from '@/constants/ui';
 import { useStatusEffects } from '@/features/wiki/hooks/use-wiki-data';
 import {
   compareStatusEffects,
@@ -84,7 +89,7 @@ export default function StatusEffects() {
   );
 
   return (
-    <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="md">
         <ListPageHeader title="Status Effects" timestamp={mostRecentUpdate}>
           <Group gap="xs">
@@ -143,46 +148,43 @@ export default function StatusEffects() {
             pageSizeOptions={pageSizeOptions}
             onPageSizeChange={setPageSize}
             gridContent={
-              <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+              <SimpleGrid cols={CARD_GRID_COLS} spacing="sm">
                 {pageItems.map((effect) => {
                   const iconSrc =
                     effect.icon !== false
                       ? getStatusEffectIcon(effect.slug, effect.type)
                       : undefined;
                   return (
-                    <StaticSurface key={effect.slug} p="sm">
-                      <Stack gap="xs">
-                        <Group gap="sm" wrap="nowrap">
-                          <SafeImage
-                            src={iconSrc}
-                            alt={effect.name}
-                            w={28}
-                            h={28}
-                            fit="contain"
-                            loading="lazy"
+                    <EntitySummaryCard
+                      key={effect.slug}
+                      title={effect.name}
+                      imageSrc={iconSrc}
+                      imageSize={IMAGE_SIZE.CARD_ICON_SM}
+                      reserveImageSpace
+                      metadata={
+                        <Badge
+                          variant="light"
+                          color={STATE_COLOR[effect.type]}
+                          size="sm"
+                          w="fit-content"
+                        >
+                          {effect.type}
+                        </Badge>
+                      }
+                      description={
+                        <Stack gap={4}>
+                          <RichText
+                            text={effect.effect}
+                            statusEffects={effects}
                           />
-                          <Text fw={600}>{effect.name}</Text>
-                        </Group>
-                        <Group gap={4}>
-                          <Badge
-                            variant="light"
-                            color={STATE_COLOR[effect.type]}
-                            size="sm"
-                          >
-                            {effect.type}
-                          </Badge>
-                        </Group>
-                        <RichText
-                          text={effect.effect}
-                          statusEffects={effects}
-                        />
-                        {effect.remark && (
-                          <Text size="xs" c="dimmed" fs="italic">
-                            {effect.remark}
-                          </Text>
-                        )}
-                      </Stack>
-                    </StaticSurface>
+                          {effect.remark && (
+                            <Text size="xs" c="dimmed" fs="italic">
+                              {effect.remark}
+                            </Text>
+                          )}
+                        </Stack>
+                      }
+                    />
                   );
                 })}
               </SimpleGrid>
@@ -225,8 +227,8 @@ export default function StatusEffects() {
                             <SafeImage
                               src={iconSrc}
                               alt={effect.name}
-                              w={32}
-                              h={32}
+                              w={IMAGE_SIZE.PORTRAIT_SM}
+                              h={IMAGE_SIZE.PORTRAIT_SM}
                               fit="contain"
                               loading="lazy"
                             />

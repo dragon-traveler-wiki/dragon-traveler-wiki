@@ -36,7 +36,12 @@ export function useCommunityBrowseState<F extends CommunityBrowseFilters>({
   const [sort, setSort] = useState<CommunitySort>(() =>
     readStoredString(sortKey) === 'new' ? 'new' : 'top',
   );
-  const { filters, setFilters, resetFilters } = useFilters<F>({
+  const {
+    filters,
+    setFilters,
+    resetFilters,
+    updateFilter: handleFilterChange,
+  } = useFilters<F>({
     emptyFilters,
     storageKey: filtersKey,
   });
@@ -58,13 +63,6 @@ export function useCommunityBrowseState<F extends CommunityBrowseFilters>({
     setFilters((prev) => ({ ...prev, contentTypes: deduped }));
   }, [filters.contentTypes, setFilters]);
 
-  const handleFilterChange = useCallback(
-    (key: string, values: string[]) => {
-      setFilters((prev) => ({ ...prev, [key]: values }));
-    },
-    [setFilters],
-  );
-
   const clearFilters = useCallback(() => {
     resetFilters();
     setSearch('');
@@ -77,7 +75,6 @@ export function useCommunityBrowseState<F extends CommunityBrowseFilters>({
     sort,
     setSort,
     filters,
-    setFilters,
     handleFilterChange,
     clearFilters,
   };

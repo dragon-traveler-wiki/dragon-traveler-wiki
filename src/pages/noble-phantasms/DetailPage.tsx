@@ -6,13 +6,13 @@ import DetailPageNavigation from '@/components/common/DetailPageNavigation';
 import DetailPageTitle from '@/components/common/DetailPageTitle';
 import LastUpdated from '@/components/common/LastUpdated';
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
-import DataFetchError from '@/components/ui/DataFetchError';
+import PageFetchError from '@/components/ui/PageFetchError';
 import EntityNotFound from '@/components/ui/EntityNotFound';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import EmptyState from '@/components/ui/EmptyState';
 import { StaticSurface } from '@/components/ui/Surface';
 import { getHeroIconBoxStyles } from '@/constants/detail-styles';
-import { IMAGE_SIZE } from '@/constants/ui';
+import { IMAGE_SIZE, PAGE_WIDTH } from '@/constants/ui';
 import CharacterTag from '@/features/characters/components/CharacterTag';
 import { buildCharacterByIdentityMap } from '@/features/characters/utils/character-route';
 import QualityIcon from '@/components/ui/QualityIcon';
@@ -96,13 +96,11 @@ export default function NoblePhantasmPage() {
 
   if (error) {
     return (
-      <Container size="lg" py="xl">
-        <DataFetchError
-          title="Could not load noble phantasms"
-          message={error.message}
-          onRetry={retry}
-        />
-      </Container>
+      <PageFetchError
+        title="Could not load noble phantasms"
+        message={error.message}
+        onRetry={retry}
+      />
     );
   }
 
@@ -165,7 +163,7 @@ export default function NoblePhantasmPage() {
         </Group>
       </DetailPageHero>
 
-      <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+      <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
         <ErrorBoundary
           scope="section"
           name="noble phantasm details"

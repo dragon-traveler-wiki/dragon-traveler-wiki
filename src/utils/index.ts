@@ -16,7 +16,7 @@ export {
   writeStoredJson,
   writeStoredStringSet,
 } from './saved-storage';
-export { normalizeName, pluralize } from './string';
+export { normalizeName } from './string';
 export {
   formatExactDate,
   formatRelativeTime,

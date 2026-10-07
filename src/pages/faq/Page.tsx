@@ -32,6 +32,7 @@ import {
   IoTrophyOutline,
 } from 'react-icons/io5';
 import { Link } from 'react-router';
+import { PAGE_WIDTH } from '@/constants/ui';
 
 type FAQItem = {
   question: string;
@@ -470,7 +471,9 @@ function FAQSectionCard({
       color={accentColor}
       header={
         <Stack gap={2}>
-          <Title order={3}>{section.title}</Title>
+          <Title order={2} size="h3">
+            {section.title}
+          </Title>
           <Text size="sm" c="dimmed">
             {section.description}
           </Text>
@@ -504,7 +507,7 @@ export default function FAQ() {
   const { accent } = useGradientAccent();
 
   return (
-    <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.READING} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
         <ListPageHeader
           title="FAQ"

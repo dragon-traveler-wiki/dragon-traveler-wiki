@@ -23,7 +23,7 @@ import {
   getHeroIconBoxStyles,
 } from '@/constants/detail-styles';
 import { InteractiveSurface, StaticSurface } from '@/components/ui/Surface';
-import { IMAGE_SIZE } from '@/constants/ui';
+import { IMAGE_SIZE, PAGE_WIDTH } from '@/constants/ui';
 import FactionTag from '@/components/ui/FactionTag';
 import QualityIcon from '@/components/ui/QualityIcon';
 import type { Team } from '@/features/teams/types';
@@ -86,7 +86,7 @@ export function TeamHeroSection({
       <Box style={getDetailHeroGradient(isDark, factionColor)} />
 
       <Container
-        size="lg"
+        size={PAGE_WIDTH.WIDE}
         style={{ position: 'relative', zIndex: 1 }}
         py={{ base: 'lg', sm: 'xl' }}
       >

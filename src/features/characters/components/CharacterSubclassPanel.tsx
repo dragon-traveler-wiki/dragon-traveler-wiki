@@ -18,6 +18,7 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core';
+import { IMAGE_SIZE } from '@/constants/ui';
 
 interface CharacterSubclassPanelProps {
   character: Character;
@@ -103,8 +104,8 @@ export default function CharacterSubclassPanel({
                         <SafeImage
                           src={subclassIcon}
                           alt={subclass}
-                          w={56}
-                          h={52}
+                          w={IMAGE_SIZE.CARD_ICON_SM}
+                          h={IMAGE_SIZE.CARD_ICON_SM}
                           fit="contain"
                           loading="lazy"
                         />

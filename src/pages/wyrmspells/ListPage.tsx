@@ -21,7 +21,12 @@ import { FACTION_SLUGS } from '@/constants/faction-colors';
 import { QUALITY_ORDER } from '@/constants/quality';
 import { LINK_BLOCK_RESET_STYLE, getMinWidthStyle } from '@/constants/styles';
 import { InteractiveSurface } from '@/components/ui/Surface';
-import { IMAGE_SIZE, STORAGE_KEY } from '@/constants/ui';
+import {
+  IMAGE_SIZE,
+  STORAGE_KEY,
+  PAGE_WIDTH,
+  CARD_GRID_COLS,
+} from '@/constants/ui';
 import FactionTag from '@/components/ui/FactionTag';
 import QualityIcon from '@/components/ui/QualityIcon';
 import WyrmspellTypeTag from '@/features/wiki/wyrmspells/components/WyrmspellTypeTag';
@@ -175,7 +180,7 @@ export default function Wyrmspells() {
   );
 
   return (
-    <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="md">
         <ListPageHeader title="Wyrmspells" timestamp={mostRecentUpdate}>
           <Group gap="xs">
@@ -235,7 +240,7 @@ export default function Wyrmspells() {
             pageSizeOptions={pageSizeOptions}
             onPageSizeChange={setPageSize}
             gridContent={
-              <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+              <SimpleGrid cols={CARD_GRID_COLS} spacing="md">
                 {pageItems.map((spell) => {
                   const iconSrc = getWyrmspellIcon(spell.slug, spell.type);
                   const maxQuality = getMaxQuality(spell);

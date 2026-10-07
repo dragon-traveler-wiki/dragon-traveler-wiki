@@ -33,6 +33,7 @@ import { useCommunityAuth } from '@/features/community/auth-context';
 import type { CommunityItem, MyReport } from '@/features/community/types';
 import { useGradientAccent } from '@/hooks';
 import { showErrorToast, showSuccessToast } from '@/utils/toast';
+import { PAGE_WIDTH } from '@/constants/ui';
 
 type IdentityProvider = 'discord' | 'github';
 
@@ -68,8 +69,12 @@ export default function AccountPage() {
     Array<CommunityItem<Record<string, unknown>>>
   >([]);
   const [itemsLoading, setItemsLoading] = useState(false);
+  const [itemsError, setItemsError] = useState<string | null>(null);
+  const [itemsVersion, setItemsVersion] = useState(0);
   const [reports, setReports] = useState<MyReport[]>([]);
   const [reportsLoading, setReportsLoading] = useState(false);
+  const [reportsError, setReportsError] = useState<string | null>(null);
+  const [reportsVersion, setReportsVersion] = useState(0);
   const [unlinking, setUnlinking] = useState<IdentityProvider | null>(null);
   const [pendingUnlink, setPendingUnlink] = useState<IdentityProvider | null>(
     null,
@@ -145,27 +150,30 @@ export default function AccountPage() {
 
   useEffect(() => {
     if (!user) return;
-    queueMicrotask(() => setItemsLoading(true));
+    queueMicrotask(() => {
+      setItemsLoading(true);
+      setItemsError(null);
+    });
     getMyItems()
       .then((result) =>
         setItems(result.items as Array<CommunityItem<Record<string, unknown>>>),
       )
       .catch((error: unknown) => {
         setItems([]);
-        showErrorToast({
-          title: 'Could not load publications',
-          message: errorMessage(error),
-        });
+        setItemsError(errorMessage(error));
       })
       .finally(() => setItemsLoading(false));
-    // Only re-run when the logged-in user changes, not on every auth
-    // context refresh.
+    // Only re-run when the logged-in user changes or on retry, not on every
+    // auth context refresh.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [user?.id, itemsVersion]);
 
   useEffect(() => {
     if (!user) return;
-    queueMicrotask(() => setReportsLoading(true));
+    queueMicrotask(() => {
+      setReportsLoading(true);
+      setReportsError(null);
+    });
     getMyReports()
       .then((result) => {
         setReports(result.reports);
@@ -175,22 +183,19 @@ export default function AccountPage() {
       })
       .catch((error: unknown) => {
         setReports([]);
-        showErrorToast({
-          title: 'Could not load reports',
-          message: errorMessage(error),
-        });
+        setReportsError(errorMessage(error));
       })
       .finally(() => setReportsLoading(false));
-    // Only re-run when the logged-in user changes, not on every auth
-    // context refresh (which would otherwise loop, since this effect
+    // Only re-run when the logged-in user changes or on retry, not on every
+    // auth context refresh (which would otherwise loop, since this effect
     // itself triggers a refresh).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [user?.id, reportsVersion]);
 
   if (loading) return <AccountPageLoading />;
   if (!user) {
     return (
-      <Container size="sm" py={{ base: 'lg', sm: 'xl' }}>
+      <Container size={PAGE_WIDTH.NARROW} py={{ base: 'lg', sm: 'xl' }}>
         <Stack gap="lg">
           <ListPageHeader title="Account" />
           <StaticSurface p="md">
@@ -239,7 +244,7 @@ export default function AccountPage() {
     user.identities.map((identity) => identity.provider),
   );
   return (
-    <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
         <Group wrap="nowrap">
           <Avatar
@@ -364,6 +369,8 @@ export default function AccountPage() {
         <MyPublications
           items={items}
           loading={itemsLoading}
+          error={itemsError}
+          onRetry={() => setItemsVersion((version) => version + 1)}
           onRemoved={(id) =>
             setItems((current) => current.filter((item) => item.id !== id))
           }
@@ -371,6 +378,8 @@ export default function AccountPage() {
         <MyReports
           reports={reports}
           loading={reportsLoading}
+          error={reportsError}
+          onRetry={() => setReportsVersion((version) => version + 1)}
           onWithdrawn={(id) =>
             setReports((current) => current.filter((r) => r.id !== id))
           }

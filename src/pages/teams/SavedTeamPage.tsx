@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
 import EntityNotFound from '@/components/ui/EntityNotFound';
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
-import { STORAGE_KEY } from '@/constants/ui';
+import { STORAGE_KEY, PAGE_WIDTH } from '@/constants/ui';
 import { useCharacterResolution } from '@/features/characters/hooks/use-character-resolution';
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import {
@@ -164,7 +164,7 @@ export default function SavedTeamPage() {
         }}
       />
 
-      <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+      <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
         <TeamDetailContent
           team={team}
           charMap={charMap}

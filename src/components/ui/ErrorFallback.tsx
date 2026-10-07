@@ -17,6 +17,7 @@ import { useEffect, useId, useRef } from 'react';
 import { IoAlertCircle, IoHome, IoRefresh } from 'react-icons/io5';
 import { Link } from 'react-router';
 import type { ErrorBoundaryScope } from './error-boundary-types';
+import { PAGE_WIDTH } from '@/constants/ui';
 
 interface ErrorFallbackProps {
   scope: ErrorBoundaryScope;
@@ -60,7 +61,7 @@ function PageErrorFallback({
 
   return (
     <Box role="alert" aria-labelledby={headingId}>
-      <Container size="sm" py={{ base: 48, sm: 80 }}>
+      <Container size={PAGE_WIDTH.NARROW} py={{ base: 48, sm: 80 }}>
         <Stack align="center" gap="xl">
           <ThemeIcon variant="light" color="red" size={72} radius="xl">
             <IoAlertCircle aria-hidden size={40} />

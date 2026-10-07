@@ -53,6 +53,7 @@ import {
   IoSparkles,
   IoStar,
 } from 'react-icons/io5';
+import { PAGE_WIDTH } from '@/constants/ui';
 
 export default function MythicSummonCalculatorPage() {
   const { accent } = useGradientAccent();
@@ -262,7 +263,7 @@ export default function MythicSummonCalculatorPage() {
   ]);
 
   return (
-    <Container size="xl" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
         <ListPageHeader
           title="Mythic Summon Calculator"

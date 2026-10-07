@@ -23,6 +23,10 @@ export class CommunityApiError extends Error {
   }
 }
 
+export function isNotFoundError(error: unknown): boolean {
+  return error instanceof CommunityApiError && error.status === 404;
+}
+
 // Lets the auth provider learn about a session that just expired mid-action
 // (a 401 on any call) without every call site having to check for it and
 // thread a callback through. Registered once by CommunityAuthProvider.

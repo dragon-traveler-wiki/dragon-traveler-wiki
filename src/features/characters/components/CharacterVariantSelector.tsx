@@ -14,7 +14,7 @@ import GlobalBadge from '@/components/ui/GlobalBadge';
 import QualityIcon from '@/components/ui/QualityIcon';
 import { InteractiveSurface } from '@/components/ui/Surface';
 import { LINK_BLOCK_RESET_STYLE } from '@/constants/styles';
-import { CHARACTER_CARD } from '@/constants/ui';
+import { CHARACTER_CARD, PAGE_WIDTH, CARD_GRID_COLS } from '@/constants/ui';
 import type { Character } from '@/features/characters/types';
 import {
   getCharacterIdentityKey,
@@ -33,7 +33,7 @@ export default function CharacterVariantSelector({
   }
 
   return (
-    <Container size="xl" py="md">
+    <Container size={PAGE_WIDTH.WIDE} py="md">
       <Stack gap="md">
         <Stack gap={4}>
           <Text size="lg" fw={700}>
@@ -45,7 +45,7 @@ export default function CharacterVariantSelector({
           </Text>
         </Stack>
 
-        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+        <SimpleGrid cols={CARD_GRID_COLS} spacing="sm">
           {variants.map((variant) => {
             const routePath = getCharacterRoutePath(variant);
 

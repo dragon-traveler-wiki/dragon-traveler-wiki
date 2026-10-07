@@ -212,8 +212,8 @@ export default function RecommendedGearLoadout({
                     <SafeImage
                       src={entry.icon}
                       alt={`${entry.label}: ${entry.name}`}
-                      w={48}
-                      h={48}
+                      w={IMAGE_SIZE.CARD_ICON_SM}
+                      h={IMAGE_SIZE.CARD_ICON_SM}
                       fit="contain"
                       loading="lazy"
                     />

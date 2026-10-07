@@ -1,6 +1,7 @@
-import { Badge, Card, Group, Stack, Text } from '@mantine/core';
+import { Badge, Group, Stack, Text } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { CommunityCardsLoading } from '@/components/layout/PageLoadingSkeleton';
+import { StaticSurface } from '@/components/ui/Surface';
 import { useGradientAccent } from '@/hooks';
 import { formatExactDate } from '@/utils/timestamps';
 import { getModerationActions } from './api';
@@ -61,7 +62,7 @@ export default function ModerationLog({ userId }: { userId?: string }) {
   return (
     <Stack gap="xs">
       {actions.map((action) => (
-        <Card withBorder key={action.id} p="sm">
+        <StaticSurface key={action.id} p="sm">
           <Stack gap={4}>
             <Group gap="xs" wrap="wrap">
               <Badge
@@ -79,7 +80,7 @@ export default function ModerationLog({ userId }: { userId?: string }) {
             </Text>
             {action.note && <Text size="sm">{action.note}</Text>}
           </Stack>
-        </Card>
+        </StaticSurface>
       ))}
     </Stack>
   );

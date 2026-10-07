@@ -36,6 +36,7 @@ import SuspendUserModal from '@/features/community/SuspendUserModal';
 import { useGradientAccent, useTabParam } from '@/hooks';
 import { formatShortDate } from '@/utils/timestamps';
 import { runAction, toError } from '@/features/community/run-action';
+import { PAGE_WIDTH } from '@/constants/ui';
 
 type ReportFilter = 'open' | 'closed';
 type ReportAction = 'restore' | 'hide' | 'dismiss' | 'delete';
@@ -129,13 +130,13 @@ export default function ModerationPage() {
 
   if (loading)
     return (
-      <ListRouteLoading containerSize="lg" tabs={3} actions={false}>
+      <ListRouteLoading tabs={3} actions={false}>
         <CommunityCardsLoading kind="report" cards={3} />
       </ListRouteLoading>
     );
   if (!user)
     return (
-      <Container size="sm" py={{ base: 'lg', sm: 'xl' }}>
+      <Container size={PAGE_WIDTH.NARROW} py={{ base: 'lg', sm: 'xl' }}>
         <Stack gap="md">
           <ListPageHeader title="Moderation" />
           <Alert
@@ -162,7 +163,7 @@ export default function ModerationPage() {
     );
   if (!isModerator)
     return (
-      <Container size="sm" py={{ base: 'lg', sm: 'xl' }}>
+      <Container size={PAGE_WIDTH.NARROW} py={{ base: 'lg', sm: 'xl' }}>
         <Stack gap="md">
           <ListPageHeader title="Moderation" />
           <Alert color="red" variant="light" title="Access restricted">
@@ -302,7 +303,7 @@ export default function ModerationPage() {
   };
 
   return (
-    <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
         <ListPageHeader title="Moderation" />
         <Tabs value={activeTab} onChange={setActiveTab}>

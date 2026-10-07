@@ -14,7 +14,6 @@ import PaginationControl from '@/components/ui/PaginationControl';
 import { StaticSurface } from '@/components/ui/Surface';
 import GearTypeTag from '@/features/wiki/gear/components/GearTypeTag';
 import type { Gear, GearSet } from '@/features/wiki/gear/types';
-import type { GradientPaletteAccents } from '@/contexts';
 import type { useMobileTooltip } from '@/hooks';
 import type {
   EntityUsage,
@@ -22,6 +21,7 @@ import type {
 } from '@/features/wiki/usage/entity-usage';
 import UsageCharacterPortraits from '@/features/wiki/usage/components/UsageCharacterPortraits';
 import UsageFilterControls from '@/features/wiki/usage/components/UsageFilterControls';
+import { useGradientAccent } from '@/hooks';
 
 type GearItemUsage = EntityUsage<Gear, Character>;
 
@@ -54,7 +54,6 @@ interface GearUsageTabProps {
   usagePageSize: number;
   usagePageSizeOptions: readonly number[];
   onUsagePageSizeChange: (pageSize: number) => void;
-  accent: GradientPaletteAccents;
   tooltipProps: ReturnType<typeof useMobileTooltip>;
 }
 
@@ -87,9 +86,9 @@ export default function GearUsageTab({
   usagePageSize,
   usagePageSizeOptions,
   onUsagePageSizeChange,
-  accent,
   tooltipProps,
 }: GearUsageTabProps) {
+  const { accent } = useGradientAccent();
   return (
     <ListPageShell
       loading={loading}

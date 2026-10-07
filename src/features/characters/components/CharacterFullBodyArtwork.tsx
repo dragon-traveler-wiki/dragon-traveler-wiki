@@ -13,7 +13,7 @@ import { useMediaQuery } from '@mantine/hooks';
 import { useState } from 'react';
 import { IoClose } from 'react-icons/io5';
 import SafeImage from '@/components/ui/SafeImage';
-import { BREAKPOINTS } from '@/constants/ui';
+import { BREAKPOINTS, PAGE_WIDTH } from '@/constants/ui';
 import { useGradientAccent } from '@/hooks';
 
 interface CharacterFullBodyArtworkProps {
@@ -53,7 +53,7 @@ export default function CharacterFullBodyArtwork({
   return (
     <>
       <Container
-        size="lg"
+        size={PAGE_WIDTH.WIDE}
         style={{
           position: 'absolute',
           inset: 0,

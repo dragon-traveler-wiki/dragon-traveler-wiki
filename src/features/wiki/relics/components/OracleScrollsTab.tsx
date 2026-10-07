@@ -12,7 +12,8 @@ import SearchableGridPanel from '@/components/layout/SearchableGridPanel';
 import { LINK_BLOCK_RESET_STYLE } from '@/constants/styles';
 import RelicTypeTag from '@/features/wiki/relics/components/RelicTypeTag';
 import type { OracleScrollRef, Relic } from '@/features/wiki/relics/types';
-import type { GradientPaletteAccents } from '@/contexts';
+import { CARD_GRID_COLS } from '@/constants/ui';
+import { useGradientAccent } from '@/hooks';
 
 interface OracleScrollsTabProps {
   loading: boolean;
@@ -30,7 +31,6 @@ interface OracleScrollsTabProps {
   pageSizeOptions: number[];
   onPageSizeChange: (pageSize: number) => void;
   relicsByOracle: Map<string, Relic[]>;
-  accent: GradientPaletteAccents;
 }
 
 const VIDEO_HEIGHT = 130;
@@ -60,7 +60,9 @@ function OracleScrollVideo({ src }: { src: string }) {
       src={src}
       muted
       loop
-      preload="metadata"
+      // Reduced motion never plays the video, so load enough data to show
+      // its first frame instead of an empty box.
+      preload={reduceMotion ? 'auto' : 'metadata'}
       style={{
         display: 'block',
         width: '100%',
@@ -90,8 +92,8 @@ export default function OracleScrollsTab({
   pageSizeOptions,
   onPageSizeChange,
   relicsByOracle,
-  accent,
 }: OracleScrollsTabProps) {
+  const { accent } = useGradientAccent();
   return (
     <ListPageShell
       loading={loading}
@@ -118,7 +120,7 @@ export default function OracleScrollsTab({
         pageSizeOptions={pageSizeOptions}
         onPageSizeChange={onPageSizeChange}
       >
-        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+        <SimpleGrid cols={CARD_GRID_COLS} spacing="md">
           {pageItems.map((scroll) => {
             const items = relicsByOracle.get(scroll.slug) ?? [];
             const videoSrc = getOracleScrollVideo(scroll.slug);

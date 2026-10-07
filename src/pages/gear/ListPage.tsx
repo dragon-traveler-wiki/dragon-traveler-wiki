@@ -8,7 +8,7 @@ import DataCorrectionButton from '@/components/tools/DataCorrectionButton';
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import type { Character } from '@/features/characters/types';
 import { GEAR_TYPE_ORDER } from '@/constants/gear-colors';
-import { IMAGE_SIZE, STORAGE_KEY, PAGE_SIZE } from '@/constants/ui';
+import { IMAGE_SIZE, STORAGE_KEY, PAGE_SIZE, PAGE_WIDTH } from '@/constants/ui';
 import GearTab from '@/features/wiki/gear/components/GearTab';
 import GearSetsTab from '@/features/wiki/gear/components/GearSetsTab';
 import GearUsageTab from '@/features/wiki/gear/components/GearUsageTab';
@@ -33,7 +33,6 @@ import {
 import {
   useFilterPanel,
   useFilteredPageData,
-  useGradientAccent,
   useMobileTooltip,
   useSecondaryTabList,
   useTabParam,
@@ -77,7 +76,6 @@ const FILTER_GROUPS: ChipFilterGroup[] = [
 ];
 
 export default function GearPage() {
-  const { accent } = useGradientAccent();
   const tooltipProps = useMobileTooltip();
   const { isOpen: usageFilterOpen, toggle: toggleUsageFilter } =
     useFilterPanel();
@@ -281,7 +279,7 @@ export default function GearPage() {
   );
 
   return (
-    <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="md">
         <ListPageHeader
           title="Gear"
@@ -336,7 +334,6 @@ export default function GearPage() {
               onSort={handleSort}
               pageItems={gearPageItems}
               gearSetBySlug={gearSetBySlug}
-              accent={accent}
               statusEffects={statusEffects}
             />
           </Tabs.Panel>
@@ -358,7 +355,6 @@ export default function GearPage() {
               pageSizeOptions={gearSetPageSizeOptions}
               onPageSizeChange={setGearSetPageSize}
               gearItemsBySet={gearItemsBySet}
-              accent={accent}
             />
           </Tabs.Panel>
 
@@ -398,7 +394,6 @@ export default function GearPage() {
               usagePageSize={usagePageSize}
               usagePageSizeOptions={usagePageSizeOptions}
               onUsagePageSizeChange={setUsagePageSize}
-              accent={accent}
               tooltipProps={tooltipProps}
             />
           </Tabs.Panel>

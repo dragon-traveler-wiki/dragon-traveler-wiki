@@ -4,6 +4,9 @@ import {
   CHARACTER_GRID_COLS,
   CHARACTER_GRID_SPACING,
   CHARACTER_HERO,
+  PAGE_WIDTH,
+  CARD_GRID_COLS,
+  EVENT_GRID_COLS,
 } from '@/constants/ui';
 import {
   Box,
@@ -164,7 +167,7 @@ export function CardGridLoading({
       toolbar="search"
       showPagination={showPagination}
     >
-      <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+      <SimpleGrid cols={CARD_GRID_COLS} spacing="md">
         {Array.from({ length: DEFAULT_SKELETON_ITEMS }, (_, index) => (
           <Skeleton key={index} height={cardHeight} radius="md" />
         ))}
@@ -177,7 +180,7 @@ export function ViewModeLoading({
   viewMode,
   cards = DEFAULT_SKELETON_ITEMS,
   cardHeight = 200,
-  gridCols = { base: 1, sm: 2 },
+  gridCols = CARD_GRID_COLS,
   listType = 'cards',
   withToolbar = false,
   showPagination = false,
@@ -225,7 +228,7 @@ export function ViewModeLoading({
 
 export function ListRouteLoading({
   children,
-  containerSize = 'md',
+  containerSize = PAGE_WIDTH.WIDE,
   tabs = 0,
   description = false,
   actions = true,
@@ -272,7 +275,7 @@ export function ListRouteLoading({
 export function ContentPageLoading() {
   return (
     <LoadingRegion label="Loading page">
-      <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
+      <Container size={PAGE_WIDTH.READING} py={{ base: 'lg', sm: 'xl' }}>
         <Stack gap="lg">
           <Skeleton height={38} width="42%" radius="md" />
           <Skeleton height={16} width="70%" radius="sm" />
@@ -315,7 +318,7 @@ export function DetailPageLoading() {
   return (
     <LoadingRegion label="Loading details">
       <Box bg="var(--mantine-color-default-hover)">
-        <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+        <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
           <Stack gap="lg">
             <Group align="flex-start" wrap="nowrap">
               <Skeleton height={72} width={72} radius="md" />
@@ -329,7 +332,7 @@ export function DetailPageLoading() {
           </Stack>
         </Container>
       </Box>
-      <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+      <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
         <Grid gap="lg">
           <Grid.Col span={{ base: 12, md: 7 }}>
             <Skeleton height={260} radius="md" />
@@ -350,7 +353,7 @@ export function CharacterDetailPageLoading() {
   return (
     <LoadingRegion label="Loading character details">
       <Skeleton height={CHARACTER_HERO.MIN_HEIGHT} radius={0} />
-      <Container size="xl" py={{ base: 'lg', sm: 'xl' }}>
+      <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
         <Grid gap="xl">
           <Grid.Col span={{ base: 12, md: 4 }}>
             <Skeleton height={390} radius="md" />
@@ -395,7 +398,7 @@ export function HomePageLoading() {
   return (
     <LoadingRegion label="Loading home page">
       <Skeleton height="clamp(420px, 62vh, 620px)" radius={0} />
-      <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+      <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
         <Stack gap="xl">
           <Skeleton height={300} radius="md" />
           <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
@@ -444,7 +447,7 @@ export function EventCardsLoading({
     <LoadingRegion label="Loading events">
       <Stack gap={spacing}>
         {viewMode === 'grid' ? (
-          <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing={spacing}>
+          <SimpleGrid cols={EVENT_GRID_COLS} spacing={spacing}>
             {Array.from({ length: cards }, (_, index) => (
               <EventCardSkeleton key={index} bannerHeight={bannerHeight} />
             ))}
@@ -581,7 +584,7 @@ function TabsSkeleton({ tabs }: { tabs: number }) {
 export function ProfilePageLoading() {
   return (
     <LoadingRegion label="Loading profile">
-      <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+      <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
         <Stack gap="xl">
           <ProfileHeaderSkeleton />
           <TabsSkeleton tabs={2} />
@@ -603,7 +606,7 @@ export function ProfilePageLoading() {
 export function AccountPageLoading() {
   return (
     <LoadingRegion label="Loading account">
-      <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+      <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
         <Stack gap="lg">
           <ProfileHeaderSkeleton />
           <Skeleton height={180} radius="md" />
@@ -627,7 +630,7 @@ export function AccountPageLoading() {
 export function TierListPageLoading() {
   return (
     <LoadingRegion label="Loading tier list">
-      <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+      <Container size={PAGE_WIDTH.WIDE} py={{ base: 'lg', sm: 'xl' }}>
         <Stack gap="md">
           <Group justify="space-between" wrap="wrap">
             <Skeleton height={16} width={200} radius="sm" />

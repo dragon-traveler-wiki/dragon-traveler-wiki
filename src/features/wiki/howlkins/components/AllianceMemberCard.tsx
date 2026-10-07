@@ -6,6 +6,7 @@ import type { Howlkin } from '@/features/wiki/howlkins/types';
 import { QUALITY_COLOR } from '@/constants/quality';
 import { StaticSurface } from '@/components/ui/Surface';
 import { Group, Stack, Text } from '@mantine/core';
+import { IMAGE_SIZE } from '@/constants/ui';
 
 interface AllianceMemberCardProps {
   howlkin: Howlkin;
@@ -18,6 +19,7 @@ export default function AllianceMemberCard({
 }: AllianceMemberCardProps) {
   const iconSrc = getHowlkinIcon(howlkin.slug, howlkin.quality);
   const qualityColor = QUALITY_COLOR[howlkin.quality];
+  const hasStats = Object.keys(howlkin.basic_stats ?? {}).length > 0;
   return (
     <StaticSurface
       p="sm"
@@ -31,8 +33,8 @@ export default function AllianceMemberCard({
             <SafeImage
               src={iconSrc}
               alt={howlkin.name}
-              w={44}
-              h={44}
+              w={IMAGE_SIZE.CARD_ICON_SM}
+              h={IMAGE_SIZE.CARD_ICON_SM}
               fit="contain"
               radius="sm"
             />
@@ -51,7 +53,7 @@ export default function AllianceMemberCard({
             ))}
           </Stack>
         </Group>
-        <HowlkinStats stats={howlkin.basic_stats} />
+        {hasStats && <HowlkinStats stats={howlkin.basic_stats} />}
       </Stack>
     </StaticSurface>
   );

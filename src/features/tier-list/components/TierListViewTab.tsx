@@ -28,7 +28,7 @@ import { useGradientAccent } from '@/hooks';
 
 interface TierListViewTabProps {
   paginatedTierLists: TierListType[];
-  visibleTierLists: TierListType[];
+  filteredTierLists: TierListType[];
   charMap: Map<string, Character>;
   characterByIdentity: Map<string, Character>;
   viewMode: string;
@@ -51,7 +51,7 @@ interface TierListViewTabProps {
 
 export default function TierListViewTab({
   paginatedTierLists,
-  visibleTierLists,
+  filteredTierLists,
   charMap,
   characterByIdentity,
   viewMode,
@@ -76,7 +76,7 @@ export default function TierListViewTab({
 
   return (
     <>
-      {visibleTierLists.length === 0 && (
+      {filteredTierLists.length === 0 && (
         <NoResultsSuggestions
           title={search ? 'No tier lists found' : 'No matching tier lists'}
           message={
@@ -198,7 +198,7 @@ export default function TierListViewTab({
         hasMore={hasMore}
         loadingMore={loadingMore}
         onLoadMore={onLoadMore}
-        atLastPage={page * pageSize >= visibleTierLists.length}
+        atLastPage={page * pageSize >= filteredTierLists.length}
         loadedCount={loadedCount}
       />
     </>

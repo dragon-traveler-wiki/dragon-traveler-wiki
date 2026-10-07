@@ -16,6 +16,7 @@ import { useUsefulLinks } from '@/features/wiki/hooks/use-wiki-data';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router';
 import { toEntitySlug } from '@/utils/entity-slug';
+import { PAGE_WIDTH } from '@/constants/ui';
 
 const LINK_FIELDS: FieldDef[] = [
   {
@@ -70,7 +71,7 @@ export default function UsefulLinks() {
   }, [hash, links]);
 
   return (
-    <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size={PAGE_WIDTH.READING} py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="md">
         <ListPageHeader
           title="Useful Links"

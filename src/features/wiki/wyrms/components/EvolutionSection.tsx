@@ -10,6 +10,7 @@ import type { Wyrm } from '@/features/wiki/wyrms/types';
 import { Badge, Group, Stack, Text, Title } from '@mantine/core';
 import { useMemo } from 'react';
 import { Link } from 'react-router';
+import { IMAGE_SIZE } from '@/constants/ui';
 
 function EvolutionCard({
   label,
@@ -50,8 +51,8 @@ function EvolutionCard({
             <SafeImage
               src={iconSrc}
               alt={w.name}
-              w={56}
-              h={56}
+              w={IMAGE_SIZE.CARD_ICON_SM}
+              h={IMAGE_SIZE.CARD_ICON_SM}
               fit="contain"
               style={{ flexShrink: 0 }}
             />
