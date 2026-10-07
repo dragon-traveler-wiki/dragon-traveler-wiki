@@ -14,11 +14,13 @@ import Breadcrumbs from '@/components/layout/Breadcrumbs';
 import { TierListPageLoading } from '@/components/layout/PageLoadingSkeleton';
 import CollapsibleSectionCard from '@/components/ui/CollapsibleSectionCard';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
+import DataFetchError from '@/components/ui/DataFetchError';
 import EntityNotFound from '@/components/ui/EntityNotFound';
 import { CHARACTER_GRID_SPACING, STORAGE_KEY } from '@/constants/ui';
 import { useCharacterResolution } from '@/features/characters/hooks/use-character-resolution';
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import { getCharacterIdentityKey } from '@/features/characters/utils/character-route';
+import { CommunityApiError } from '@/features/community/api';
 import { toBuilderDraft } from '@/features/community/builder-edit';
 import CommunityActions from '@/features/community/CommunityActions';
 import RevisionHistory from '@/features/community/RevisionHistory';
@@ -48,9 +50,12 @@ export default function TierListPage() {
   const [exporting, setExporting] = useState(false);
   const exportRef = useRef<HTMLDivElement | null>(null);
 
-  const { data: tierList, loading: loadingTierList } = useTierList(
-    tierListId ?? null,
-  );
+  const {
+    data: tierList,
+    loading: loadingTierList,
+    error: tierListError,
+    retry: retryTierList,
+  } = useTierList(tierListId ?? null);
   const { data: characters, loading: loadingChars } = useCharacters();
   const { data: noblePhantasms, loading: loadingNoblePhantasms } =
     useNoblePhantasms();
@@ -73,6 +78,23 @@ export default function TierListPage() {
 
   if (loading) {
     return <TierListPageLoading />;
+  }
+
+  if (
+    tierListError &&
+    !(
+      tierListError instanceof CommunityApiError && tierListError.status === 404
+    )
+  ) {
+    return (
+      <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+        <DataFetchError
+          title="Could not load tier list"
+          message={tierListError.message}
+          onRetry={retryTierList}
+        />
+      </Container>
+    );
   }
 
   if (!tierList) {

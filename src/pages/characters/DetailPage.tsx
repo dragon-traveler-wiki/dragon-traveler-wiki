@@ -11,6 +11,7 @@ import {
 import { useParams } from 'react-router';
 import ChangeHistory from '@/components/common/ChangeHistory';
 import DetailPageNavigation from '@/components/common/DetailPageNavigation';
+import DataFetchError from '@/components/ui/DataFetchError';
 import EntityNotFound from '@/components/ui/EntityNotFound';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { CharacterDetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
@@ -73,6 +74,8 @@ export default function CharacterPage() {
 
   const {
     loading,
+    error: charactersError,
+    retry: retryCharacters,
     character,
     sameNameVariants,
     routeBaseSlug,
@@ -143,6 +146,18 @@ export default function CharacterPage() {
 
   if (loading) {
     return <CharacterDetailPageLoading />;
+  }
+
+  if (charactersError) {
+    return (
+      <Container size="lg" py="xl">
+        <DataFetchError
+          title="Could not load characters"
+          message={charactersError.message}
+          onRetry={retryCharacters}
+        />
+      </Container>
+    );
   }
 
   if (!character) {

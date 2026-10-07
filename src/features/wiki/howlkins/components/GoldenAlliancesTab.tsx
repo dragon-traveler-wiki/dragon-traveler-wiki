@@ -109,6 +109,7 @@ export default function GoldenAlliancesTab({
                             key={howlkinSlug}
                             name={howlkin.name}
                             howlkin={howlkin}
+                            interactive={false}
                           />
                         );
                       })}

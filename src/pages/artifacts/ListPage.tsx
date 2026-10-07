@@ -22,7 +22,6 @@ import {
 import { getMinWidthStyle } from '@/constants/styles';
 import { IMAGE_SIZE, STORAGE_KEY } from '@/constants/ui';
 import QualityIcon from '@/components/ui/QualityIcon';
-import type { Quality } from '@/types/quality';
 import {
   useArtifacts,
   useStatusEffects,
@@ -143,16 +142,9 @@ export default function Artifacts() {
                   qualities: filters.qualities,
                   footprints: filters.footprints,
                 }}
-                onChange={(key, values) => {
-                  if (key === 'qualities') {
-                    setFilters({
-                      ...filters,
-                      qualities: values as Quality[],
-                    });
-                    return;
-                  }
-                  setFilters({ ...filters, footprints: values });
-                }}
+                onChange={(key, values) =>
+                  setFilters({ ...filters, [key]: values })
+                }
                 onClear={resetFilters}
                 search={filters.search}
                 onSearchChange={(value) =>

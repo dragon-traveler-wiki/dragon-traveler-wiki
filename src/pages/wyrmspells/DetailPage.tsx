@@ -3,9 +3,12 @@ import { getWyrmspellIcon } from '@/assets';
 import ChangeHistory from '@/components/common/ChangeHistory';
 import DetailPageHero from '@/components/common/DetailPageHero';
 import DetailPageNavigation from '@/components/common/DetailPageNavigation';
+import DetailPageTitle from '@/components/common/DetailPageTitle';
 import LastUpdated from '@/components/common/LastUpdated';
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
+import DataFetchError from '@/components/ui/DataFetchError';
 import EntityNotFound from '@/components/ui/EntityNotFound';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import FactionTag from '@/components/ui/FactionTag';
 import QualityIcon from '@/components/ui/QualityIcon';
 import WyrmspellTypeTag from '@/features/wiki/wyrmspells/components/WyrmspellTypeTag';
@@ -20,7 +23,7 @@ import {
   useWyrmspellChanges,
   useWyrmspells,
 } from '@/features/wiki/hooks/use-wiki-data';
-import { useDarkMode, useGradientAccent } from '@/hooks';
+import { useAdjacentItems, useDarkMode, useGradientAccent } from '@/hooks';
 import {
   findEntityByParam,
   shouldRedirectToEntitySlug,
@@ -36,7 +39,7 @@ export default function WyrmspellPage() {
   const { accent } = useGradientAccent();
   const isDark = useDarkMode();
 
-  const { data: wyrmspells, loading } = useWyrmspells();
+  const { data: wyrmspells, loading, error, retry } = useWyrmspells();
   const { data: statusEffects } = useStatusEffects();
   const { data: changesData } = useWyrmspellChanges();
 
@@ -66,20 +69,30 @@ export default function WyrmspellPage() {
     [wyrmspells],
   );
 
-  const wyrmspellIndex = useMemo(() => {
-    if (!wyrmspell) return -1;
-    return orderedWyrmspells.findIndex((w) => w.slug === wyrmspell.slug);
-  }, [wyrmspell, orderedWyrmspells]);
-
-  const previousWyrmspell =
-    wyrmspellIndex > 0 ? orderedWyrmspells[wyrmspellIndex - 1] : null;
-  const nextWyrmspell =
-    wyrmspellIndex >= 0 && wyrmspellIndex < orderedWyrmspells.length - 1
-      ? orderedWyrmspells[wyrmspellIndex + 1]
-      : null;
+  const { previousItem, nextItem } = useAdjacentItems(
+    orderedWyrmspells,
+    wyrmspell,
+    (entry) => ({
+      label: entry.name,
+      path: `/wyrmspells/${entry.slug}`,
+      iconSrc: getWyrmspellIcon(entry.slug, entry.type),
+    }),
+  );
 
   if (loading) {
     return <DetailPageLoading />;
+  }
+
+  if (error) {
+    return (
+      <Container size="lg" py="xl">
+        <DataFetchError
+          title="Could not load wyrmspells"
+          message={error.message}
+          onRetry={retry}
+        />
+      </Container>
+    );
   }
 
   if (!wyrmspell) {
@@ -125,14 +138,7 @@ export default function WyrmspellPage() {
 
           <Stack gap={6} style={{ flex: 1 }}>
             <Group gap="sm" align="center">
-              <Title
-                order={1}
-                c={isDark ? 'white' : 'dark'}
-                fz={{ base: '1.5rem', sm: '2.125rem' }}
-                style={{ lineHeight: 1.2, wordBreak: 'break-word' }}
-              >
-                {wyrmspell.name}
-              </Title>
+              <DetailPageTitle>{wyrmspell.name}</DetailPageTitle>
               {maxQuality && (
                 <QualityIcon quality={maxQuality.quality} size={32} />
               )}
@@ -149,46 +155,27 @@ export default function WyrmspellPage() {
       </DetailPageHero>
 
       <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
-        <Stack gap="xl">
-          <Stack gap="md">
-            <Title order={2} size="h3">
-              Effects by Quality
-            </Title>
-            <QualitiesTable
-              qualities={wyrmspell.qualities}
-              statusEffects={statusEffects}
-            />
+        <ErrorBoundary
+          scope="section"
+          name="wyrmspell details"
+          resetKeys={[wyrmspell.slug]}
+        >
+          <Stack gap="xl">
+            <Stack gap="md">
+              <Title order={2} size="h3">
+                Effects by Quality
+              </Title>
+              <QualitiesTable
+                qualities={wyrmspell.qualities}
+                statusEffects={statusEffects}
+              />
+            </Stack>
           </Stack>
-        </Stack>
+        </ErrorBoundary>
 
         <ChangeHistory history={changesData[wyrmspell.slug]} />
 
-        <DetailPageNavigation
-          previousItem={
-            previousWyrmspell
-              ? {
-                  label: previousWyrmspell.name,
-                  path: `/wyrmspells/${previousWyrmspell.slug}`,
-                  iconSrc: getWyrmspellIcon(
-                    previousWyrmspell.slug,
-                    previousWyrmspell.type,
-                  ),
-                }
-              : null
-          }
-          nextItem={
-            nextWyrmspell
-              ? {
-                  label: nextWyrmspell.name,
-                  path: `/wyrmspells/${nextWyrmspell.slug}`,
-                  iconSrc: getWyrmspellIcon(
-                    nextWyrmspell.slug,
-                    nextWyrmspell.type,
-                  ),
-                }
-              : null
-          }
-        />
+        <DetailPageNavigation previousItem={previousItem} nextItem={nextItem} />
       </Container>
     </Box>
   );

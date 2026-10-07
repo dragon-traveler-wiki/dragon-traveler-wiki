@@ -1,7 +1,9 @@
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
+import DataFetchError from '@/components/ui/DataFetchError';
 import EntityNotFound from '@/components/ui/EntityNotFound';
 import { STORAGE_KEY } from '@/constants/ui';
+import { CommunityApiError } from '@/features/community/api';
 import { toBuilderDraft } from '@/features/community/builder-edit';
 import CommunityActions from '@/features/community/CommunityActions';
 import RevisionHistory from '@/features/community/RevisionHistory';
@@ -44,7 +46,12 @@ export default function TeamPage() {
   const [exporting, setExporting] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
 
-  const { data: team, loading: loadingTeam } = useTeam(teamId ?? null);
+  const {
+    data: team,
+    loading: loadingTeam,
+    error: teamError,
+    retry: retryTeam,
+  } = useTeam(teamId ?? null);
   const { data: characters, loading: loadingChars } = useCharacters();
   const { data: wyrmspells, loading: loadingSpells } = useWyrmspells();
   const { data: factions, loading: loadingFactions } = useFactions();
@@ -82,6 +89,21 @@ export default function TeamPage() {
 
   if (loading) {
     return <DetailPageLoading />;
+  }
+
+  if (
+    teamError &&
+    !(teamError instanceof CommunityApiError && teamError.status === 404)
+  ) {
+    return (
+      <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+        <DataFetchError
+          title="Could not load team"
+          message={teamError.message}
+          onRetry={retryTeam}
+        />
+      </Container>
+    );
   }
 
   if (!team) {

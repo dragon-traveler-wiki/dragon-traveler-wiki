@@ -3,10 +3,13 @@ import { getArtifactIcon } from '@/assets';
 import ChangeHistory from '@/components/common/ChangeHistory';
 import DetailPageHero from '@/components/common/DetailPageHero';
 import DetailPageNavigation from '@/components/common/DetailPageNavigation';
+import DetailPageTitle from '@/components/common/DetailPageTitle';
 import LastUpdated from '@/components/common/LastUpdated';
 import RichText from '@/components/common/RichText';
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
+import DataFetchError from '@/components/ui/DataFetchError';
 import EntityNotFound from '@/components/ui/EntityNotFound';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import FactionTag from '@/components/ui/FactionTag';
 import QualityIcon from '@/components/ui/QualityIcon';
 import { QUALITY_COLOR } from '@/constants/quality';
@@ -21,7 +24,12 @@ import {
   useArtifacts,
   useStatusEffects,
 } from '@/features/wiki/hooks/use-wiki-data';
-import { useDarkMode, useFactions, useGradientAccent } from '@/hooks';
+import {
+  useAdjacentItems,
+  useDarkMode,
+  useFactions,
+  useGradientAccent,
+} from '@/hooks';
 import {
   findEntityByParam,
   shouldRedirectToEntitySlug,
@@ -46,7 +54,7 @@ export default function ArtifactPage() {
   const { accent } = useGradientAccent();
   const isDark = useDarkMode();
 
-  const { data: artifacts, loading } = useArtifacts();
+  const { data: artifacts, loading, error, retry } = useArtifacts();
   const { data: statusEffects } = useStatusEffects();
   const { data: factions } = useFactions();
   const { data: changesData } = useArtifactChanges();
@@ -70,11 +78,6 @@ export default function ArtifactPage() {
     [artifacts],
   );
 
-  const artifactIndex = useMemo(() => {
-    if (!artifact) return -1;
-    return orderedArtifacts.findIndex((entry) => entry.slug === artifact.slug);
-  }, [artifact, orderedArtifacts]);
-
   const recommendingFactions = useMemo(() => {
     if (!artifact) return [];
     return factions.filter((f) =>
@@ -82,15 +85,30 @@ export default function ArtifactPage() {
     );
   }, [factions, artifact]);
 
-  const previousArtifact =
-    artifactIndex > 0 ? orderedArtifacts[artifactIndex - 1] : null;
-  const nextArtifact =
-    artifactIndex >= 0 && artifactIndex < orderedArtifacts.length - 1
-      ? orderedArtifacts[artifactIndex + 1]
-      : null;
+  const { previousItem, nextItem } = useAdjacentItems(
+    orderedArtifacts,
+    artifact,
+    (entry) => ({
+      label: entry.name,
+      path: `/artifacts/${entry.slug}`,
+      iconSrc: getArtifactIcon(entry.slug),
+    }),
+  );
 
   if (loading) {
     return <DetailPageLoading />;
+  }
+
+  if (error) {
+    return (
+      <Container size="lg" py="xl">
+        <DataFetchError
+          title="Could not load artifacts"
+          message={error.message}
+          onRetry={retry}
+        />
+      </Container>
+    );
   }
 
   if (!artifact) {
@@ -116,7 +134,6 @@ export default function ArtifactPage() {
           { label: 'Artifacts', path: '/artifacts' },
           { label: artifact.name },
         ]}
-        py={{ base: 'lg', sm: 'xl' }}
       >
         <Group gap="lg" align="flex-start" wrap="nowrap">
           {iconSrc && (
@@ -134,14 +151,7 @@ export default function ArtifactPage() {
 
           <Stack gap={6} style={{ flex: 1 }}>
             <Group gap="sm" align="center">
-              <Title
-                order={1}
-                c={isDark ? 'white' : 'dark'}
-                fz={{ base: '1.5rem', sm: '2.125rem' }}
-                style={{ lineHeight: 1.2, wordBreak: 'break-word' }}
-              >
-                {artifact.name}
-              </Title>
+              <DetailPageTitle>{artifact.name}</DetailPageTitle>
               <QualityIcon quality={artifact.quality} size={32} />
             </Group>
             <LastUpdated timestamp={artifact.last_updated} />
@@ -178,68 +188,55 @@ export default function ArtifactPage() {
       </DetailPageHero>
 
       <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
-        <Stack gap="xl">
-          {/* Artifact Effects */}
-          <Stack gap="md">
-            <Title order={2} size="h3">
-              Artifact Effects
-            </Title>
-            <EffectTable
-              effects={artifact.effect}
-              statusEffects={statusEffects}
-            />
-          </Stack>
-
-          {/* Treasures */}
-          {artifact.treasures.length > 0 && (
+        <ErrorBoundary
+          scope="section"
+          name="artifact details"
+          resetKeys={[artifact.slug]}
+        >
+          <Stack gap="xl">
+            {/* Artifact Effects */}
             <Stack gap="md">
-              <Group gap="sm">
-                <Title order={2} size="h3">
-                  Treasures
-                </Title>
-                <Badge variant="light" color={accent.tertiary} size="sm">
-                  {artifact.treasures.length} treasure
-                  {artifact.treasures.length !== 1 ? 's' : ''}
-                </Badge>
-              </Group>
-              <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
-                {artifact.treasures.map((treasure) => (
-                  <TreasureCard
-                    key={treasure.name}
-                    treasure={treasure}
-                    artifactSlug={artifact.slug}
-                    isDark={isDark}
-                    qualityColor={qualityColor}
-                    statusEffects={statusEffects}
-                  />
-                ))}
-              </SimpleGrid>
+              <Title order={2} size="h3">
+                Artifact Effects
+              </Title>
+              <EffectTable
+                effects={artifact.effect}
+                statusEffects={statusEffects}
+              />
             </Stack>
-          )}
-        </Stack>
+
+            {/* Treasures */}
+            {artifact.treasures.length > 0 && (
+              <Stack gap="md">
+                <Group gap="sm">
+                  <Title order={2} size="h3">
+                    Treasures
+                  </Title>
+                  <Badge variant="light" color={accent.tertiary} size="sm">
+                    {artifact.treasures.length} treasure
+                    {artifact.treasures.length !== 1 ? 's' : ''}
+                  </Badge>
+                </Group>
+                <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
+                  {artifact.treasures.map((treasure) => (
+                    <TreasureCard
+                      key={treasure.name}
+                      treasure={treasure}
+                      artifactSlug={artifact.slug}
+                      isDark={isDark}
+                      qualityColor={qualityColor}
+                      statusEffects={statusEffects}
+                    />
+                  ))}
+                </SimpleGrid>
+              </Stack>
+            )}
+          </Stack>
+        </ErrorBoundary>
 
         <ChangeHistory history={changesData[artifact.slug]} />
 
-        <DetailPageNavigation
-          previousItem={
-            previousArtifact
-              ? {
-                  label: previousArtifact.name,
-                  path: `/artifacts/${previousArtifact.slug}`,
-                  iconSrc: getArtifactIcon(previousArtifact.slug),
-                }
-              : null
-          }
-          nextItem={
-            nextArtifact
-              ? {
-                  label: nextArtifact.name,
-                  path: `/artifacts/${nextArtifact.slug}`,
-                  iconSrc: getArtifactIcon(nextArtifact.slug),
-                }
-              : null
-          }
-        />
+        <DetailPageNavigation previousItem={previousItem} nextItem={nextItem} />
       </Container>
     </Box>
   );

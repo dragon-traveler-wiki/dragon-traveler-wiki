@@ -22,8 +22,6 @@ export default function EntityNotFound({
   backLabel,
   backPath,
 }: EntityNotFoundProps) {
-  const decodedName = name ? decodeURIComponent(name) : null;
-
   return (
     <Container size="sm" py={80}>
       <Stack align="center" gap="xl">
@@ -31,12 +29,14 @@ export default function EntityNotFound({
           <IoSearch size={36} />
         </ThemeIcon>
         <Stack align="center" gap="sm">
-          <Title order={2}>{entityType} Not Found</Title>
-          {decodedName ? (
+          <Title order={1} size="h2">
+            {entityType} Not Found
+          </Title>
+          {name ? (
             <Text c="dimmed" ta="center" maw={400}>
               No {entityType.toLowerCase()} named{' '}
               <Text component="span" fw={600} c="default" inherit>
-                "{decodedName}"
+                "{name}"
               </Text>{' '}
               could be found.
             </Text>

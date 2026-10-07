@@ -131,8 +131,10 @@ export default function Howlkins() {
   const allianceSearchFn = useCallback(
     (alliance: GoldenAlliance, query: string) =>
       alliance.name.toLowerCase().includes(query) ||
-      alliance.howlkins.some((h) => h.toLowerCase().includes(query)),
-    [],
+      alliance.howlkins.some((slug) =>
+        (howlkinMap.get(slug)?.name ?? slug).toLowerCase().includes(query),
+      ),
+    [howlkinMap],
   );
 
   const {
@@ -217,7 +219,6 @@ export default function Howlkins() {
               onSort={handleSort}
               pageItems={howlkinPageItems}
               howlkinToAlliance={howlkinToAlliance}
-              accent={accent}
             />
           </Tabs.Panel>
 

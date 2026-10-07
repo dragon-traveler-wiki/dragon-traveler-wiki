@@ -14,11 +14,10 @@ import { IMAGE_SIZE } from '@/constants/ui';
 import { getMinWidthStyle } from '@/constants/styles';
 import QualityIcon from '@/components/ui/QualityIcon';
 import GearTypeTag from '@/features/wiki/gear/components/GearTypeTag';
-import type { Gear, GearSet, GearType } from '@/features/wiki/gear/types';
+import type { Gear, GearSet } from '@/features/wiki/gear/types';
 import type { GearFilters } from '@/features/wiki/gear/filters';
 import type { GradientPaletteAccents } from '@/contexts';
 import type { ViewMode } from '@/hooks';
-import type { Quality } from '@/types/quality';
 import type { StatusEffect } from '@/features/wiki/status-effects/types';
 
 import {
@@ -50,7 +49,6 @@ interface GearTabProps {
   onPageSizeChange: (pageSize: number) => void;
   filters: GearFilters;
   onFiltersChange: (filters: GearFilters) => void;
-  emptyFilters: GearFilters;
   filterGroups: ChipFilterGroup[];
   sortCol: string | null;
   sortDir: 'asc' | 'desc';
@@ -81,7 +79,6 @@ export default function GearTab({
   onPageSizeChange,
   filters,
   onFiltersChange,
-  emptyFilters,
   filterGroups,
   sortCol,
   sortDir,
@@ -131,22 +128,10 @@ export default function GearTab({
               types: filters.types,
               qualities: filters.qualities,
             }}
-            onChange={(key, values) => {
-              if (key === 'types') {
-                onFiltersChange({
-                  ...filters,
-                  types: values as GearType[],
-                });
-                return;
-              }
-              if (key === 'qualities') {
-                onFiltersChange({
-                  ...filters,
-                  qualities: values as Quality[],
-                });
-              }
-            }}
-            onClear={() => onFiltersChange(emptyFilters)}
+            onChange={(key, values) =>
+              onFiltersChange({ ...filters, [key]: values })
+            }
+            onClear={onResetFilters}
             search={filters.search}
             onSearchChange={(value) =>
               onFiltersChange({ ...filters, search: value })

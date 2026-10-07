@@ -1,4 +1,5 @@
 // Shared hook exports for cleaner imports.
+export { useAdjacentItems } from './use-adjacent-items';
 export { useFactions } from './use-factions';
 export { useLocalePath, useLocaleChangesPath } from './use-locale-path';
 export { useDarkMode } from './use-dark-mode';

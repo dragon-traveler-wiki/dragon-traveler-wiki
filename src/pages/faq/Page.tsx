@@ -1,8 +1,9 @@
+import TranslationNote from '@/components/common/TranslationNote';
+import ListPageHeader from '@/components/layout/ListPageHeader';
 import CollapsibleSectionCard from '@/components/ui/CollapsibleSectionCard';
 import { StaticSurface } from '@/components/ui/Surface';
 import { useGradientAccent } from '@/hooks';
 import {
-  Alert,
   Anchor,
   Box,
   Button,
@@ -159,16 +160,16 @@ const FAQ_SECTIONS: FAQSection[] = [
             You can find tools like the{' '}
             <Anchor component={Link} to="/toolbox/star-upgrade-calculator">
               Star Upgrade Calculator
-            </Anchor>{' '}
-            and{' '}
+            </Anchor>
+            ,{' '}
             <Anchor component={Link} to="/toolbox/mythic-summon-calculator">
               Mythic Summon Calculator
-            </Anchor>{' '}
-            and{' '}
+            </Anchor>
+            , and{' '}
             <Anchor component={Link} to="/toolbox/diamond-calculator">
               Diamond Calculator
             </Anchor>{' '}
-            in the Guides section.
+            under Toolbox &gt; Calculators.
           </>
         ),
         icon: IoInformationCircleOutline,
@@ -484,13 +485,10 @@ export default function FAQ() {
   return (
     <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
-        <Stack gap={2}>
-          <Title order={1}>FAQ</Title>
-          <Text size="sm" c="dimmed">
-            Quick answers about wiki usage and beginner-friendly progression
-            priorities.
-          </Text>
-        </Stack>
+        <ListPageHeader
+          title="FAQ"
+          description="Quick answers about wiki usage and beginner-friendly progression priorities."
+        />
 
         <Stack gap="md">
           {FAQ_SECTIONS.map((section) => (
@@ -507,28 +505,20 @@ export default function FAQ() {
         <StaticSurface p="lg">
           <Stack gap="sm">
             <Title order={2}>Source Reference</Title>
-            <Alert
-              variant="light"
-              color="yellow"
-              title="Translation note"
-              icon={<IoInformationCircleOutline />}
+            <TranslationNote
+              sourceHref="https://www.gamekee.com/lhlr"
+              sourceLabel="GameKee Dragon Traveler Reference"
             >
               The embedded page below is an external community source used for
-              translation/adaptation. If it does not load, open it directly:{' '}
-              <Anchor
-                href="https://www.gamekee.com/lhlr"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                GameKee Dragon Traveler Reference
-              </Anchor>
-              .
-            </Alert>
+              translation/adaptation. If it does not load, open it directly:
+            </TranslationNote>
             <StaticSurface radius="md" p={0} style={{ overflow: 'hidden' }}>
               <Box
                 component="iframe"
                 src="https://www.gamekee.com/lhlr"
                 title="GameKee Dragon Traveler Reference"
+                sandbox="allow-scripts allow-same-origin allow-popups"
+                referrerPolicy="no-referrer"
                 style={{ width: '100%', height: 460, border: 0 }}
                 loading="lazy"
               />

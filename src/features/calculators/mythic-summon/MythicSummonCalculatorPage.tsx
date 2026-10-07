@@ -1,3 +1,4 @@
+import ListPageHeader from '@/components/layout/ListPageHeader';
 import MythicSummonReference from '@/features/calculators/mythic-summon/components/MythicSummonReference';
 import {
   calculateConditionalGuaranteedValue,
@@ -262,13 +263,10 @@ export default function MythicSummonCalculatorPage() {
   return (
     <Container size="xl" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
-        <Stack gap={2}>
-          <Title order={1}>Mythic Summon Calculator</Title>
-          <Text size="sm" c="dimmed">
-            Forecast summon outcomes and reverse-calculate required pulls for
-            your goals.
-          </Text>
-        </Stack>
+        <ListPageHeader
+          title="Mythic Summon Calculator"
+          description="Forecast summon outcomes and reverse-calculate required pulls for your goals."
+        />
 
         <Alert
           variant="light"

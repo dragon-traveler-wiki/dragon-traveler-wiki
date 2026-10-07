@@ -10,10 +10,13 @@ import IllustrationPreviewModal from '@/components/common/IllustrationPreviewMod
 import ChangeHistory from '@/components/common/ChangeHistory';
 import DetailPageHero from '@/components/common/DetailPageHero';
 import DetailPageNavigation from '@/components/common/DetailPageNavigation';
+import DetailPageTitle from '@/components/common/DetailPageTitle';
 import LastUpdated from '@/components/common/LastUpdated';
 import RichText from '@/components/common/RichText';
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
+import DataFetchError from '@/components/ui/DataFetchError';
 import EntityNotFound from '@/components/ui/EntityNotFound';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import FactionTag from '@/components/ui/FactionTag';
 import QualityIcon from '@/components/ui/QualityIcon';
 import { QUALITY_COLOR } from '@/constants/quality';
@@ -21,14 +24,9 @@ import { getLoreGlassStyles } from '@/constants/glass';
 import { getHeroIconBoxStyles } from '@/constants/detail-styles';
 import { StaticSurface } from '@/components/ui/Surface';
 import { BREAKPOINTS, IMAGE_SIZE } from '@/constants/ui';
+import { WYRM_PHASE_COLOR } from '@/constants/wyrm-colors';
 import type { WyrmPhase } from '@/features/wiki/wyrms/types';
 import { WYRM_PHASE_ORDER } from '@/features/wiki/wyrms/types';
-
-const WYRM_PHASE_COLOR: Record<WyrmPhase, string> = {
-  'Juvenile Phase': 'violet',
-  'Growth Phase': 'yellow',
-  'Final Phase': 'orange',
-};
 import EvolutionSection from '@/features/wiki/wyrms/components/EvolutionSection';
 import SkillCard from '@/features/wiki/wyrms/components/SkillCard';
 import StarUpgradesTable from '@/features/wiki/wyrms/components/StarUpgradesTable';
@@ -37,7 +35,12 @@ import {
   useWyrmChanges,
   useWyrms,
 } from '@/features/wiki/hooks/use-wiki-data';
-import { useDarkMode, useGradientAccent, useMobileTooltip } from '@/hooks';
+import {
+  useAdjacentItems,
+  useDarkMode,
+  useGradientAccent,
+  useMobileTooltip,
+} from '@/hooks';
 import {
   findEntityByParam,
   shouldRedirectToEntitySlug,
@@ -69,7 +72,7 @@ export default function WyrmPage() {
   const tooltipProps = useMobileTooltip();
   const [previewOpen, setPreviewOpen] = useState(false);
 
-  const { data: wyrms, loading } = useWyrms();
+  const { data: wyrms, loading, error, retry } = useWyrms();
   const { data: statusEffects } = useStatusEffects();
   const { data: changesData } = useWyrmChanges();
 
@@ -94,19 +97,30 @@ export default function WyrmPage() {
     [wyrms],
   );
 
-  const wyrmIndex = useMemo(() => {
-    if (!wyrm) return -1;
-    return orderedWyrms.findIndex((w) => w.slug === wyrm.slug);
-  }, [wyrm, orderedWyrms]);
-
-  const previousWyrm = wyrmIndex > 0 ? orderedWyrms[wyrmIndex - 1] : null;
-  const nextWyrm =
-    wyrmIndex >= 0 && wyrmIndex < orderedWyrms.length - 1
-      ? orderedWyrms[wyrmIndex + 1]
-      : null;
+  const { previousItem, nextItem } = useAdjacentItems(
+    orderedWyrms,
+    wyrm,
+    (entry) => ({
+      label: entry.name,
+      path: `/wyrms/${entry.slug}`,
+      iconSrc: getWyrmIcon(entry.slug),
+    }),
+  );
 
   if (loading) {
     return <DetailPageLoading />;
+  }
+
+  if (error) {
+    return (
+      <Container size="lg" py="xl">
+        <DataFetchError
+          title="Could not load wyrms"
+          message={error.message}
+          onRetry={retry}
+        />
+      </Container>
+    );
   }
 
   if (!wyrm) {
@@ -133,6 +147,7 @@ export default function WyrmPage() {
         isDark={isDark}
         qualityColor={qualityColor}
         secondaryColor={accent.secondary}
+        size="xl"
         breadcrumbItems={[
           { label: 'Wyrms', path: '/wyrms' },
           { label: wyrm.name },
@@ -154,14 +169,7 @@ export default function WyrmPage() {
 
           <Stack gap={6} style={{ flex: 1 }}>
             <Group gap="sm" align="center">
-              <Title
-                order={1}
-                c={isDark ? 'white' : 'dark'}
-                fz={{ base: '1.5rem', sm: '2.125rem' }}
-                style={{ lineHeight: 1.2, wordBreak: 'break-word' }}
-              >
-                {wyrm.name}
-              </Title>
+              <DetailPageTitle>{wyrm.name}</DetailPageTitle>
               <QualityIcon quality={wyrm.quality} size={32} />
             </Group>
             <LastUpdated timestamp={wyrm.last_updated} />
@@ -195,93 +203,84 @@ export default function WyrmPage() {
       </DetailPageHero>
 
       <Container size="xl" py={{ base: 'lg', sm: 'xl' }}>
-        <Grid gap="xl">
-          {/* Left column — portrait + star upgrades */}
-          <Grid.Col span={{ base: 12, md: 4 }}>
-            <Stack
-              gap="md"
-              style={{
-                position: isDesktop ? 'sticky' : 'static',
-                top: isDesktop ? stickyTopOffset : undefined,
-                alignSelf: 'flex-start',
-              }}
-            >
-              {illustrationSrc && (
-                <>
-                  <IllustrationPreviewCard
-                    src={illustrationSrc}
-                    name={wyrm.name}
-                    accentColor={accent.primary}
-                    onExpand={() => setPreviewOpen(true)}
-                  />
-                  <IllustrationPreviewModal
-                    opened={previewOpen}
-                    onClose={() => setPreviewOpen(false)}
-                    entityName={wyrm.name}
-                    illustrations={[
-                      {
-                        name: wyrm.name,
-                        src: illustrationSrc,
-                        type: 'image',
-                      } satisfies Illustration,
-                    ]}
-                    tooltipProps={tooltipProps}
-                  />
-                </>
-              )}
+        <ErrorBoundary
+          scope="section"
+          name="wyrm details"
+          resetKeys={[wyrm.slug]}
+        >
+          <Grid gap="xl">
+            {/* Left column — portrait + star upgrades */}
+            <Grid.Col span={{ base: 12, md: 4 }}>
+              <Stack
+                gap="md"
+                style={{
+                  position: isDesktop ? 'sticky' : 'static',
+                  top: isDesktop ? stickyTopOffset : undefined,
+                  alignSelf: 'flex-start',
+                }}
+              >
+                {illustrationSrc && (
+                  <>
+                    <IllustrationPreviewCard
+                      src={illustrationSrc}
+                      name={wyrm.name}
+                      accentColor={accent.primary}
+                      onExpand={() => setPreviewOpen(true)}
+                    />
+                    <IllustrationPreviewModal
+                      opened={previewOpen}
+                      onClose={() => setPreviewOpen(false)}
+                      entityName={wyrm.name}
+                      illustrations={[
+                        {
+                          name: wyrm.name,
+                          src: illustrationSrc,
+                          type: 'image',
+                        } satisfies Illustration,
+                      ]}
+                      tooltipProps={tooltipProps}
+                    />
+                  </>
+                )}
 
-              <StarUpgradesTable wyrm={wyrm} statusEffects={statusEffects} />
-            </Stack>
-          </Grid.Col>
+                <StarUpgradesTable wyrm={wyrm} statusEffects={statusEffects} />
+              </Stack>
+            </Grid.Col>
 
-          {/* Right column — content */}
-          <Grid.Col span={{ base: 12, md: 8 }}>
-            <Stack gap="xl">
-              <EvolutionSection wyrm={wyrm} allWyrms={wyrms} isDark={isDark} />
+            {/* Right column — content */}
+            <Grid.Col span={{ base: 12, md: 8 }}>
+              <Stack gap="xl">
+                <EvolutionSection
+                  wyrm={wyrm}
+                  allWyrms={wyrms}
+                  isDark={isDark}
+                />
 
-              {wyrm.skills.length > 0 && (
-                <Stack gap="md">
-                  <Title order={2} size="h3">
-                    Skills
-                  </Title>
-                  <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-                    {wyrm.skills.map((skill, i) => (
-                      <SkillCard
-                        key={`${skill.name}-${i}`}
-                        wyrm={wyrm}
-                        skill={skill}
-                        statusEffects={statusEffects}
-                      />
-                    ))}
-                  </SimpleGrid>
-                </Stack>
-              )}
-            </Stack>
-          </Grid.Col>
-        </Grid>
+                {wyrm.skills.length > 0 && (
+                  <Stack gap="md">
+                    <Title order={2} size="h3">
+                      Skills
+                    </Title>
+                    <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+                      {wyrm.skills.map((skill, i) => (
+                        <SkillCard
+                          key={`${skill.name}-${i}`}
+                          wyrm={wyrm}
+                          skill={skill}
+                          statusEffects={statusEffects}
+                        />
+                      ))}
+                    </SimpleGrid>
+                  </Stack>
+                )}
+              </Stack>
+            </Grid.Col>
+          </Grid>
+        </ErrorBoundary>
 
         <ChangeHistory history={changesData[wyrm.slug]} />
 
-        <DetailPageNavigation
-          previousItem={
-            previousWyrm
-              ? {
-                  label: previousWyrm.name,
-                  path: `/wyrms/${previousWyrm.slug}`,
-                  iconSrc: getWyrmIcon(previousWyrm.slug),
-                }
-              : null
-          }
-          nextItem={
-            nextWyrm
-              ? {
-                  label: nextWyrm.name,
-                  path: `/wyrms/${nextWyrm.slug}`,
-                  iconSrc: getWyrmIcon(nextWyrm.slug),
-                }
-              : null
-          }
-        />
+        <DetailPageNavigation previousItem={previousItem} nextItem={nextItem} />
       </Container>
     </Box>
   );

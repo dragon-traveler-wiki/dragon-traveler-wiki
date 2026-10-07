@@ -1,3 +1,5 @@
+import TranslationNote from '@/components/common/TranslationNote';
+import ListPageHeader from '@/components/layout/ListPageHeader';
 import ResolvedHowlkinBadge from '@/components/ui/ResolvedHowlkinBadge';
 import ResourceBadge from '@/components/ui/ResourceBadge';
 import WyrmspellBadge from '@/components/ui/WyrmspellBadge';
@@ -5,8 +7,6 @@ import { StaticSurface } from '@/components/ui/Surface';
 import { getMinWidthStyle } from '@/constants/styles';
 import CharacterTag from '@/features/characters/components/CharacterTag';
 import {
-  Alert,
-  Anchor,
   Container,
   Group,
   ScrollArea,
@@ -15,7 +15,6 @@ import {
   Text,
   Title,
 } from '@mantine/core';
-import { IoInformationCircleOutline } from 'react-icons/io5';
 
 const FACTION_GIFTS: {
   faction: string;
@@ -189,33 +188,17 @@ function QA({ q, children }: { q: string; children: React.ReactNode }) {
 
 export default function BeginnerQA() {
   return (
-    <Container size="xl" py={{ base: 'lg', sm: 'xl' }}>
+    <Container size="md" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
-        <Stack gap={2}>
-          <Title order={1}>Beginner Q&amp;A</Title>
-          <Text size="sm" c="dimmed">
-            Fast answers for early progression, spending priorities, and event
-            planning.
-          </Text>
-        </Stack>
+        <ListPageHeader
+          title="Beginner Q&A"
+          description="Fast answers for early progression, spending priorities, and event planning."
+        />
 
-        <Alert
-          variant="light"
-          color="yellow"
-          title="Translation note"
-          icon={<IoInformationCircleOutline />}
-        >
-          This section is translated and adapted from a Chinese community guide
-          on GameKee:{' '}
-          <Anchor
-            href="https://www.gamekee.com/lhlr/670682.html"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            萌新Q&A / Beginner Q&A
-          </Anchor>
-          . Source terms may contain typos or naming differences.
-        </Alert>
+        <TranslationNote
+          sourceHref="https://www.gamekee.com/lhlr/670682.html"
+          sourceLabel="萌新Q&A / Beginner Q&A"
+        />
 
         <StaticSurface p="lg">
           <Stack gap="sm">
@@ -251,7 +234,7 @@ export default function BeginnerQA() {
               <CharacterTag slug="chiron_ssr" />,{' '}
               <CharacterTag slug="caligula_ssr" />, and{' '}
               <CharacterTag slug="herman_ssr" />.<br />
-              Note that this is just the reccommended order for F2P and new
+              Note that this is just the recommended order for F2P and new
               players; if you have a specific team composition in mind, you may
               want to prioritize different characters.
             </QA>
@@ -292,7 +275,7 @@ export default function BeginnerQA() {
               <br />• 1 <ResourceBadge slug="soul_elixir" /> (up to 3 if needed)
               <br />• 1 <ResourceBadge slug="legacy_dragon_crystal" /> (up to 5
               if needed)
-              <br />• 5-10 <ResourceBadge slug="golden_horn" /> (reccommended to
+              <br />• 5-10 <ResourceBadge slug="golden_horn" /> (recommended to
               stop buying after core artifacts are unlocked)
               <br />
               Save everything until the matching event starts. Buy ALL fate

@@ -21,7 +21,6 @@ import {
 import { useTeamDetailData } from '@/features/teams/hooks/use-team-detail-data';
 import { getSavedTeam, removeSavedTeam } from '@/features/teams/saved-teams';
 import type { Team } from '@/features/teams/types';
-import { toEntitySlug } from '@/utils/entity-slug';
 import { showErrorToast } from '@/utils/toast';
 import {
   exportTeamCompositionAsImage,
@@ -29,10 +28,6 @@ import {
 } from '@/features/teams/utils/team-page';
 import { TeamHeroSection } from '@/features/teams/components/TeamHeroSection';
 import TeamDetailContent from '@/features/teams/components/TeamDetailContent';
-
-function readSavedTeamBySlug(slug: string): Team | null {
-  return getSavedTeam(slug);
-}
 
 export default function SavedTeamPage() {
   const { teamSlug } = useParams<{ teamSlug: string }>();
@@ -47,13 +42,11 @@ export default function SavedTeamPage() {
   const exportRef = useRef<HTMLDivElement>(null);
 
   // Read team from localStorage
-  const [team, setTeam] = useState<Team | null>(() =>
-    readSavedTeamBySlug(slug),
-  );
+  const [team, setTeam] = useState<Team | null>(() => getSavedTeam(slug));
   const [loadedSlug, setLoadedSlug] = useState(slug);
   if (slug !== loadedSlug) {
     setLoadedSlug(slug);
-    setTeam(readSavedTeamBySlug(slug));
+    setTeam(getSavedTeam(slug));
   }
 
   const { data: characters, loading: loadingChars } = useCharacters();
@@ -112,7 +105,7 @@ export default function SavedTeamPage() {
 
   const handleDelete = () => {
     try {
-      removeSavedTeam(toEntitySlug(team.name));
+      removeSavedTeam(slug);
       navigate('/teams?mode=saved', { replace: true });
     } catch {
       showErrorToast({
@@ -123,7 +116,6 @@ export default function SavedTeamPage() {
   };
 
   const exportAsImage = async () => {
-    if (!team) return;
     setExporting(true);
     try {
       await exportTeamCompositionAsImage(exportRef, team.name, isDark);

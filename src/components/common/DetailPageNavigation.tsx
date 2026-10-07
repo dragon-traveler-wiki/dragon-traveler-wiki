@@ -39,7 +39,7 @@ export default function DetailPageNavigation({
                 {previousItem.iconSrc && (
                   <SafeImage
                     src={previousItem.iconSrc}
-                    alt={previousItem.label}
+                    alt=""
                     w={28}
                     h={28}
                     fit="contain"
@@ -53,8 +53,6 @@ export default function DetailPageNavigation({
         ) : (
           <Box style={{ flex: '1 1 220px' }} />
         )}
-
-        <Box />
 
         {nextItem ? (
           <Link
@@ -77,7 +75,7 @@ export default function DetailPageNavigation({
                 {nextItem.iconSrc && (
                   <SafeImage
                     src={nextItem.iconSrc}
-                    alt={nextItem.label}
+                    alt=""
                     w={28}
                     h={28}
                     fit="contain"

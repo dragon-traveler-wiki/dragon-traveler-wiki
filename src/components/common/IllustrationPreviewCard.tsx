@@ -28,6 +28,11 @@ export default function IllustrationPreviewCard({
 }: IllustrationPreviewCardProps) {
   const isDesktop = useMediaQuery(BREAKPOINTS.DESKTOP);
   const [failed, setFailed] = useState(false);
+  const [trackedSrc, setTrackedSrc] = useState(src);
+  if (src !== trackedSrc) {
+    setTrackedSrc(src);
+    setFailed(false);
+  }
 
   if (failed) return null;
 

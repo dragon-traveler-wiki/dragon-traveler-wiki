@@ -3,7 +3,6 @@ import {
   Anchor,
   Badge,
   Button,
-  Card,
   Container,
   Group,
   SegmentedControl,
@@ -11,7 +10,6 @@ import {
   Tabs,
   Text,
   Textarea,
-  Title,
 } from '@mantine/core';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router';
@@ -19,7 +17,10 @@ import {
   CommunityCardsLoading,
   ListRouteLoading,
 } from '@/components/layout/PageLoadingSkeleton';
+import ListPageHeader from '@/components/layout/ListPageHeader';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
+import DataFetchError from '@/components/ui/DataFetchError';
+import { StaticSurface } from '@/components/ui/Surface';
 import { getReports, resolveReport } from '@/features/community/api';
 import { useCommunityAuth } from '@/features/community/auth-context';
 import ModeratedItemsBrowser from '@/features/community/ModeratedItemsBrowser';
@@ -32,12 +33,12 @@ import {
 } from '@/features/community/report-status';
 import type { AdminReport } from '@/features/community/types';
 import SuspendUserModal from '@/features/community/SuspendUserModal';
-import { useGradientAccent } from '@/hooks';
+import { useGradientAccent, useTabParam } from '@/hooks';
 import { formatShortDate } from '@/utils/timestamps';
-import { errorMessage, runAction } from '@/features/community/run-action';
-import { showErrorToast } from '@/utils/toast';
+import { runAction, toError } from '@/features/community/run-action';
 
 type ReportFilter = 'open' | 'closed';
+type ReportAction = 'restore' | 'hide' | 'dismiss' | 'delete';
 
 function reportedItemPath(report: AdminReport): string {
   return report.kind === 'team'
@@ -58,9 +59,18 @@ export default function ModerationPage() {
   const { accent } = useGradientAccent();
   const [reports, setReports] = useState<AdminReport[]>([]);
   const [reportsLoaded, setReportsLoaded] = useState(false);
+  const [reportsError, setReportsError] = useState<Error | null>(null);
+  const [activeTab, setActiveTab] = useTabParam('tab', 'reports', [
+    'reports',
+    'browse',
+    'log',
+  ]);
   const [filter, setFilter] = useState<ReportFilter>('open');
   const [notes, setNotes] = useState<Record<string, string>>({});
-  const [actingId, setActingId] = useState<string | null>(null);
+  const [acting, setActing] = useState<{
+    id: string;
+    action: ReportAction;
+  } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const [suspendTarget, setSuspendTarget] = useState<{
     id: string;
@@ -69,18 +79,18 @@ export default function ModerationPage() {
 
   // Refetches in place: the list stays on screen (no spinner) so acting on a
   // report doesn't collapse the page and lose the scroll position.
+  const userId = user?.id;
+  const isModerator = user?.role === 'moderator';
   const load = useCallback(() => {
-    if (user?.role !== 'moderator') return;
+    if (!userId || !isModerator) return;
     getReports()
-      .then((result) => setReports(result.reports))
-      .catch((error: unknown) =>
-        showErrorToast({
-          title: 'Could not load reports',
-          message: errorMessage(error),
-        }),
-      )
+      .then((result) => {
+        setReports(result.reports);
+        setReportsError(null);
+      })
+      .catch((error: unknown) => setReportsError(toError(error)))
       .finally(() => setReportsLoaded(true));
-  }, [user]);
+  }, [userId, isModerator]);
   useEffect(() => {
     queueMicrotask(load);
   }, [load]);
@@ -95,9 +105,9 @@ export default function ModerationPage() {
   );
   const shown = filter === 'open' ? openReports : closedReports;
 
-  const act = async (id: string, action: string) => {
+  const act = async (id: string, action: ReportAction) => {
     if (!csrfToken) return;
-    setActingId(id);
+    setActing({ id, action });
     const result = await runAction(
       () => resolveReport(id, action, notes[id] ?? '', csrfToken),
       {
@@ -114,7 +124,7 @@ export default function ModerationPage() {
       load();
       void refresh();
     }
-    setActingId(null);
+    setActing(null);
   };
 
   if (loading)
@@ -123,20 +133,54 @@ export default function ModerationPage() {
         <CommunityCardsLoading kind="report" cards={3} />
       </ListRouteLoading>
     );
-  if (user?.role !== 'moderator')
+  if (!user)
     return (
       <Container size="sm" py={{ base: 'lg', sm: 'xl' }}>
-        <Alert color="red" variant="light" title="Access restricted">
-          Moderator access is required.
-        </Alert>
+        <Stack gap="md">
+          <ListPageHeader title="Moderation" />
+          <Alert
+            color={accent.primary}
+            variant="light"
+            title="Sign in required"
+          >
+            <Stack gap="sm" align="flex-start">
+              <Text size="sm">
+                Sign in with a moderator account to continue.
+              </Text>
+              <Button
+                component={Link}
+                to="/account"
+                size="xs"
+                color={accent.primary}
+              >
+                Sign in
+              </Button>
+            </Stack>
+          </Alert>
+        </Stack>
+      </Container>
+    );
+  if (!isModerator)
+    return (
+      <Container size="sm" py={{ base: 'lg', sm: 'xl' }}>
+        <Stack gap="md">
+          <ListPageHeader title="Moderation" />
+          <Alert color="red" variant="light" title="Access restricted">
+            Moderator access is required.
+          </Alert>
+        </Stack>
       </Container>
     );
 
   const renderReport = (report: AdminReport) => {
     const status = REPORT_STATUS_DISPLAY[report.status];
     const isOpen = report.status === 'open';
+    const actionProps = (action: ReportAction) => ({
+      loading: acting?.id === report.id && acting.action === action,
+      disabled: acting !== null,
+    });
     return (
-      <Card withBorder>
+      <StaticSurface p="md">
         <Stack gap="xs">
           <Group justify="space-between" wrap="wrap">
             <Anchor
@@ -195,8 +239,7 @@ export default function ModerationPage() {
                     size="xs"
                     variant="light"
                     color="teal"
-                    loading={actingId === report.id}
-                    disabled={actingId !== null}
+                    {...actionProps('restore')}
                     onClick={() => void act(report.id, 'restore')}
                   >
                     Restore
@@ -206,8 +249,7 @@ export default function ModerationPage() {
                     size="xs"
                     variant="light"
                     color="orange"
-                    loading={actingId === report.id}
-                    disabled={actingId !== null}
+                    {...actionProps('hide')}
                     onClick={() => void act(report.id, 'hide')}
                   >
                     Hide
@@ -217,8 +259,7 @@ export default function ModerationPage() {
                   size="xs"
                   variant="light"
                   color="gray"
-                  loading={actingId === report.id}
-                  disabled={actingId !== null}
+                  {...actionProps('dismiss')}
                   onClick={() => void act(report.id, 'dismiss')}
                 >
                   Dismiss
@@ -227,8 +268,7 @@ export default function ModerationPage() {
                   size="xs"
                   variant="light"
                   color="red"
-                  loading={actingId === report.id}
-                  disabled={actingId !== null}
+                  {...actionProps('delete')}
                   onClick={() => setPendingDelete(report.id)}
                 >
                   Delete
@@ -237,7 +277,7 @@ export default function ModerationPage() {
                   size="xs"
                   variant="outline"
                   color="red"
-                  disabled={actingId !== null}
+                  disabled={acting !== null}
                   onClick={() =>
                     setSuspendTarget({
                       id: report.author_id,
@@ -257,15 +297,15 @@ export default function ModerationPage() {
             )
           )}
         </Stack>
-      </Card>
+      </StaticSurface>
     );
   };
 
   return (
     <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
-        <Title order={1}>Moderation</Title>
-        <Tabs defaultValue="reports">
+        <ListPageHeader title="Moderation" />
+        <Tabs value={activeTab} onChange={setActiveTab}>
           <Tabs.List>
             <Tabs.Tab
               value="reports"
@@ -297,25 +337,34 @@ export default function ModerationPage() {
                 ]}
                 style={{ alignSelf: 'flex-start' }}
               />
+              {reportsError && (
+                <DataFetchError
+                  title="Could not load reports"
+                  message={reportsError.message}
+                  onRetry={load}
+                />
+              )}
               {!reportsLoaded ? (
                 <CommunityCardsLoading kind="report" cards={3} />
               ) : (
-                <PagedGrid
-                  items={shown}
-                  getKey={(report) => report.id}
-                  renderItem={renderReport}
-                  emptyMessage={
-                    filter === 'open'
-                      ? 'No open reports.'
-                      : 'No closed reports.'
-                  }
-                  storageKey={`moderation-reports-${filter}`}
-                  cols={{ base: 1 }}
-                />
+                !(reportsError && reports.length === 0) && (
+                  <PagedGrid
+                    items={shown}
+                    getKey={(report) => report.id}
+                    renderItem={renderReport}
+                    emptyMessage={
+                      filter === 'open'
+                        ? 'No open reports.'
+                        : 'No closed reports.'
+                    }
+                    storageKey={`moderation-reports-${filter}`}
+                    cols={{ base: 1 }}
+                  />
+                )
               )}
             </Stack>
           </Tabs.Panel>
-          <Tabs.Panel value="browse" pt="md">
+          <Tabs.Panel value="browse" pt="md" keepMounted={false}>
             <ModeratedItemsBrowser
               onChanged={() => {
                 load();

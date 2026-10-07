@@ -24,6 +24,25 @@ export function writeStoredJson<T>(storageKey: string, value: T): boolean {
   }
 }
 
+export function readStoredString(storageKey: string, fallback = ''): string {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    return window.localStorage.getItem(storageKey) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+export function writeStoredString(storageKey: string, value: string): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    window.localStorage.setItem(storageKey, value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function readStoredStringSet(storageKey: string): Set<string> {
   const values = readStoredJson(
     storageKey,

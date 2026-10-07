@@ -3,9 +3,12 @@ import { getNoblePhantasmIcon } from '@/assets';
 import ChangeHistory from '@/components/common/ChangeHistory';
 import DetailPageHero from '@/components/common/DetailPageHero';
 import DetailPageNavigation from '@/components/common/DetailPageNavigation';
+import DetailPageTitle from '@/components/common/DetailPageTitle';
 import LastUpdated from '@/components/common/LastUpdated';
 import { DetailPageLoading } from '@/components/layout/PageLoadingSkeleton';
+import DataFetchError from '@/components/ui/DataFetchError';
 import EntityNotFound from '@/components/ui/EntityNotFound';
+import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import EmptyState from '@/components/ui/EmptyState';
 import { StaticSurface } from '@/components/ui/Surface';
 import { getHeroIconBoxStyles } from '@/constants/detail-styles';
@@ -21,7 +24,7 @@ import {
   useNoblePhantasms,
   useStatusEffects,
 } from '@/features/wiki/hooks/use-wiki-data';
-import { useDarkMode, useGradientAccent } from '@/hooks';
+import { useAdjacentItems, useDarkMode, useGradientAccent } from '@/hooks';
 import {
   findEntityByParam,
   shouldRedirectToEntitySlug,
@@ -37,7 +40,7 @@ export default function NoblePhantasmPage() {
   const { accent } = useGradientAccent();
   const isDark = useDarkMode();
 
-  const { data: noblePhantasms, loading } = useNoblePhantasms();
+  const { data: noblePhantasms, loading, error, retry } = useNoblePhantasms();
   const { data: characters } = useCharacters();
   const { data: statusEffects } = useStatusEffects();
   const { data: changesData } = useNoblePhantasmChanges();
@@ -70,22 +73,15 @@ export default function NoblePhantasmPage() {
     [noblePhantasms],
   );
 
-  const noblePhantasmIndex = useMemo(() => {
-    if (!noblePhantasm) return -1;
-    return orderedNoblePhantasms.findIndex(
-      (entry) => entry.slug === noblePhantasm.slug,
-    );
-  }, [noblePhantasm, orderedNoblePhantasms]);
-
-  const previousNoblePhantasm =
-    noblePhantasmIndex > 0
-      ? orderedNoblePhantasms[noblePhantasmIndex - 1]
-      : null;
-  const nextNoblePhantasm =
-    noblePhantasmIndex >= 0 &&
-    noblePhantasmIndex < orderedNoblePhantasms.length - 1
-      ? orderedNoblePhantasms[noblePhantasmIndex + 1]
-      : null;
+  const { previousItem, nextItem } = useAdjacentItems(
+    orderedNoblePhantasms,
+    noblePhantasm,
+    (entry) => ({
+      label: entry.name,
+      path: `/noble-phantasms/${entry.slug}`,
+      iconSrc: getNoblePhantasmIcon(entry.slug),
+    }),
+  );
 
   const linkedCharacter = useMemo(() => {
     if (!noblePhantasm?.character_slug) return null;
@@ -96,6 +92,18 @@ export default function NoblePhantasmPage() {
 
   if (loading) {
     return <DetailPageLoading />;
+  }
+
+  if (error) {
+    return (
+      <Container size="lg" py="xl">
+        <DataFetchError
+          title="Could not load noble phantasms"
+          message={error.message}
+          onRetry={retry}
+        />
+      </Container>
+    );
   }
 
   if (!noblePhantasm) {
@@ -139,17 +147,10 @@ export default function NoblePhantasmPage() {
 
           <Stack gap={6} style={{ flex: 1 }}>
             <Group gap="sm" align="center" wrap="wrap">
-              <Title
-                order={1}
-                c={isDark ? 'white' : 'dark'}
-                fz={{ base: '1.5rem', sm: '2.125rem' }}
-                style={{ lineHeight: 1.2, wordBreak: 'break-word' }}
-              >
-                {noblePhantasm.name}
-              </Title>
+              <DetailPageTitle>{noblePhantasm.name}</DetailPageTitle>
               <QualityIcon quality={noblePhantasm.quality} size={32} />
             </Group>
-            <LastUpdated timestamp={noblePhantasm.last_updated ?? 0} />
+            <LastUpdated timestamp={noblePhantasm.last_updated} />
 
             {linkedCharacter && (
               <Group gap="sm" mt={4}>
@@ -165,45 +166,51 @@ export default function NoblePhantasmPage() {
       </DetailPageHero>
 
       <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
-        <Stack gap="xl">
-          {noblePhantasm.effects.length === 0 &&
-            noblePhantasm.skills.length === 0 && (
-              <StaticSurface p="xl" radius="lg">
-                <EmptyState
-                  icon={<IoHourglassOutline size={32} />}
-                  title="Noble Phantasm information coming soon"
-                  description="This preview currently includes the available artwork and basic details. Effects and skill progression will be added when they become available."
+        <ErrorBoundary
+          scope="section"
+          name="noble phantasm details"
+          resetKeys={[noblePhantasm.slug]}
+        >
+          <Stack gap="xl">
+            {noblePhantasm.effects.length === 0 &&
+              noblePhantasm.skills.length === 0 && (
+                <StaticSurface p="xl" radius="lg">
+                  <EmptyState
+                    icon={<IoHourglassOutline size={32} />}
+                    title="Noble Phantasm information coming soon"
+                    description="This preview currently includes the available artwork and basic details. Effects and skill progression will be added when they become available."
+                  />
+                </StaticSurface>
+              )}
+            {noblePhantasm.effects.length > 0 && (
+              <Stack gap="md">
+                <Title order={2} size="h3">
+                  Effects
+                </Title>
+                <EffectTable
+                  effects={noblePhantasm.effects}
+                  statusEffects={statusEffects}
+                  skills={linkedCharacter?.skills}
+                  talent={linkedCharacter?.talent}
                 />
-              </StaticSurface>
+              </Stack>
             )}
-          {noblePhantasm.effects.length > 0 && (
-            <Stack gap="md">
-              <Title order={2} size="h3">
-                Effects
-              </Title>
-              <EffectTable
-                effects={noblePhantasm.effects}
-                statusEffects={statusEffects}
-                skills={linkedCharacter?.skills}
-                talent={linkedCharacter?.talent}
-              />
-            </Stack>
-          )}
 
-          {noblePhantasm.skills.length > 0 && (
-            <Stack gap="md">
-              <Title order={2} size="h3">
-                Skill Progression
-              </Title>
-              <SkillTable
-                skills={noblePhantasm.skills}
-                statusEffects={statusEffects}
-                characterSkills={linkedCharacter?.skills}
-                talent={linkedCharacter?.talent}
-              />
-            </Stack>
-          )}
-        </Stack>
+            {noblePhantasm.skills.length > 0 && (
+              <Stack gap="md">
+                <Title order={2} size="h3">
+                  Skill Progression
+                </Title>
+                <SkillTable
+                  skills={noblePhantasm.skills}
+                  statusEffects={statusEffects}
+                  characterSkills={linkedCharacter?.skills}
+                  talent={linkedCharacter?.talent}
+                />
+              </Stack>
+            )}
+          </Stack>
+        </ErrorBoundary>
 
         <ChangeHistory
           history={
@@ -214,26 +221,7 @@ export default function NoblePhantasmPage() {
           }
         />
 
-        <DetailPageNavigation
-          previousItem={
-            previousNoblePhantasm
-              ? {
-                  label: previousNoblePhantasm.name,
-                  path: `/noble-phantasms/${previousNoblePhantasm.slug}`,
-                  iconSrc: getNoblePhantasmIcon(previousNoblePhantasm.slug),
-                }
-              : null
-          }
-          nextItem={
-            nextNoblePhantasm
-              ? {
-                  label: nextNoblePhantasm.name,
-                  path: `/noble-phantasms/${nextNoblePhantasm.slug}`,
-                  iconSrc: getNoblePhantasmIcon(nextNoblePhantasm.slug),
-                }
-              : null
-          }
-        />
+        <DetailPageNavigation previousItem={previousItem} nextItem={nextItem} />
       </Container>
     </Box>
   );

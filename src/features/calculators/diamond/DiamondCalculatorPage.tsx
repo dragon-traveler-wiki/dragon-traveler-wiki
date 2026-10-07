@@ -1,3 +1,4 @@
+import ListPageHeader from '@/components/layout/ListPageHeader';
 import { StaticSurface } from '@/components/ui/Surface';
 import { parseNumberInput } from '@/utils';
 import {
@@ -17,7 +18,6 @@ import {
   SimpleGrid,
   Stack,
   Switch,
-  Text,
   Title,
 } from '@mantine/core';
 import { DateInput, type DateValue } from '@mantine/dates';
@@ -252,12 +252,10 @@ export default function DiamondCalculatorPage() {
   return (
     <Container size="xl" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
-        <Stack gap={2}>
-          <Title order={1}>Diamond Calculator</Title>
-          <Text size="sm" c="dimmed">
-            Estimate average gain, spend, runway, and projected balance by date.
-          </Text>
-        </Stack>
+        <ListPageHeader
+          title="Diamond Calculator"
+          description="Estimate average gain, spend, runway, and projected balance by date."
+        />
 
         <Alert
           variant="light"

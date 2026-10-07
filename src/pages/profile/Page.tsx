@@ -17,10 +17,12 @@ import {
 } from '@/components/layout/PageLoadingSkeleton';
 import CollapsibleSectionCard from '@/components/ui/CollapsibleSectionCard';
 import ConfirmActionModal from '@/components/ui/ConfirmActionModal';
+import DataFetchError from '@/components/ui/DataFetchError';
 import EntityNotFound from '@/components/ui/EntityNotFound';
 import { useCharacterResolution } from '@/features/characters/hooks/use-character-resolution';
 import { useCharacters } from '@/features/characters/hooks/use-characters-data';
 import {
+  CommunityApiError,
   getPublicProfile,
   setUserRole,
   unsuspendUser,
@@ -42,7 +44,7 @@ import TierListCard from '@/features/tier-list/components/TierListCard';
 import { useTierLists } from '@/features/tier-list/hooks/use-tier-list-data';
 import type { TierList } from '@/features/tier-list/types';
 import { getTierListRoutePath } from '@/features/tier-list/utils/tier-list-route';
-import { useGradientAccent } from '@/hooks';
+import { useGradientAccent, useTabParam } from '@/hooks';
 
 export default function ProfilePage() {
   const { userId } = useParams<{ userId: string }>();
@@ -50,7 +52,7 @@ export default function ProfilePage() {
   const { accent } = useGradientAccent();
   const { csrfToken } = useCommunityAuth();
   const [profile, setProfile] = useState<PublicProfile | null>(null);
-  const [profileError, setProfileError] = useState(false);
+  const [profileError, setProfileError] = useState<unknown>(null);
   const [profileVersion, setProfileVersion] = useState(0);
   const [suspendOpen, setSuspendOpen] = useState(false);
   const [confirmLiftOpen, setConfirmLiftOpen] = useState(false);
@@ -64,14 +66,14 @@ export default function ProfilePage() {
     if (!userId) return;
     let cancelled = false;
     queueMicrotask(() => {
-      if (!cancelled) setProfileError(false);
+      if (!cancelled) setProfileError(null);
     });
     getPublicProfile(userId)
       .then((result) => {
         if (!cancelled) setProfile(result.user);
       })
-      .catch(() => {
-        if (!cancelled) setProfileError(true);
+      .catch((reason: unknown) => {
+        if (!cancelled) setProfileError(reason);
       });
     return () => {
       cancelled = true;
@@ -112,6 +114,10 @@ export default function ProfilePage() {
   const { preferredByName: charMap, byIdentity: characterByIdentity } =
     useCharacterResolution(characters);
 
+  const [activeTab, setActiveTab] = useTabParam('tab', 'teams', [
+    'teams',
+    'tier-lists',
+  ]);
   const teams = useTeams({ owner: userId });
   const tierLists = useTierLists({ owner: userId });
 
@@ -126,12 +132,28 @@ export default function ProfilePage() {
   };
 
   if (profileError) {
+    if (
+      profileError instanceof CommunityApiError &&
+      profileError.status === 404
+    ) {
+      return (
+        <EntityNotFound
+          entityType="User"
+          backLabel="Back to Teams"
+          backPath="/teams"
+        />
+      );
+    }
     return (
-      <EntityNotFound
-        entityType="User"
-        backLabel="Back to Teams"
-        backPath="/teams"
-      />
+      <Container size="lg" py={{ base: 'lg', sm: 'xl' }}>
+        <DataFetchError
+          title="Could not load profile"
+          message={
+            profileError instanceof Error ? profileError.message : undefined
+          }
+          onRetry={() => setProfileVersion((version) => version + 1)}
+        />
+      </Container>
     );
   }
   if (!profile || profile.id !== userId) return <ProfilePageLoading />;
@@ -267,7 +289,7 @@ export default function ProfilePage() {
           </CollapsibleSectionCard>
         )}
 
-        <Tabs defaultValue="teams">
+        <Tabs value={activeTab} onChange={setActiveTab}>
           <Tabs.List>
             <Tabs.Tab
               value="teams"
@@ -287,33 +309,42 @@ export default function ProfilePage() {
               <CommunityCardsLoading kind="team" />
             ) : (
               <Stack gap="md">
-                <PagedGrid
-                  items={teams.data}
-                  getKey={(team) => team.community?.id ?? team.name}
-                  renderItem={(team) => (
-                    <TeamCard
-                      team={team}
-                      charMap={charMap}
-                      characterByIdentity={characterByIdentity}
-                      to={getTeamRoutePath(team)}
-                      actions={
-                        team.community ? (
-                          <CommunityActions
-                            community={team.community}
-                            onEdit={() => requestEditTeam(team)}
-                            onDeleted={teams.refresh}
-                          />
-                        ) : null
-                      }
-                    />
-                  )}
-                  emptyMessage="No published teams yet."
-                  storageKey="profile-teams"
-                  total={teams.total}
-                  hasMore={teams.hasMore}
-                  loadingMore={teams.loadingMore}
-                  onLoadMore={teams.loadMore}
-                />
+                {teams.error && (
+                  <DataFetchError
+                    title="Could not load teams"
+                    message={teams.error.message}
+                    onRetry={teams.retry}
+                  />
+                )}
+                {!(teams.error && teams.data.length === 0) && (
+                  <PagedGrid
+                    items={teams.data}
+                    getKey={(team) => team.community?.id ?? team.name}
+                    renderItem={(team) => (
+                      <TeamCard
+                        team={team}
+                        charMap={charMap}
+                        characterByIdentity={characterByIdentity}
+                        to={getTeamRoutePath(team)}
+                        actions={
+                          team.community ? (
+                            <CommunityActions
+                              community={team.community}
+                              onEdit={() => requestEditTeam(team)}
+                              onDeleted={teams.refresh}
+                            />
+                          ) : null
+                        }
+                      />
+                    )}
+                    emptyMessage="No published teams yet."
+                    storageKey="profile-teams"
+                    total={teams.total}
+                    hasMore={teams.hasMore}
+                    loadingMore={teams.loadingMore}
+                    onLoadMore={teams.loadMore}
+                  />
+                )}
               </Stack>
             )}
           </Tabs.Panel>
@@ -322,33 +353,44 @@ export default function ProfilePage() {
               <CommunityCardsLoading kind="tierList" />
             ) : (
               <Stack gap="md">
-                <PagedGrid
-                  items={tierLists.data}
-                  getKey={(tierList) => tierList.community?.id ?? tierList.name}
-                  renderItem={(tierList) => (
-                    <TierListCard
-                      tierList={tierList}
-                      charMap={charMap}
-                      characterByIdentity={characterByIdentity}
-                      to={getTierListRoutePath(tierList)}
-                      actions={
-                        tierList.community ? (
-                          <CommunityActions
-                            community={tierList.community}
-                            onEdit={() => requestEditTierList(tierList)}
-                            onDeleted={tierLists.refresh}
-                          />
-                        ) : null
-                      }
-                    />
-                  )}
-                  emptyMessage="No published tier lists yet."
-                  storageKey="profile-tier-lists"
-                  total={tierLists.total}
-                  hasMore={tierLists.hasMore}
-                  loadingMore={tierLists.loadingMore}
-                  onLoadMore={tierLists.loadMore}
-                />
+                {tierLists.error && (
+                  <DataFetchError
+                    title="Could not load tier lists"
+                    message={tierLists.error.message}
+                    onRetry={tierLists.retry}
+                  />
+                )}
+                {!(tierLists.error && tierLists.data.length === 0) && (
+                  <PagedGrid
+                    items={tierLists.data}
+                    getKey={(tierList) =>
+                      tierList.community?.id ?? tierList.name
+                    }
+                    renderItem={(tierList) => (
+                      <TierListCard
+                        tierList={tierList}
+                        charMap={charMap}
+                        characterByIdentity={characterByIdentity}
+                        to={getTierListRoutePath(tierList)}
+                        actions={
+                          tierList.community ? (
+                            <CommunityActions
+                              community={tierList.community}
+                              onEdit={() => requestEditTierList(tierList)}
+                              onDeleted={tierLists.refresh}
+                            />
+                          ) : null
+                        }
+                      />
+                    )}
+                    emptyMessage="No published tier lists yet."
+                    storageKey="profile-tier-lists"
+                    total={tierLists.total}
+                    hasMore={tierLists.hasMore}
+                    loadingMore={tierLists.loadingMore}
+                    onLoadMore={tierLists.loadMore}
+                  />
+                )}
               </Stack>
             )}
           </Tabs.Panel>

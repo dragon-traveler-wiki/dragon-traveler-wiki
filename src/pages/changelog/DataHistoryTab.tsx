@@ -18,6 +18,7 @@ import {
 } from '@/components/common/FilterControls';
 import { ListPageLoading } from '@/components/layout/PageLoadingSkeleton';
 import FilterPopoverButton from '@/components/layout/FilterPopoverButton';
+import DataFetchError from '@/components/ui/DataFetchError';
 import PaginationControl from '@/components/ui/PaginationControl';
 import { IMAGE_SIZE } from '@/constants/ui';
 import { useFilterPanel, useGradientAccent, usePageSize } from '@/hooks';
@@ -83,6 +84,11 @@ const SLUG_KEYED_FILES = new Set([
   'wyrmspells',
 ]);
 
+interface CategoryResult {
+  events: DataEvent[];
+  failed?: string;
+}
+
 const DATA_PAGE_SIZE = 15;
 const CHANGELOG_PAGE_SIZE_OPTIONS = [10, 20, 30, 50] as const;
 
@@ -139,6 +145,8 @@ export default function DataHistoryTab() {
   const { locale } = useContext(LocaleContext);
   const [events, setEvents] = useState<DataEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [failedCategories, setFailedCategories] = useState<string[]>([]);
+  const [reloadKey, setReloadKey] = useState(0);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const { isOpen: filterOpen, toggle: toggleFilter } = useFilterPanel();
   const {
@@ -154,13 +162,21 @@ export default function DataHistoryTab() {
     });
     const base = import.meta.env.BASE_URL ?? '/';
     Promise.all(
-      DATA_FILES.map(async ({ file, label }) => {
+      DATA_FILES.map(async ({ file, label }): Promise<CategoryResult> => {
         try {
           const [changesRes, nameMap] = await Promise.all([
             fetch(`${base}${changesPath(`${file}.json`, locale)}`),
             fetchSlugNameMap(base, file, locale),
           ]);
-          if (!changesRes.ok) return { events: [] as DataEvent[] };
+          // A missing changes file just means no history for that category.
+          // The dev server answers missing files with index.html instead of a 404.
+          if (
+            changesRes.status === 404 ||
+            changesRes.headers.get('content-type')?.includes('text/html')
+          ) {
+            return { events: [] };
+          }
+          if (!changesRes.ok) return { events: [], failed: label };
           const data: ChangesFile = await changesRes.json();
 
           const out: DataEvent[] = [];
@@ -187,7 +203,7 @@ export default function DataHistoryTab() {
           }
           return { events: out };
         } catch {
-          return { events: [] as DataEvent[] };
+          return { events: [], failed: label };
         }
       }),
     ).then((results) => {
@@ -196,13 +212,14 @@ export default function DataHistoryTab() {
         .flatMap((r) => r.events)
         .sort((a, b) => b.timestamp - a.timestamp);
       setEvents(all);
+      setFailedCategories(results.flatMap((r) => (r.failed ? [r.failed] : [])));
       setLoading(false);
     });
 
     return () => {
       isCancelled = true;
     };
-  }, [locale]);
+  }, [locale, reloadKey]);
 
   const filtered =
     selectedCategories.length === 0
@@ -255,7 +272,21 @@ export default function DataHistoryTab() {
 
   if (loading) return <ListPageLoading showPagination />;
 
+  const loadError =
+    failedCategories.length > 0 ? (
+      <DataFetchError
+        title="Could not load data history"
+        message={
+          events.length > 0
+            ? `Some categories failed to load: ${failedCategories.join(', ')}.`
+            : undefined
+        }
+        onRetry={() => setReloadKey((key) => key + 1)}
+      />
+    ) : null;
+
   if (events.length === 0) {
+    if (loadError) return loadError;
     return (
       <Text c="dimmed" ta="center" py="lg">
         No data change history available yet.
@@ -265,6 +296,8 @@ export default function DataHistoryTab() {
 
   return (
     <Stack gap="md">
+      {loadError}
+
       {/* Filter bar */}
       <Group justify="space-between" align="center" wrap="wrap" gap="xs">
         <Text size="sm" c="dimmed">

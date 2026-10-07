@@ -4,17 +4,12 @@ import QualityIcon from '@/components/ui/QualityIcon';
 import { QUALITY_COLOR } from '@/constants/quality';
 import { InteractiveSurface } from '@/components/ui/Surface';
 import { getWyrmIcon } from '@/assets';
-import type { Wyrm, WyrmPhase } from '@/features/wiki/wyrms/types';
+import { WYRM_PHASE_COLOR } from '@/constants/wyrm-colors';
+import type { Wyrm } from '@/features/wiki/wyrms/types';
 
 import { Badge, Group, Stack, Text, Title } from '@mantine/core';
 import { useMemo } from 'react';
 import { Link } from 'react-router';
-
-const WYRM_PHASE_COLOR: Record<WyrmPhase, string> = {
-  'Juvenile Phase': 'violet',
-  'Growth Phase': 'yellow',
-  'Final Phase': 'orange',
-};
 
 function EvolutionCard({
   label,

@@ -1,4 +1,5 @@
-﻿import SafeImage from '@/components/ui/SafeImage';
+import ListPageHeader from '@/components/layout/ListPageHeader';
+import SafeImage from '@/components/ui/SafeImage';
 import DataFetchError from '@/components/ui/DataFetchError';
 import { QUALITY_ICON_MAP } from '@/assets';
 import { parseNumberInput } from '@/utils';
@@ -139,13 +140,10 @@ export default function StarUpgradeCalculatorPage() {
   return (
     <Container size="xl" py={{ base: 'lg', sm: 'xl' }}>
       <Stack gap="lg">
-        <Stack gap={2}>
-          <Title order={1}>Star Upgrade Calculator</Title>
-          <Text size="sm" c="dimmed">
-            Plan your upgrade path, shard farming timeline, and required
-            resources.
-          </Text>
-        </Stack>
+        <ListPageHeader
+          title="Star Upgrade Calculator"
+          description="Plan your upgrade path, shard farming timeline, and required resources."
+        />
 
         <Alert
           variant="light"
