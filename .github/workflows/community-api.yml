@@ -1,8 +1,5 @@
 name: Community API
 
-permissions:
-  contents: read
-
 on:
   push:
     branches: [main]
@@ -16,19 +13,34 @@ on:
       - '.github/workflows/community-api.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   check:
+    concurrency:
+      group: community-api-check-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: community-api
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: 24
-      - run: npm ci
-      - run: npm run check
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: community-api/package-lock.json
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Check Worker
+        run: npm run check
 
   deploy:
     needs: check
@@ -39,15 +51,23 @@ jobs:
       group: community-api-deploy
       cancel-in-progress: false
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: community-api
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          node-version: 24
-      - run: npm ci
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: community-api/package-lock.json
+      - name: Install locked dependencies
+        run: npm ci
       - name: Apply D1 migrations
         run: npx wrangler d1 migrations apply dragon-traveler-community --remote
         env:

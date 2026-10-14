@@ -3,12 +3,23 @@ updates:
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: monthly
+      interval: weekly
+    # Packages that must be upgraded together are grouped for every update
+    # type; a lone major bump in these sets cannot install.
     groups:
-      # Safe to batch and merge together. Majors are deliberately excluded so
-      # they surface as their own individual PR instead of riding along in
-      # this bundle, where one incompatible package (e.g. a peer-dependency
-      # conflict) would otherwise block every update in the group.
+      vite:
+        patterns: ['vite', '@vitejs/*', 'vite-plugin-*']
+      eslint:
+        patterns:
+          ['eslint', '@eslint/*', 'eslint-plugin-*', 'typescript-eslint']
+      mantine:
+        patterns: ['@mantine/*', 'postcss-preset-mantine']
+      react:
+        patterns: ['react', 'react-dom', '@types/react', '@types/react-dom']
+      three:
+        patterns: ['three', '@types/three', '@react-three/*']
+      # Remaining minor and patch updates are batched. Other majors surface as
+      # their own PR so one incompatible package does not block the group.
       npm-dependencies:
         patterns: ['*']
         update-types: ['minor', 'patch']
@@ -22,7 +33,7 @@ updates:
   - package-ecosystem: npm
     directory: /community-api
     schedule:
-      interval: monthly
+      interval: weekly
     groups:
       community-api-dependencies:
         patterns: ['*']
@@ -31,7 +42,7 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: monthly
+      interval: weekly
     groups:
-      github-actions:
+      actions:
         patterns: ['*']
