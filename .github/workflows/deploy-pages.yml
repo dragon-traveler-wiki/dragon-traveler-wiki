@@ -1,0 +1,129 @@
+name: Deploy Pages
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+  repository_dispatch:
+    types: [data-updated]
+  workflow_dispatch:
+    inputs:
+      data_branch:
+        description: Branch of dragon-traveler-data to fetch
+        default: main
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name != 'workflow_run' ||
+       (github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == 'main' &&
+        github.event.workflow_run.conclusion == 'success'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      commit: ${{ steps.select.outputs.commit }}
+    steps:
+      - name: Select current main commit
+        id: select
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUILD_COMMIT: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          current=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')
+          if [ "$BUILD_COMMIT" != "$current" ]; then
+            echo "Skipping an older main commit."
+            exit 0
+          fi
+          echo "commit=$BUILD_COMMIT" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    if: needs.prepare.outputs.commit != ''
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prepare.outputs.commit }}
+          persist-credentials: false
+
+      - name: Check out private data
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: dragon-traveler-wiki/dragon-traveler-data
+          token: ${{ secrets.PAT }}
+          ref: ${{ inputs.data_branch || 'main' }}
+          path: private-data
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Validate production configuration
+        env:
+          R2_PUBLIC_URL: ${{ vars.R2_PUBLIC_URL }}
+          API_BASE_URL: ${{ vars.API_BASE_URL }}
+          TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
+        run: |
+          test -n "$R2_PUBLIC_URL"
+          test -n "$API_BASE_URL"
+          test -n "$TURNSTILE_SITE_KEY"
+          case "$R2_PUBLIC_URL" in https://*) ;; *) exit 1 ;; esac
+          case "$API_BASE_URL" in https://*) ;; *) exit 1 ;; esac
+
+      - name: Build
+        run: npm run build --ignore-scripts
+        env:
+          DATA_DIR: private-data/data
+          ASSETS_DIR: private-data/assets
+          VITE_APP_BASE: /
+          VITE_ASSETS_BASE: ${{ vars.R2_PUBLIC_URL }}
+          VITE_API_BASE_URL: ${{ vars.API_BASE_URL }}
+          VITE_TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
+          VITE_BUILD_ID: ${{ needs.prepare.outputs.commit }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+      - name: Copy data into the site
+        run: |
+          cp -r private-data/data dist/data
+          cp private-data/assets/manifest.json dist/assets/manifest.json
+
+      - name: Validate Pages artifact
+        env:
+          EXPECTED_BUILD_ID: ${{ needs.prepare.outputs.commit }}-${{ github.run_id }}-${{ github.run_attempt }}
+        run: npm run validate:pages
+
+      - name: Configure Pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: dist
+
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

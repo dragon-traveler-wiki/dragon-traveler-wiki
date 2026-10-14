@@ -11,6 +11,7 @@ permissions:
 jobs:
   process-suggestion:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: startsWith(github.event.issue.title, '[')
     concurrency:
       group: suggestion-process-${{ github.event.issue.number }}
@@ -18,7 +19,7 @@ jobs:
 
     steps:
       - name: Apply labels and check for duplicates
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const title = context.payload.issue.title;

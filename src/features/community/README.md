@@ -57,7 +57,7 @@ account and profile lists, with the shared page controls.
 
 - **Cards** (`TeamCard`, `TierListCard` in their features) use the stretched-link
   pattern: `CardTitle` is a real link whose `::after` covers the card, and anything
-  separately clickable opts in with `.dt-link-card__above` (see `src/README.md`).
+  separately clickable opts in with `.dt-link-card__above` (see [Clickable cards](../../../docs/development.md#clickable-cards)).
   Previews are laid out by `use-card-preview-layout.ts` and `components/ui/OverflowRow`.
 - **`CommunityActions`** — upvote, report, and owner edit/delete. Detail pages render
   it in pieces via its `show` prop (reactions beside the byline, delete with the page
