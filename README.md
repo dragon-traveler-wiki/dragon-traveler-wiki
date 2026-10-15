@@ -19,14 +19,14 @@ Open [dtwiki.org](https://dtwiki.org).
 Use Node.js 22.18 or newer and npm:
 
 ```sh
-git clone https://github.com/dragon-traveler-wiki/dragon-traveler-wiki.git
+git clone https://github.com/dtwiki/dragon-traveler-wiki.git
 cd dragon-traveler-wiki
 npm ci
 cp .env.example .env.local
 npm run dev
 ```
 
-The defaults in `.env.local` expect [dragon-traveler-data](https://github.com/dragon-traveler-wiki/dragon-traveler-data) cloned alongside this repository; edit `DATA_DIR` and `ASSETS_DIR` if your clone is elsewhere. Open `http://localhost:5173`. For a production build, run `npm run build`, then `npm run preview`.
+The defaults in `.env.local` expect [dragon-traveler-data](https://github.com/dtwiki/dragon-traveler-data) cloned alongside this repository; edit `DATA_DIR` and `ASSETS_DIR` if your clone is elsewhere. Open `http://localhost:5173`. For a production build, run `npm run build`, then `npm run preview`.
 
 ## Architecture
 
@@ -36,7 +36,7 @@ See [Development](docs/development.md#architecture) for the source layout, route
 
 ## Data source
 
-Game data comes from the private [dragon-traveler-data](https://github.com/dragon-traveler-wiki/dragon-traveler-data) pipeline. Deployment copies its `data/<locale>/*.json`, `data/global/*.json`, and `assets/manifest.json` into the site, and images and videos are served from Cloudflare R2. Data updates on its `main` branch redeploy the wiki automatically.
+Game data comes from the private [dragon-traveler-data](https://github.com/dtwiki/dragon-traveler-data) pipeline. Deployment copies its `data/<locale>/*.json`, `data/global/*.json`, and `assets/manifest.json` into the site, and images and videos are served from Cloudflare R2. Data updates on its `main` branch redeploy the wiki automatically.
 
 ## Documentation
 
@@ -47,7 +47,7 @@ Game data comes from the private [dragon-traveler-data](https://github.com/drago
 
 ## Contributing
 
-Follow the [organization contribution guide](https://github.com/dragon-traveler-wiki/.github/blob/main/CONTRIBUTING.md) and the [development guide](docs/development.md). Use a short-lived branch and a pull request into `main`. Content corrections can also be suggested from the site.
+Follow the [organization contribution guide](https://github.com/dtwiki/.github/blob/main/CONTRIBUTING.md) and the [development guide](docs/development.md). Use a short-lived branch and a pull request into `main`. Content corrections can also be suggested from the site.
 
 ## License
 

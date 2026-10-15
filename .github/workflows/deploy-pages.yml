@@ -68,7 +68,7 @@ jobs:
       - name: Check out private data
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          repository: dragon-traveler-wiki/dragon-traveler-data
+          repository: dtwiki/dragon-traveler-data
           token: ${{ secrets.PAT }}
           ref: ${{ inputs.data_branch || 'main' }}
           path: private-data

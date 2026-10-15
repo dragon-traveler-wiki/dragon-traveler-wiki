@@ -1,6 +1,6 @@
 # Development
 
-See the [README](../README.md) for quick start and documentation links. General contribution policy lives in the [organization guide](https://github.com/dragon-traveler-wiki/.github/blob/main/CONTRIBUTING.md).
+See the [README](../README.md) for quick start and documentation links. General contribution policy lives in the [organization guide](https://github.com/dtwiki/.github/blob/main/CONTRIBUTING.md).
 
 ## Setup and checks
 
@@ -16,7 +16,7 @@ Use `npm run dev` for development (`http://localhost:5173`) and `npm run preview
 
 ### Local data
 
-The dev server and production build read data from `DATA_DIR` and assets from `ASSETS_DIR`. Copy `.env.example` to `.env.local`; its defaults expect [dragon-traveler-data](https://github.com/dragon-traveler-wiki/dragon-traveler-data) cloned alongside this repository. Repository-relative paths are resolved from the repository root, and shell or CI variables take precedence over env files.
+The dev server and production build read data from `DATA_DIR` and assets from `ASSETS_DIR`. Copy `.env.example` to `.env.local`; its defaults expect [dragon-traveler-data](https://github.com/dtwiki/dragon-traveler-data) cloned alongside this repository. Repository-relative paths are resolved from the repository root, and shell or CI variables take precedence over env files.
 
 ### Community API
 

@@ -39,8 +39,16 @@ interface CharacterPortraitProps {
 }
 
 const CORNER_BADGE_BY_KIND = {
-  new: { label: 'New', color: 'var(--mantine-color-green-6)' },
-  updated: { label: 'Updated', color: 'var(--mantine-color-blue-6)' },
+  new: {
+    label: 'New',
+    accessibleLabel: 'New',
+    color: 'var(--mantine-color-green-6)',
+  },
+  updated: {
+    label: 'Upd.',
+    accessibleLabel: 'Updated',
+    color: 'var(--mantine-color-blue-6)',
+  },
 } as const;
 
 function CornerBadge({
@@ -50,7 +58,7 @@ function CornerBadge({
   kind: keyof typeof CORNER_BADGE_BY_KIND;
   size: number;
 }) {
-  const { label, color } = CORNER_BADGE_BY_KIND[kind];
+  const { label, accessibleLabel, color } = CORNER_BADGE_BY_KIND[kind];
 
   // Scale font and padding with portrait size
   const fontSize = Math.max(9, Math.round(size * 0.12));
@@ -63,6 +71,7 @@ function CornerBadge({
 
   return (
     <span
+      aria-label={accessibleLabel}
       style={{
         position: 'absolute',
         top: edge,
